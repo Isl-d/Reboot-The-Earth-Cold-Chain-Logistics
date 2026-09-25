@@ -24,6 +24,7 @@ import {
   type ProvenanceKind,
   type StatusTier,
 } from '@/design'
+import DataLayerDebug from './DataLayerDebug'
 
 const STATUS_TIERS: StatusTier[] = ['safe', 'warning', 'critical', 'offline']
 const PROVENANCE_KINDS: ProvenanceKind[] = ['measured', 'calculated', 'predicted', 'recommended', 'finance']
@@ -212,6 +213,12 @@ export default function StyleGuideScreen() {
         <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="Critical incident">
           <p className="text-body-md text-navy">Truck T-102 — temperature 7.4°C, safe threshold 4°C.</p>
         </Modal>
+      </Section>
+
+      <Section title="Data layer (Segment 2 smoke test)">
+        <div className="w-full">
+          <DataLayerDebug />
+        </div>
       </Section>
     </div>
   )
