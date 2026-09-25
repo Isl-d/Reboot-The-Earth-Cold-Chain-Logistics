@@ -73,13 +73,26 @@ export default function OptimizationScreen() {
         },
         {
           label: 'Quantity ≤ capacity',
-          ok: quantityKg !== undefined ? quantityKg <= selected.capacityKg : undefined,
-          detail: quantityKg !== undefined ? `${quantityKg} kg ≤ ${selected.capacityKg} kg` : `${selected.capacityKg} kg capacity`,
+          ok:
+            quantityKg !== undefined && selected.capacityKg !== undefined
+              ? quantityKg <= selected.capacityKg
+              : undefined,
+          detail:
+            selected.capacityKg !== undefined
+              ? quantityKg !== undefined
+                ? `${quantityKg} kg ≤ ${selected.capacityKg} kg`
+                : `${selected.capacityKg} kg capacity`
+              : 'Capacity not reported',
         },
         {
           label: 'Storage temperature compatible',
           ok: selected.temperatureCompatible,
-          detail: selected.temperatureCompatible ? 'Compatible' : 'Not compatible',
+          detail:
+            selected.temperatureCompatible === undefined
+              ? 'Compatibility not reported'
+              : selected.temperatureCompatible
+              ? 'Compatible'
+              : 'Not compatible',
         },
         {
           label: 'Route feasible',
@@ -156,9 +169,13 @@ export default function OptimizationScreen() {
                       </span>
                     </Td>
                     <Td numeric>{c.etaMinutes} min</Td>
-                    <Td numeric>{c.capacityKg} kg</Td>
+                    <Td numeric>{c.capacityKg !== undefined ? `${c.capacityKg} kg` : '—'}</Td>
                     <Td>
-                      <StatusChip tier={c.temperatureCompatible ? 'safe' : 'critical'} label={c.temperatureCompatible ? 'Yes' : 'No'} />
+                      {c.temperatureCompatible === undefined ? (
+                        <StatusChip tier="offline" label="N/A" />
+                      ) : (
+                        <StatusChip tier={c.temperatureCompatible ? 'safe' : 'critical'} label={c.temperatureCompatible ? 'Yes' : 'No'} />
+                      )}
                     </Td>
                     <Td numeric>{c.expectedLossPercent.toFixed(1)}%</Td>
                     <Td numeric>QAR {c.transportCost.toLocaleString()}</Td>

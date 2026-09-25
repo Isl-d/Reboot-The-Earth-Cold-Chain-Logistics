@@ -31,7 +31,19 @@ def _current(session, truck: Truck) -> dict:
         select(Incident.id).where(Incident.truck_id == truck.id, Incident.status == "OPEN").limit(1)
     ).first()
 
+    # Resolve batch/product info for SimTruckOptionDto fields
+    batch_id = truck.current_batch_id
+    product_name: str | None = None
+    quantity_kg: float | None = None
+    if batch_id:
+        batch = session.get(ProductBatch, batch_id)
+        if batch:
+            quantity_kg = batch.quantity_kg
+            product = session.get(Product, batch.product_id)
+            product_name = product.name if product else batch.product_id
+
     return {
+        # Original fields (backward compat for Person 1)
         "id": truck.id,
         "name": truck.name,
         "latitude": (reading or {}).get("latitude"),
@@ -46,14 +58,20 @@ def _current(session, truck: Truck) -> dict:
         "riskLevel": risk_level,
         "activeIncident": active is not None,
         "lastUpdated": (reading or {}).get("timestamp"),
+        # SimTruckOptionDto fields
+        "truckId": truck.id,
+        "label": truck.name,
+        "batchId": batch_id,
+        "product": product_name,
+        "quantityKg": quantity_kg,
     }
 
 
 @router.get("")
-def list_trucks() -> dict:
+def list_trucks() -> list[dict]:
     with session_scope() as session:
         trucks = session.execute(select(Truck).order_by(Truck.id)).scalars().all()
-        return {"trucks": [_current(session, t) for t in trucks]}
+        return [_current(session, t) for t in trucks]
 
 
 @router.get("/{truck_id}")

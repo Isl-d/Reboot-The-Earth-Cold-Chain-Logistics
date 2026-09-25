@@ -61,12 +61,19 @@ export interface SpoilagePredictionDto {
 
 export interface OptimizationCandidateDto {
   warehouseId: string
+  name?: string
+  distanceKm?: number
   etaMinutes: number
-  capacityKg: number
-  temperatureCompatible: boolean
   expectedLossPercent: number
   transportCost: number
+  foodLossCost?: number
+  delayCost?: number
+  objective?: number
   feasible: boolean
+  infeasibleReason?: string | null
+  // Legacy fields — may be absent from real backend
+  capacityKg?: number
+  temperatureCompatible?: boolean
 }
 
 export interface OptimizationResultDto {
@@ -139,7 +146,8 @@ export interface TelemetrySampleDto {
   /** ISO 8601 timestamp. */
   timestamp: string
   temperatureC: number
-  humidityPercent: number
+  /** Backend sends `humidityPct` (not `humidityPercent`). */
+  humidityPct: number
   doorOpen: boolean
 }
 

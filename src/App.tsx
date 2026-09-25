@@ -11,6 +11,7 @@ const OptimizationScreen = lazy(() => import('./screens/optimization/Optimizatio
 const AnalyticsScreen = lazy(() => import('./screens/analytics/AnalyticsScreen'))
 const InventoryScreen = lazy(() => import('./screens/inventory/InventoryScreen'))
 const ComparisonScreen = lazy(() => import('./screens/comparison/ComparisonScreen'))
+const MapScreen = lazy(() => import('./screens/map/MapScreen'))
 const StyleGuideScreen = lazy(() => import('./screens/styleguide/StyleGuideScreen'))
 
 const isDev = import.meta.env.DEV
@@ -26,6 +27,7 @@ export default function App() {
         <Route path="/analytics" element={<AnalyticsScreen />} />
         <Route path="/inventory" element={<InventoryScreen />} />
         <Route path="/comparison" element={<ComparisonScreen />} />
+        <Route path="/map" element={<MapScreen />} />
         {isDev && <Route path="/styleguide" element={<StyleGuideScreen />} />}
         <Route path="*" element={<Navigate to="/simulation" replace />} />
       </Route>

@@ -118,7 +118,7 @@ export async function fetchSpoilagePrediction(truckId: string): Promise<Spoilage
 export async function fetchOptimizationCandidates(truckId: string, batchId: string): Promise<OptimizationResult> {
   const dto = USE_MOCKS
     ? await mock.getOptimizationCandidates(truckId, batchId)
-    : (await apiClient.get<OptimizationResultDto>(endpoints.optimizationCandidates(truckId, batchId))).data
+    : (await apiClient.get<OptimizationResultDto>(endpoints.optimizationCandidates(batchId))).data
   return adaptOptimizationResult(dto)
 }
 
@@ -170,4 +170,27 @@ export async function fetchScenarioComparison(scenario: ScenarioId): Promise<Sce
     ? await mock.getScenarioComparison(scenario)
     : (await apiClient.get<ScenarioComparisonDto>(endpoints.scenarioComparison(scenario))).data
   return adaptScenarioComparison(dto)
+}
+
+// ---- GIS / Fleet map --------------------------------------------------------
+
+export async function fetchRoutesGeoJson(): Promise<GeoJSON.FeatureCollection> {
+  if (USE_MOCKS) return mock.getRoutesGeoJson()
+  return (await apiClient.get<GeoJSON.FeatureCollection>(endpoints.routesGeoJson)).data
+}
+
+export interface TruckPositionDto {
+  truckId: string
+  name: string
+  lat: number
+  lon: number
+  temperatureC?: number
+  speedKmh?: number
+  risk?: string
+  product?: string
+}
+
+export async function fetchAllTruckPositions(): Promise<TruckPositionDto[]> {
+  if (USE_MOCKS) return mock.getAllTruckPositions()
+  return (await apiClient.get<TruckPositionDto[]>(endpoints.trucks)).data
 }

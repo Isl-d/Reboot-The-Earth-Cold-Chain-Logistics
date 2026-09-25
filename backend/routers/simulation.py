@@ -9,12 +9,12 @@ import datetime as dt
 import uuid
 
 from fastapi import APIRouter, Body, HTTPException
-from sqlalchemy import update
+from sqlalchemy import select, update
 
 from ..config import settings
 from ..db import session_scope
 from ..ingest.consumer import pipeline
-from ..models import SimulationRun
+from ..models import SimulationRun, Truck
 from ..processing import tracker
 
 router = APIRouter(prefix="/api/simulation", tags=["simulation"])
@@ -45,9 +45,14 @@ def _publish(truck_id: str | None, message: dict) -> bool:
 def start(body: dict | None = Body(default=None)) -> dict:
     body = body or {}
     truck_id = body.get("truckId")
-    _publish(truck_id, {"scenario": "NORMAL", "paused": False})
-    run_id = _record(truck_id, "NORMAL", body.get("speedMultiplier", 1.0))
-    return {"status": "started", "runId": run_id, "truckId": truck_id}
+    scenario = str(body.get("scenario", "NORMAL")).upper()
+    speed = float(body.get("speedMultiplier", 1.0))
+    if scenario not in ALLOWED_SCENARIOS:
+        scenario = "NORMAL"
+    _publish(truck_id, {"scenario": scenario, "speedMultiplier": speed, "paused": False})
+    run_id = _record(truck_id, scenario, speed)
+    return {"status": "started", "runId": run_id, "truckId": truck_id,
+            "scenario": scenario, "speedMultiplier": speed}
 
 
 @router.post("/stop")
@@ -93,3 +98,52 @@ def scenario(body: dict = Body(...)) -> dict:
     run_id = _record(truck_id, name, speed)
     return {"status": "accepted", "runId": run_id, "truckId": truck_id,
             "scenario": name, "published": published}
+
+
+def _simulation_state(truck_id: str) -> dict:
+    """Return the SimulationStateDto for a given truck_id."""
+    with session_scope() as session:
+        run = session.execute(
+            select(SimulationRun)
+            .where(SimulationRun.truck_id == truck_id)
+            .order_by(SimulationRun.started_at.desc())
+            .limit(1)
+        ).scalar_one_or_none()
+
+        truck = session.get(Truck, truck_id)
+        batch_id = truck.current_batch_id if truck else None
+
+    if run is None:
+        return {
+            "truckId": truck_id,
+            "batchId": batch_id,
+            "scenario": "NORMAL",
+            "speedMultiplier": 1.0,
+            "running": False,
+            "startedAt": None,
+        }
+
+    started = run.started_at
+    if started is not None and started.tzinfo is None:
+        started = started.replace(tzinfo=dt.timezone.utc)
+
+    return {
+        "truckId": truck_id,
+        "batchId": batch_id,
+        "scenario": run.scenario,
+        "speedMultiplier": run.speed_multiplier,
+        "running": run.status == "running",
+        "startedAt": started.strftime("%Y-%m-%dT%H:%M:%SZ") if started else None,
+    }
+
+
+@router.get("/state/{truck_id}")
+def get_simulation_state(truck_id: str) -> dict:
+    return _simulation_state(truck_id)
+
+
+# NOTE: this /{truck_id} catch-all MUST remain last to avoid shadowing the
+# fixed-path routes above (/start, /stop, /reset, /scenario, /state/{truck_id}).
+@router.get("/{truck_id}")
+def get_simulation_by_truck(truck_id: str) -> dict:
+    return _simulation_state(truck_id)

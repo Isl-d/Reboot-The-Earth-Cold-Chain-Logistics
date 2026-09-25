@@ -7,12 +7,19 @@ function adaptCandidate(dto: OptimizationCandidateDto, selectedWarehouseId: stri
   const warehouseId = expectString(resource, 'warehouseId', dto.warehouseId)
   return {
     warehouseId,
+    name: typeof dto.name === 'string' ? dto.name : undefined,
+    distanceKm: typeof dto.distanceKm === 'number' ? dto.distanceKm : undefined,
     etaMinutes: expectNumber(resource, 'etaMinutes', dto.etaMinutes),
-    capacityKg: expectNumber(resource, 'capacityKg', dto.capacityKg),
-    temperatureCompatible: expectBoolean(resource, 'temperatureCompatible', dto.temperatureCompatible),
     expectedLossPercent: expectNumber(resource, 'expectedLossPercent', dto.expectedLossPercent),
     transportCost: expectNumber(resource, 'transportCost', dto.transportCost),
+    foodLossCost: typeof dto.foodLossCost === 'number' ? dto.foodLossCost : undefined,
+    delayCost: typeof dto.delayCost === 'number' ? dto.delayCost : undefined,
+    objective: typeof dto.objective === 'number' ? dto.objective : undefined,
     feasible: expectBoolean(resource, 'feasible', dto.feasible),
+    infeasibleReason: dto.infeasibleReason ?? null,
+    // Legacy fields — optional, may be absent from real backend
+    capacityKg: typeof dto.capacityKg === 'number' ? dto.capacityKg : undefined,
+    temperatureCompatible: typeof dto.temperatureCompatible === 'boolean' ? dto.temperatureCompatible : undefined,
     selected: warehouseId === selectedWarehouseId,
   }
 }

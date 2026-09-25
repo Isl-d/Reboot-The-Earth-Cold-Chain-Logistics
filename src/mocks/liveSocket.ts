@@ -37,7 +37,7 @@ export class MockLiveSocket {
         sample: {
           timestamp: new Date().toISOString(),
           temperatureC: Math.round(temperatureAt(state.scenario, simMinutes) * 10) / 10,
-          humidityPercent: Math.round(humidityAt(state.scenario, simMinutes)),
+          humidityPct: Math.round(humidityAt(state.scenario, simMinutes)),
           doorOpen: doorOpenAt(state.scenario, simMinutes),
         },
       }

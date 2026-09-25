@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { adaptTelemetrySample } from '../adapters'
 import { USE_MOCKS } from '../client'
-import type { LiveMessageDto } from '../dto'
+import type { TelemetrySampleDto } from '../dto'
 import type { TelemetrySample } from '../types'
 import { MockLiveSocket } from '../../mocks/liveSocket'
 
@@ -51,9 +51,29 @@ export function useLiveSocket() {
 
       socket.onmessage = (event) => {
         try {
-          const message = JSON.parse(event.data) as LiveMessageDto
-          const sample = adaptTelemetrySample(message.sample)
-          setState((s) => ({ ...s, samplesByTruck: { ...s.samplesByTruck, [message.truckId]: sample } }))
+          // The backend /ws/live sends flat messages; the mock wraps them in
+          // `sample`. Normalise both shapes into a TelemetrySampleDto here so
+          // adaptTelemetrySample sees the same structure in either case.
+          type RawMsg = {
+            truckId: string
+            event?: string
+            // Wrapped shape (mock)
+            sample?: TelemetrySampleDto
+            // Flat shape (real backend)
+            timestamp?: string
+            temperatureC?: number
+            humidityPct?: number
+            doorOpen?: boolean
+          }
+          const raw = JSON.parse(event.data) as RawMsg
+          const sampleDto: TelemetrySampleDto = raw.sample ?? {
+            timestamp: raw.timestamp ?? new Date().toISOString(),
+            temperatureC: raw.temperatureC ?? 0,
+            humidityPct: raw.humidityPct ?? 0,
+            doorOpen: raw.doorOpen ?? false,
+          }
+          const sample = adaptTelemetrySample(sampleDto)
+          setState((s) => ({ ...s, samplesByTruck: { ...s.samplesByTruck, [raw.truckId]: sample } }))
         } catch {
           // Drop a malformed live message rather than crash the subscription;
           // the next message (or a screen's own polling fallback) recovers state.

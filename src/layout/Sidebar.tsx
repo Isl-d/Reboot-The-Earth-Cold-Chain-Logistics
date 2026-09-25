@@ -6,6 +6,7 @@ import {
   ChevronIcon,
   ComparisonIcon,
   InventoryIcon,
+  MapIcon,
   ModelIcon,
   OptimizationIcon,
   SimulationIcon,
@@ -23,6 +24,7 @@ export const NAV_ITEMS = [
   { to: '/analytics', label: 'Food-Loss Analytics', Icon: AnalyticsIcon },
   { to: '/inventory', label: 'Inventory', Icon: InventoryIcon },
   { to: '/comparison', label: 'Scenario Comparison', Icon: ComparisonIcon },
+  { to: '/map', label: 'Fleet Map', Icon: MapIcon },
 ] as const
 
 // DESIGN.md's mobile breakpoint (<768px) has no room for a 260px drawer

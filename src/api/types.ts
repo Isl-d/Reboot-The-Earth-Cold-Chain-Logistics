@@ -41,12 +41,19 @@ export interface SpoilagePrediction {
 
 export interface OptimizationCandidate {
   warehouseId: string
+  name?: string
+  distanceKm?: number
   etaMinutes: number
-  capacityKg: number
-  temperatureCompatible: boolean
   expectedLossPercent: number
   transportCost: number
+  foodLossCost?: number
+  delayCost?: number
+  objective?: number
   feasible: boolean
+  infeasibleReason?: string | null
+  // Legacy / optional — absent when the real backend doesn't return them
+  capacityKg?: number
+  temperatureCompatible?: boolean
   /** Derived: warehouseId === selectedWarehouseId, so screens don't re-derive it. */
   selected: boolean
 }

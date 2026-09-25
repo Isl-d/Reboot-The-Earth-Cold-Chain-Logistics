@@ -259,7 +259,7 @@ export async function getTruckTelemetry(truckId: string): Promise<TelemetrySampl
     return {
       timestamp: new Date(startedAtMs + t * 60_000).toISOString(),
       temperatureC: Math.round(temperatureAt(scenario, t) * 10) / 10,
-      humidityPercent: Math.round(humidityAt(scenario, t)),
+      humidityPct: Math.round(humidityAt(scenario, t)),
       doorOpen: doorOpenAt(scenario, t),
     }
   })
@@ -274,6 +274,88 @@ const COMPARISON_BASELINES: Record<ScenarioId, { without: number; with: number; 
   REFRIGERATION_FAILURE: { without: 31, with: 4, savedKg: 82 },
   TRAFFIC_DELAY: { without: 12, with: 3, savedKg: 30 },
   COMBINED_FAILURE: { without: 42, with: 6, savedKg: 110 },
+}
+
+// ---- GIS / Fleet map --------------------------------------------------------
+
+const MOCK_ROUTES: GeoJSON.FeatureCollection = {
+  type: 'FeatureCollection',
+  features: [
+    {
+      type: 'Feature',
+      properties: { route_id: 'R1', name: 'Hamad Port → Industrial Area', distance_km: 42.9 },
+      geometry: {
+        type: 'LineString',
+        coordinates: [[51.605, 25.0], [51.59, 25.16], [51.43, 25.19]],
+      },
+    },
+    {
+      type: 'Feature',
+      properties: { route_id: 'R2', name: 'Industrial Area → Al Wakrah', distance_km: 21.6 },
+      geometry: {
+        type: 'LineString',
+        coordinates: [[51.43, 25.19], [51.51, 25.18], [51.6, 25.17]],
+      },
+    },
+    {
+      type: 'Feature',
+      properties: { route_id: 'R3', name: 'Industrial Area → Lusail', distance_km: 37.7 },
+      geometry: {
+        type: 'LineString',
+        coordinates: [[51.43, 25.19], [51.53, 25.285], [51.49, 25.42]],
+      },
+    },
+    {
+      type: 'Feature',
+      properties: { route_id: 'R6', name: 'Industrial Area → Al Rayyan', distance_km: 14.0 },
+      geometry: {
+        type: 'LineString',
+        coordinates: [[51.43, 25.19], [51.42, 25.24], [51.42, 25.29]],
+      },
+    },
+  ],
+}
+
+export async function getRoutesGeoJson(): Promise<GeoJSON.FeatureCollection> {
+  return MOCK_ROUTES
+}
+
+export async function getAllTruckPositions() {
+  return TRUCKS.map((truck, i) => {
+    const state = mockSimulationStore.get(truck.id)
+    const scenario: ScenarioId = state?.scenario ?? 'NORMAL'
+    const simMinutes = mockSimulationStore.elapsedSimMinutes(truck.id)
+    const temp = temperatureAt(scenario, simMinutes)
+    const batch = findBatch(truck.batchId)
+
+    const routeCoords = MOCK_ROUTES.features[i % MOCK_ROUTES.features.length]
+      ?.geometry as GeoJSON.LineString | undefined
+    const coords = routeCoords?.coordinates
+    const frac = state?.running ? Math.min((simMinutes % 60) / 60, 0.95) : 0.1 + i * 0.25
+
+    let lat = 25.19 + i * 0.04
+    let lon = 51.43 + i * 0.02
+    if (coords && coords.length >= 2) {
+      const idx = Math.min(Math.floor(frac * (coords.length - 1)), coords.length - 2)
+      const t = frac * (coords.length - 1) - idx
+      lon = coords[idx][0] + t * (coords[idx + 1][0] - coords[idx][0])
+      lat = coords[idx][1] + t * (coords[idx + 1][1] - coords[idx][1])
+    }
+
+    const spoilageProb = spoilageProbabilityAt(deteriorationFractionAt(integrateThermalExposure(scenario, simMinutes)))
+    const risk = spoilageProb > 0.7 ? 'critical' : spoilageProb > 0.4 ? 'high' : spoilageProb > 0.15 ? 'medium' : 'low'
+
+    return {
+      truckId: truck.id,
+      name: truck.label,
+      lat: Math.round(lat * 100000) / 100000,
+      lon: Math.round(lon * 100000) / 100000,
+      temperatureC: Math.round(temp * 10) / 10,
+      speedKmh: state?.running ? Math.round(40 + seededRange(`speed:${truck.id}`, -10, 20)) : 0,
+      risk,
+      product: batch?.product,
+    }
+  })
 }
 
 export async function getScenarioComparison(scenario: ScenarioId): Promise<ScenarioComparisonDto> {

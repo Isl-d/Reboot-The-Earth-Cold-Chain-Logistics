@@ -7,7 +7,7 @@ export function adaptTelemetrySample(dto: TelemetrySampleDto): TelemetrySample {
   return {
     timestampMs: Date.parse(expectString(resource, 'timestamp', dto.timestamp)),
     temperatureC: expectNumber(resource, 'temperatureC', dto.temperatureC),
-    humidityPercent: expectNumber(resource, 'humidityPercent', dto.humidityPercent),
+    humidityPercent: expectNumber(resource, 'humidityPct', dto.humidityPct),
     doorOpen: expectBoolean(resource, 'doorOpen', dto.doorOpen),
   }
 }

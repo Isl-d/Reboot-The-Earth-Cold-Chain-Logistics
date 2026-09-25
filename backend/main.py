@@ -18,7 +18,7 @@ from .db import health as db_health
 from .db import init_db
 from .ingest.consumer import pipeline
 from .intelligence.worker import worker as intelligence_worker
-from .routers import incidents, intelligence, internal, inventory, simulation, telemetry, trucks, warehouses
+from .routers import incidents, intelligence, internal, inventory, model, routes, simulation, telemetry, trucks, warehouses
 from .seed import seed
 from .ws import manager
 
@@ -65,9 +65,11 @@ app.include_router(telemetry.router)
 app.include_router(warehouses.router)
 app.include_router(inventory.router)
 app.include_router(incidents.router)
+app.include_router(routes.router)
 app.include_router(simulation.router)
 app.include_router(internal.router)
 app.include_router(intelligence.router)
+app.include_router(model.router)
 
 
 @app.get("/", tags=["meta"])

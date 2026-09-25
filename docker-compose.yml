@@ -18,14 +18,17 @@ services:
   timescaledb:
     image: timescale/timescaledb:latest-pg16
     environment:
-      POSTGRES_USER: coldchain
-      POSTGRES_PASSWORD: coldchain
-      POSTGRES_DB: coldchain
-    ports: ["5432:5432"]
+      POSTGRES_USER: ${PGUSER:-coldchain}
+      POSTGRES_PASSWORD: ${PGPASSWORD:-coldchain}
+      POSTGRES_DB: ${PGDATABASE:-coldchain}
+    # Exposed on 5434 (5432 and 5433 are used by other services on this host).
+    # Connect from host tools (pgAdmin, psql, DBeaver):
+    #   host=localhost  port=5434  user=coldchain  password=coldchain  db=coldchain
+    ports: ["5434:5432"]
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U coldchain -d coldchain"]
+      test: ["CMD-SHELL", "pg_isready -U ${PGUSER:-coldchain} -d ${PGDATABASE:-coldchain}"]
       interval: 5s
       timeout: 5s
       retries: 12
@@ -44,16 +47,25 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     command: uvicorn backend.main:app --host 0.0.0.0 --port 8000
-    ports: ["8000:8000"]
+    ports: ["8001:8000"]
     environment:
+      # Infrastructure — always uses internal Docker hostnames, not localhost
       CC_MQTT_HOST: mosquitto
-      CC_DATABASE_URL: postgresql+psycopg://coldchain:coldchain@timescaledb:5432/coldchain
+      CC_DATABASE_URL: postgresql+psycopg://${PGUSER:-coldchain}:${PGPASSWORD:-coldchain}@timescaledb:5432/${PGDATABASE:-coldchain}
       CC_REDIS_URL: redis://redis:6379/0
       CC_TIMESCALE_ENABLED: "true"
+      CC_CORS_ORIGINS: "${CC_CORS_ORIGINS:-*}"
+      # Intelligence engine
       CC_INTELLIGENCE_ENABLED: "${CC_INTELLIGENCE_ENABLED:-true}"
       CC_INTELLIGENCE_INTERVAL_S: "${CC_INTELLIGENCE_INTERVAL_S:-5}"
-      CC_LLM_MODEL: "${CC_LLM_MODEL:-openrouter/free}"
-      CC_LLM_TIMEOUT_S: "${CC_LLM_TIMEOUT_S:-20}"
+      CC_INTELLIGENCE_TELEMETRY_WINDOW: "${CC_INTELLIGENCE_TELEMETRY_WINDOW:-120}"
+      # LLM — all three vars forwarded so MODE A / MODE B switch works
+      CC_LLM_BASE_URL: "${CC_LLM_BASE_URL:-https://openrouter.ai/api/v1}"
+      CC_LLM_MODEL: "${CC_LLM_MODEL:-deepseek/deepseek-v4.1-flash}"
+      CC_LLM_TIMEOUT_S: "${CC_LLM_TIMEOUT_S:-30}"
+      CC_LLM_MAX_TOKENS: "${CC_LLM_MAX_TOKENS:-512}"
+      CC_LLM_PROBABILITY_BAND: "${CC_LLM_PROBABILITY_BAND:-0.35}"
+      # API key — used for OpenRouter; set to any non-empty string for local LAYLA
       OPENROUTERAPIKEY: "${OPENROUTERAPIKEY:-}"
     depends_on:
       mosquitto: {condition: service_started}
@@ -67,7 +79,7 @@ services:
     command: python sensor-simulator/simulator.py --broker mosquitto --interval 3
     environment:
       CC_MQTT_HOST: mosquitto
-      CC_READING_INTERVAL_S: "3"
+      CC_READING_INTERVAL_S: "${CC_READING_INTERVAL_S:-3}"
     depends_on:
       mosquitto: {condition: service_started}
 

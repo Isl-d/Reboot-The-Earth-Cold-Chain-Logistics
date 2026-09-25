@@ -12,7 +12,7 @@ export const endpoints = {
   thermalExposure: (truckId: string) => `/api/model/${truckId}/thermal-exposure`,
   deterioration: (truckId: string) => `/api/model/${truckId}/deterioration`,
   spoilagePrediction: (truckId: string) => `/api/model/${truckId}/spoilage`,
-  optimizationCandidates: (truckId: string, batchId: string) => `/api/optimization/${truckId}/${batchId}`,
+  optimizationCandidates: (batchId: string) => `/api/optimization/${batchId}`,
   optimizationEvaluate: '/api/optimization/evaluate',
   foodLossAnalytics: '/api/analytics/food-loss',
   foodLossSeries: '/api/analytics/food-loss/series',
@@ -20,4 +20,8 @@ export const endpoints = {
   truckTelemetry: (truckId: string) => `/api/trucks/${truckId}/telemetry`,
   scenarioComparison: (scenario: string) => `/api/analytics/scenario-comparison/${scenario}`,
   trucks: '/api/trucks',
+  routesGeoJson: '/api/routes/geojson',
+  routeGeoJson: (routeId: string) => `/api/routes/${routeId}/geojson`,
+  routeTrucks: (routeId: string) => `/api/routes/${routeId}/trucks`,
+  routes: '/api/routes',
 } as const

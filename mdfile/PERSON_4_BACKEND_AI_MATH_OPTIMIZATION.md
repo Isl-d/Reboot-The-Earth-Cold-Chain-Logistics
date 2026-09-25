@@ -106,12 +106,12 @@ k(T)=A e^{-E_a/(RT)}
 
 and:
 \[
-D(t)=\int_0^t k(T(	au))d	au
+D(t)=\int_0^t k(T(\tau))d\tau
 \]
 
 For discrete readings:
 \[
-D pprox \sum_i k(T_i)\Delta t
+D \approx \sum_i k(T_i)\Delta t
 \]
 
 Product-specific parameters should be configuration, not scattered constants.

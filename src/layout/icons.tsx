@@ -79,6 +79,15 @@ export function ComparisonIcon(props: IconProps) {
   )
 }
 
+export function MapIcon(props: IconProps) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M3.5 5.5v11l4.5-2 4 2 4.5-2v-11l-4.5 2-4-2-4.5 2z" />
+      <path d="M8 4.5v11M12 6.5v11" />
+    </svg>
+  )
+}
+
 export function ChevronIcon({ direction = 'left', ...props }: IconProps & { direction?: 'left' | 'right' }) {
   return (
     <svg {...base} {...props}>
