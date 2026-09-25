@@ -1,5 +1,5 @@
 import type { ScenarioId } from '@/api/types'
-import { clsx, FOCUS_RING } from '@/design/clsx'
+import { clsx, FOCUS_RING } from './clsx'
 
 const SCENARIOS: Array<{ id: ScenarioId; label: string; description: string }> = [
   { id: 'NORMAL', label: 'Normal', description: 'Stable cold-chain, no injected fault' },
@@ -18,7 +18,9 @@ interface ScenarioPickerProps {
 
 // DESIGN.md doesn't define a scenario-picker component — styled as a grid of
 // selectable cards using the same border/tint language as the rest of the
-// system (sky selected state, line-strong borders).
+// system (sky selected state, line-strong borders). Used by both Simulation
+// (pick a scenario to run) and Scenario Comparison (pick which counterfactual
+// to view).
 export default function ScenarioPicker({ value, onChange, disabled }: ScenarioPickerProps) {
   return (
     <div className="grid grid-cols-1 gap-2 tablet:grid-cols-2">

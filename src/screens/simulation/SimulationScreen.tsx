@@ -29,11 +29,11 @@ import {
   ExcursionBand,
   ProvenanceBadge,
   SafeLimitLine,
+  ScenarioPicker,
   Select,
   StatusChip,
 } from '@/design'
 import { formatClockTime, formatDuration } from '@/lib/datetime'
-import ScenarioPicker from './ScenarioPicker'
 
 const SPEED_OPTIONS = [
   { value: '1', label: '1x (real time)' },
