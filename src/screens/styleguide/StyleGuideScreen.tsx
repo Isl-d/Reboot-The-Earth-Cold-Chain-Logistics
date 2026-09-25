@@ -90,6 +90,12 @@ export default function StyleGuideScreen() {
         ))}
       </Section>
 
+      <Section title="Provenance badges — compact (dot only, for dense grids)">
+        {PROVENANCE_KINDS.map((kind) => (
+          <ProvenanceBadge key={kind} kind={kind} compact />
+        ))}
+      </Section>
+
       <Section title="Action chips">
         {ACTIONS.map((action) => (
           <ActionChip key={action} action={action} />

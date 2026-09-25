@@ -7,24 +7,26 @@ interface KpiCardProps {
   label: string
   value: string
   unit?: string
+  provenance: ProvenanceKind
   /**
-   * Omit when this card sits inside a section that already carries one
-   * ProvenanceBadge for the whole group (e.g. several KPIs under one
-   * "Calculated" card header) — repeating it on every cramped mini-card
-   * both overflows and states the same thing three times.
+   * Dot-only badge instead of the full pill — for a KPI grouped with
+   * others inside a section that already states the provenance once in
+   * its header. DESIGN.md still requires a marker on every value; this
+   * keeps one without three overflowing, repeated labels. See
+   * ProvenanceBadge's `compact` for details.
    */
-  provenance?: ProvenanceKind
+  compactProvenance?: boolean
   trend?: number[]
   trendTier?: StatusTier
 }
 
 // plan.md "Decisions" → KPI cards: big mono number + provenance badge + mini trend.
-export default function KpiCard({ label, value, unit, provenance, trend, trendTier }: KpiCardProps) {
+export default function KpiCard({ label, value, unit, provenance, compactProvenance, trend, trendTier }: KpiCardProps) {
   return (
     <Card className="p-4">
       <div className="flex items-start justify-between gap-2">
         <span className="text-body-sm text-muted">{label}</span>
-        {provenance && <ProvenanceBadge kind={provenance} className="shrink-0" />}
+        <ProvenanceBadge kind={provenance} compact={compactProvenance} className="shrink-0" />
       </div>
       <div className="mt-2 font-mono text-telemetry-xl tabular-nums text-navy">
         {value}

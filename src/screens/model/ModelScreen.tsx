@@ -21,7 +21,7 @@ import {
   Select,
   StatusChip,
 } from '@/design'
-import { formatClockTime } from '../simulation/formatters'
+import { formatClockTime } from '@/lib/datetime'
 import PipelineStrip from './PipelineStrip'
 import { riskLabelFromProbability, riskTierFromProbability } from './riskTier'
 
@@ -145,16 +145,22 @@ export default function ModelScreen() {
             label="Deterioration"
             value={deterioration.data ? `${(deterioration.data.deteriorationFraction * 100).toFixed(1)}` : '—'}
             unit="%"
+            provenance="calculated"
+            compactProvenance
           />
           <KpiCard
             label="Remaining shelf life"
             value={deterioration.data ? deterioration.data.remainingShelfLifeHours.toFixed(1) : '—'}
             unit="hrs"
+            provenance="calculated"
+            compactProvenance
           />
           <KpiCard
             label="Confidence"
             value={deterioration.data ? `${(deterioration.data.confidence * 100).toFixed(0)}` : '—'}
             unit="%"
+            provenance="calculated"
+            compactProvenance
           />
         </div>
       </Card>
@@ -171,11 +177,15 @@ export default function ModelScreen() {
             label="Spoilage probability"
             value={spoilage.data ? `${(spoilage.data.spoilageProbability * 100).toFixed(1)}` : '—'}
             unit="%"
+            provenance="predicted"
+            compactProvenance
           />
           <KpiCard
             label="Confidence"
             value={spoilage.data ? `${(spoilage.data.confidence * 100).toFixed(0)}` : '—'}
             unit="%"
+            provenance="predicted"
+            compactProvenance
           />
           <Card className="p-4">
             <span className="text-body-sm text-muted">Risk</span>

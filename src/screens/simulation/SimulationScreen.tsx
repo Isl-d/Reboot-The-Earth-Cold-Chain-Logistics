@@ -32,7 +32,7 @@ import {
   Select,
   StatusChip,
 } from '@/design'
-import { formatClockTime, formatDuration } from './formatters'
+import { formatClockTime, formatDuration } from '@/lib/datetime'
 import ScenarioPicker from './ScenarioPicker'
 
 const SPEED_OPTIONS = [

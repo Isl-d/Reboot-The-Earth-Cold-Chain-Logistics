@@ -22,9 +22,27 @@ const DOT_CLASSES: Record<ProvenanceKind, string> = {
 interface ProvenanceBadgeProps {
   kind: ProvenanceKind
   className?: string
+  /**
+   * Dot only, no label text — for dense grids (e.g. several KPI mini-cards
+   * in one row) where the full pill would overflow. DESIGN.md requires
+   * every value to carry a provenance marker for audit integrity; this
+   * keeps that marker without repeating the same label three times in a
+   * few square inches. The label is still available via `title`/aria.
+   */
+  compact?: boolean
 }
 
-export default function ProvenanceBadge({ kind, className }: ProvenanceBadgeProps) {
+export default function ProvenanceBadge({ kind, className, compact }: ProvenanceBadgeProps) {
+  if (compact) {
+    return (
+      <span
+        role="img"
+        aria-label={`${PROVENANCE_LABEL[kind]} value`}
+        title={PROVENANCE_LABEL[kind]}
+        className={clsx('inline-block h-2 w-2 shrink-0 rounded-full', DOT_CLASSES[kind], className)}
+      />
+    )
+  }
   return (
     <Pill className={clsx('px-2 text-label-code uppercase', VARIANT_CLASSES[kind], className)}>
       <PillDot className={DOT_CLASSES[kind]} />
