@@ -137,7 +137,9 @@ export async function fetchExplain(truckId: string, question?: string): Promise<
 export async function fetchOptimizationCandidates(truckId: string, batchId: string): Promise<OptimizationResult> {
   const dto = USE_MOCKS
     ? await mock.getOptimizationCandidates(truckId, batchId)
-    : (await apiClient.get<OptimizationResultDto>(endpoints.optimizationCandidates(batchId))).data
+    // GET wraps the result as { batchId, truckId, optimization } (API_CONTRACT §4.4);
+    // only POST /evaluate returns the bare optimization object.
+    : (await apiClient.get<{ optimization: OptimizationResultDto }>(endpoints.optimizationCandidates(batchId))).data.optimization
   return adaptOptimizationResult(dto)
 }
 

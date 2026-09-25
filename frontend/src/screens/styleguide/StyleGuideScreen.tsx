@@ -50,7 +50,7 @@ export default function StyleGuideScreen() {
     <div className="col-span-4 tablet:col-span-8 desktop:col-span-12 mx-auto max-w-5xl">
       <h1 className="mb-1 text-headline-xl text-navy">Style Guide</h1>
       <p className="mb-8 text-body-md text-muted">
-        Every primitive and variant, built strictly from docs/DESIGN.md. Dev-only route.
+        Every primitive and variant, built from DESIGN.md (Strategic Ops). Dev-only, not in the sidebar.
       </p>
 
       <Section title="Typography">

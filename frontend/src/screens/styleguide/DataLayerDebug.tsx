@@ -57,7 +57,7 @@ export default function DataLayerDebug() {
   const live = useLiveSocket()
 
   return (
-    <div className="rounded-lg border border-line p-4">
+    <div className="rounded-md border border-line p-4">
       <div className="mb-3 flex flex-wrap gap-2">
         <Button
           onClick={() => {

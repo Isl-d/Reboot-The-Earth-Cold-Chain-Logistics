@@ -2,29 +2,31 @@ import type { ComponentProps, ReactNode } from 'react'
 import { ReferenceArea, ReferenceLine, Tooltip } from 'recharts'
 
 // Shared Recharts styling so every chart in the app looks like one system.
-// Colors are DESIGN.md tokens; nothing here is chart-library defaults.
+// Every colour is a CSS variable (DESIGN.md tokens in index.css), so charts
+// follow the dark/light theme with the rest of the app. Series hues were
+// checked with the dataviz skill's palette validator on both surfaces.
 
 export const CHART_COLORS = {
-  grid: '#E2E8F0',
-  axis: '#64748B',
-  measured: '#4F46E5',
-  calculated: '#7C3AED',
-  predicted: '#0284C7',
-  safeLine: '#10B981',
-  excursion: '#EF4444',
-  excursionFill: 'rgba(239, 68, 68, 0.08)',
+  grid: 'var(--color-border)',
+  axis: 'var(--color-text-secondary)',
+  measured: 'var(--color-provenance-measured-dot)',
+  calculated: 'var(--color-provenance-calculated-dot)',
+  predicted: 'var(--color-provenance-predicted-dot)',
+  safeLine: 'var(--color-risk-low)',
+  excursion: 'var(--color-risk-critical)',
+  excursionFill: 'color-mix(in srgb, var(--color-risk-critical) 12%, transparent)',
 }
 
 export const AXIS_STYLE = {
-  fontFamily: '"JetBrains Mono", monospace',
+  fontFamily: 'var(--font-mono)',
   fontSize: 11,
   fill: CHART_COLORS.axis,
 }
 
-// Crosshair tooltip content — DESIGN.md-styled container, caller supplies rows.
+// Crosshair tooltip content — DESIGN.md tooltip: elevated tone, 2px radius.
 export function ChartTooltip({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-md border border-line-strong bg-card px-3 py-2 text-body-sm shadow-level2">
+    <div className="rounded-sm border border-line bg-elevated px-3 py-2 text-body-sm text-navy">
       {children}
     </div>
   )
@@ -35,12 +37,15 @@ export function CrosshairTooltip(props: ComponentProps<typeof Tooltip>) {
     <Tooltip
       cursor={{ stroke: CHART_COLORS.axis, strokeDasharray: '3 3' }}
       contentStyle={{
-        border: '1px solid #CBD5E1',
-        borderRadius: 6,
-        fontFamily: 'Inter, sans-serif',
+        background: 'var(--color-elevated)',
+        border: '1px solid var(--color-border)',
+        borderRadius: 2,
+        fontFamily: 'var(--font-sans)',
         fontSize: 12,
-        boxShadow: '0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03)',
+        color: 'var(--color-text-primary)',
       }}
+      labelStyle={{ color: 'var(--color-text-secondary)' }}
+      itemStyle={{ color: 'var(--color-text-primary)', fontFamily: 'var(--font-mono)' }}
       {...props}
     />
   )

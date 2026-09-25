@@ -9,60 +9,37 @@ import { Card } from '@/design'
 const QATAR_CENTER: [number, number] = [25.28, 51.18]
 const QATAR_ZOOM = 9
 
-const ROUTE_COLORS = ['#0EA5E9', '#06B6D4', '#7C3AED', '#F59E0B', '#EF4444', '#10B981']
+// Theme-aware colours (index.css). Three routes in the data; the fourth slot
+// is never reached, so no hue is ever cycled.
+const ROUTE_COLORS = ['var(--color-route-1)', 'var(--color-route-2)', 'var(--color-route-3)']
 
-function truckIcon(riskColor: string) {
+// Markers use DESIGN.md tokens: a Tactical Slate ring instead of a drop shadow.
+function markerIcon(size: number, radius: string, background: string, label: string, fontSize: number) {
   return L.divIcon({
     className: '',
-    iconSize: [28, 28],
-    iconAnchor: [14, 14],
+    iconSize: [size, size],
+    iconAnchor: [size / 2, size / 2],
     html: `<div style="
-      width:28px;height:28px;border-radius:50%;
-      background:${riskColor};border:3px solid #fff;
-      box-shadow:0 2px 6px rgba(0,0,0,0.35);
+      width:${size}px;height:${size}px;border-radius:${radius};
+      background:${background};border:2px solid var(--color-base);
       display:flex;align-items:center;justify-content:center;
-      font-size:12px;color:#fff;font-weight:700;
-    ">T</div>`,
+      font-family:var(--font-sans);font-size:${fontSize}px;color:var(--color-base);font-weight:600;
+    ">${label}</div>`,
   })
 }
 
-function warehouseIcon() {
-  return L.divIcon({
-    className: '',
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    html: `<div style="
-      width:24px;height:24px;border-radius:4px;
-      background:#0F172A;border:2px solid #fff;
-      box-shadow:0 2px 4px rgba(0,0,0,0.3);
-      display:flex;align-items:center;justify-content:center;
-      font-size:10px;color:#fff;font-weight:700;
-    ">W</div>`,
-  })
-}
+const truckIcon = (riskColor: string) => markerIcon(28, '50%', riskColor, 'T', 12)
+const warehouseIcon = () => markerIcon(24, '2px', 'var(--color-text-secondary)', 'W', 10)
+const storeIcon = () => markerIcon(22, '50%', 'var(--color-text-primary)', 'S', 9)
 
-function storeIcon() {
-  return L.divIcon({
-    className: '',
-    iconSize: [22, 22],
-    iconAnchor: [11, 11],
-    html: `<div style="
-      width:22px;height:22px;border-radius:50%;
-      background:#059669;border:2px solid #fff;
-      box-shadow:0 2px 4px rgba(0,0,0,0.3);
-      display:flex;align-items:center;justify-content:center;
-      font-size:9px;color:#fff;font-weight:700;
-    ">S</div>`,
-  })
-}
-
+// The backend sends riskLevel uppercase (CRITICAL); the mock layer lowercase.
 function riskToColor(risk?: string): string {
-  switch (risk) {
-    case 'critical': return '#EF4444'
-    case 'high': return '#F59E0B'
-    case 'medium': return '#F59E0B'
-    case 'low': return '#10B981'
-    default: return '#0EA5E9'
+  switch (risk?.toLowerCase()) {
+    case 'critical': return 'var(--color-risk-critical)'
+    case 'high': return 'var(--color-risk-high)'
+    case 'medium': return 'var(--color-risk-medium)'
+    case 'low': return 'var(--color-risk-low)'
+    default: return 'var(--color-text-secondary)'
   }
 }
 
@@ -160,33 +137,30 @@ export default function MapScreen() {
 
   return (
     <div className="col-span-4 tablet:col-span-8 desktop:col-span-12 flex flex-col gap-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-headline-lg text-navy">Fleet Map</h1>
-        <div className="flex items-center gap-4 text-body-sm text-muted">
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full bg-sky" /> Routes
+      <div className="flex flex-wrap items-center gap-4 text-label-ui uppercase text-muted">
+        {[
+          { label: 'Route', color: 'var(--color-route-1)', square: true },
+          { label: 'Low', color: 'var(--color-risk-low)' },
+          { label: 'Medium', color: 'var(--color-risk-medium)' },
+          { label: 'High', color: 'var(--color-risk-high)' },
+          { label: 'Critical', color: 'var(--color-risk-critical)' },
+          { label: 'Warehouse', color: 'var(--color-text-secondary)', square: true },
+          { label: 'Store', color: 'var(--color-text-primary)' },
+        ].map(({ label, color, square }) => (
+          <span key={label} className="flex items-center gap-1.5">
+            <span
+              className={`inline-block h-2.5 w-2.5 ${square ? 'rounded-sm' : 'rounded-full'}`}
+              style={{ background: color }}
+            />
+            {label}
           </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ background: '#10B981' }} /> Safe
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ background: '#F59E0B' }} /> Warning
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ background: '#EF4444' }} /> Critical
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded bg-navy" style={{ width: 12, height: 12 }} /> Warehouse
-          </span>
-          <span className="flex items-center gap-1.5">
-            <span className="inline-block h-3 w-3 rounded-full" style={{ background: '#059669' }} /> Store
-          </span>
-        </div>
+        ))}
       </div>
 
-      <Card className="relative flex-1 overflow-hidden">
+      {/* DESIGN.md → Shapes: the map container is a data panel — zero radius. */}
+      <Card className="relative flex-1 overflow-hidden" style={{ borderRadius: 0 }}>
         {geoLoading && (
-          <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-white/80">
+          <div className="absolute inset-0 z-[1000] flex items-center justify-center bg-base/80">
             <span className="text-body-md text-muted">Loading map data...</span>
           </div>
         )}
@@ -194,7 +168,7 @@ export default function MapScreen() {
           center={QATAR_CENTER}
           zoom={QATAR_ZOOM}
           className="h-full w-full"
-          style={{ minHeight: 500, borderRadius: '0.5rem' }}
+          style={{ minHeight: 500 }}
           scrollWheelZoom
         >
           <TileLayer
@@ -248,9 +222,8 @@ export default function MapScreen() {
           {trucks.map((t) => (
             <Card
               key={t.truckId}
-              className={`cursor-pointer p-3 transition-shadow hover:shadow-level1 ${
-                selectedTruck === t.truckId ? 'ring-2 ring-sky' : ''
-              }`}
+              className="cursor-pointer p-3"
+              style={selectedTruck === t.truckId ? { borderColor: 'var(--color-primary)' } : undefined}
               onClick={() => setSelectedTruck(t.truckId === selectedTruck ? null : t.truckId)}
             >
               <div className="flex items-center justify-between">

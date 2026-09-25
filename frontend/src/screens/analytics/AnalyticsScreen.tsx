@@ -162,7 +162,7 @@ export default function AnalyticsScreen() {
               <AreaChart data={series.data.overTime} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                 <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
                 <XAxis dataKey="dateMs" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatDate} tick={AXIS_STYLE} stroke={CHART_COLORS.grid} />
-                <YAxis tick={AXIS_STYLE} stroke={CHART_COLORS.grid} unit=" kg" width={56} />
+                <YAxis tick={AXIS_STYLE} stroke={CHART_COLORS.grid} unit=" kg" width={76} />
                 <CrosshairTooltip labelFormatter={(ms) => formatDate(Number(ms))} />
                 <Legend wrapperStyle={{ fontSize: 12 }} />
                 <Area type="monotone" dataKey="predictedLostKg" name="Predicted" stroke={CHART_COLORS.predicted} fill={CHART_COLORS.predicted} fillOpacity={0.08} strokeDasharray="4 4" isAnimationActive={false} />
@@ -204,7 +204,7 @@ export default function AnalyticsScreen() {
                 <AreaChart data={savedOverTime} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
                   <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
                   <XAxis dataKey="dateMs" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatDate} tick={AXIS_STYLE} stroke={CHART_COLORS.grid} />
-                  <YAxis tick={AXIS_STYLE} stroke={CHART_COLORS.grid} unit=" kg" width={48} />
+                  <YAxis tick={AXIS_STYLE} stroke={CHART_COLORS.grid} unit=" kg" width={76} />
                   <CrosshairTooltip labelFormatter={(ms) => formatDate(Number(ms))} formatter={(value) => [`${value} kg`, 'Saved']} />
                   <Area type="monotone" dataKey="savedKg" stroke={CHART_COLORS.safeLine} fill={CHART_COLORS.safeLine} fillOpacity={0.15} isAnimationActive={false} />
                 </AreaChart>
@@ -221,7 +221,7 @@ export default function AnalyticsScreen() {
                 <BarChart data={financialBars} layout="vertical" margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
                   <CartesianGrid stroke={CHART_COLORS.grid} horizontal={false} />
                   <XAxis type="number" tick={AXIS_STYLE} stroke={CHART_COLORS.grid} unit=" QAR" />
-                  <YAxis type="category" dataKey="label" tick={AXIS_STYLE} stroke={CHART_COLORS.grid} width={140} />
+                  <YAxis type="category" dataKey="label" tick={AXIS_STYLE} stroke={CHART_COLORS.grid} width={172} />
                   <CrosshairTooltip formatter={(value) => [`QAR ${value}`, 'Amount']} />
                   <Bar dataKey="valueQar" radius={[0, 3, 3, 0]} isAnimationActive={false}>
                     {financialBars.map((b) => (

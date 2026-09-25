@@ -2,8 +2,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import PageGrid from './components/layout/PageGrid'
+import { PageHeader } from './components/layout/PageHeader'
 import { Sidebar } from './components/layout/Sidebar'
-import { useTheme } from './hooks/useTheme'
+import './hooks/useTheme' // applies the stored theme before first paint
 import { CommandCenter } from './pages/CommandCenter'
 import { Fleet } from './pages/Fleet'
 import { Incidents } from './pages/Incidents'
@@ -28,14 +29,15 @@ const queryClient = new QueryClient({
 })
 
 /**
- * Wraps the ported intelligence screens in the light design-system canvas
- * (bg-canvas + PageGrid) inside the dark command-center shell — the same
- * layout their own Shell provided before the merge.
+ * Wraps the ported intelligence screens in the same chrome as the command
+ * center pages: a 44px Tactical Slate topbar with an uppercase page label,
+ * then the screen's col-span-* grid on the base canvas.
  */
-function IntelligencePage({ children }: { children: ReactNode }) {
+function IntelligencePage({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <div className="flex-1 overflow-y-auto bg-canvas">
-      <div className="p-3 tablet:p-4 desktop:p-6">
+    <div className="flex flex-1 flex-col overflow-hidden">
+      <PageHeader title={title} />
+      <div className="flex-1 overflow-y-auto bg-base px-4 py-2">
         <PageGrid>
           <Suspense
             fallback={
@@ -53,7 +55,6 @@ function IntelligencePage({ children }: { children: ReactNode }) {
 }
 
 function AppShell() {
-  useTheme()
   return (
     <div style={{ display: 'flex', width: '100%', height: '100%', overflow: 'hidden', background: 'var(--color-base)', color: 'var(--color-text-primary)' }}>
       <Sidebar />
@@ -66,14 +67,14 @@ function AppShell() {
           <Route path="/incidents" element={<Incidents />} />
 
           {/* Intelligence (Person 2) */}
-          <Route path="/simulation"   element={<IntelligencePage><SimulationScreen /></IntelligencePage>} />
-          <Route path="/model"        element={<IntelligencePage><ModelScreen /></IntelligencePage>} />
-          <Route path="/optimization" element={<IntelligencePage><OptimizationScreen /></IntelligencePage>} />
-          <Route path="/analytics"    element={<IntelligencePage><AnalyticsScreen /></IntelligencePage>} />
-          <Route path="/inventory"    element={<IntelligencePage><InventoryScreen /></IntelligencePage>} />
-          <Route path="/comparison"   element={<IntelligencePage><ComparisonScreen /></IntelligencePage>} />
-          <Route path="/map"          element={<IntelligencePage><MapScreen /></IntelligencePage>} />
-          {isDev && <Route path="/styleguide" element={<IntelligencePage><StyleGuideScreen /></IntelligencePage>} />}
+          <Route path="/simulation"   element={<IntelligencePage title="Simulation"><SimulationScreen /></IntelligencePage>} />
+          <Route path="/model"        element={<IntelligencePage title="Mathematical Model"><ModelScreen /></IntelligencePage>} />
+          <Route path="/optimization" element={<IntelligencePage title="Optimization"><OptimizationScreen /></IntelligencePage>} />
+          <Route path="/analytics"    element={<IntelligencePage title="Food-Loss Analytics"><AnalyticsScreen /></IntelligencePage>} />
+          <Route path="/inventory"    element={<IntelligencePage title="Inventory"><InventoryScreen /></IntelligencePage>} />
+          <Route path="/comparison"   element={<IntelligencePage title="Scenario Comparison"><ComparisonScreen /></IntelligencePage>} />
+          <Route path="/map"          element={<IntelligencePage title="Fleet Map"><MapScreen /></IntelligencePage>} />
+          {isDev && <Route path="/styleguide" element={<IntelligencePage title="Style Guide"><StyleGuideScreen /></IntelligencePage>} />}
         </Routes>
       </main>
     </div>

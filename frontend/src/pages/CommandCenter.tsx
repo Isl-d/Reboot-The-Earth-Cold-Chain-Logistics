@@ -2,21 +2,21 @@ import { useNavigate } from 'react-router-dom'
 import { ConnectionStatus } from '../components/common/ConnectionStatus'
 import { NotificationBell } from '../components/common/NotificationBell'
 import { StatCard } from '../components/common/StatCard'
+import { PageHeader } from '../components/layout/PageHeader'
 import { IncidentPanel } from '../components/incident/IncidentPanel'
 import { LiveMap } from '../components/map/LiveMap'
 import { SimulationControls } from '../components/simulation/SimulationControls'
 import { useIncidents } from '../hooks/useIncidents'
-import { useTheme } from '../hooks/useTheme'
 import { useTrucks } from '../hooks/useTrucks'
 import { useWebSocket } from '../hooks/useWebSocket'
-import { MOCK_STATS } from '../mocks/data'
+import { useFoodLossAnalytics } from '../api/hooks/useAnalytics'
 
 export function CommandCenter() {
   const navigate = useNavigate()
   const { data: trucks = [] } = useTrucks()
   const { data: incidents = [] } = useIncidents()
+  const { data: foodLoss } = useFoodLossAnalytics()
   const { connected, lastEventTime } = useWebSocket()
-  const { theme, toggleTheme } = useTheme()
 
   const atRisk = trucks.filter((t) => t.riskLevel === 'HIGH' || t.riskLevel === 'CRITICAL').length
   const openIncidents = incidents.filter((i) => i.status === 'OPEN')
@@ -25,39 +25,24 @@ export function CommandCenter() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
       {/* ── Topbar ──────────────────────────────────────── */}
-      <header style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', height: 44, background: 'var(--color-base)',
-        borderBottom: '1px solid var(--color-border)', flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-primary)' }}>
-            Cold Chain Command Center
-          </span>
-          <span style={{ color: 'var(--color-border)' }}>|</span>
+      <PageHeader
+        title="Thermal Trace · Command Center"
+        meta={
           <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)' }}>
             {new Date().toLocaleString()}
           </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <ConnectionStatus connected={connected} lastEventTime={lastEventTime} />
-          <button
-            onClick={toggleTheme}
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 2, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)' }}
-          >
-            {theme === 'dark' ? '☀' : '🌙'}
-          </button>
-          <NotificationBell incidents={incidents} />
-        </div>
-      </header>
+        }
+      >
+        <ConnectionStatus connected={connected} lastEventTime={lastEventTime} />
+        <NotificationBell incidents={incidents} />
+      </PageHeader>
 
       {/* ── Stats row ───────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, padding: '8px 16px', flexShrink: 0 }}>
-        <StatCard label="Active Trucks" value={trucks.length || MOCK_STATS.activeTrucks} />
-        <StatCard label="At Risk" value={atRisk || MOCK_STATS.trucksAtRisk} highlight={atRisk > 0} />
-        <StatCard label="Food Saved" value={MOCK_STATS.foodSavedKg} unit="kg" />
-        <StatCard label="Loss Prevented" value={`QAR ${MOCK_STATS.lossPrevented.toLocaleString()}`} />
+        <StatCard label="Active Trucks" value={trucks.length} />
+        <StatCard label="At Risk" value={atRisk} highlight={atRisk > 0} />
+        <StatCard label="Food Saved" value={foodLoss ? Math.round(foodLoss.savedKg) : '—'} unit="kg" />
+        <StatCard label="Loss Prevented" value={foodLoss ? `QAR ${Math.round(foodLoss.estimatedFinancialLossPrevented).toLocaleString()}` : '—'} />
       </div>
 
       {/* ── Main grid: fills ALL remaining height ────────── */}

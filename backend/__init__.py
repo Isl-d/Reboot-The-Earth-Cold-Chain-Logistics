@@ -1,1 +1,1 @@
-"""ColdGuard backend package."""
+"""Thermal Trace backend package."""

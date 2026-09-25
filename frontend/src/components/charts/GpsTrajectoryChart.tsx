@@ -17,7 +17,8 @@ function TruckDot(props: ScatterPointItem & { idx?: number; payload?: ChartPoint
       cx={cx}
       cy={cy}
       r={isLast ? 5 : 2.5}
-      fill={isLast ? '#f87171' : '#00c8e0'}
+      // Trail in neutral ink, live position in Signal Cyan (red would read as CRITICAL).
+      fill={isLast ? 'var(--color-primary)' : 'var(--color-text-secondary)'}
       opacity={isLast ? 1 : 0.5 + (idx / totalPoints) * 0.5}
     />
   )
@@ -32,45 +33,45 @@ export function GpsTrajectoryChart({ data, fill }: { data: TelemetryPoint[]; fil
 
   return (
     <ResponsiveContainer width="100%" height={fill ? '100%' : 180}>
-      <ScatterChart margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+      <ScatterChart margin={{ top: 8, right: 24, left: 4, bottom: 12 }}>
         <XAxis
           dataKey="lon"
           type="number"
           name="Longitude"
           domain={['auto', 'auto']}
-          tick={{ fill: '#8fa8c8', fontSize: 9, fontFamily: 'IBM Plex Mono' }}
+          tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'var(--font-mono)' }}
           tickLine={false}
-          axisLine={{ stroke: '#2d4160' }}
+          axisLine={{ stroke: 'var(--color-border)' }}
           tickFormatter={(v: number) => v.toFixed(3)}
-          label={{ value: 'LON', fill: '#8fa8c8', fontSize: 9, position: 'insideBottomRight', offset: -4 }}
+          label={{ value: 'LON', fill: 'var(--color-text-secondary)', fontSize: 9, position: 'insideBottomRight', offset: -4 }}
         />
         <YAxis
           dataKey="lat"
           type="number"
           name="Latitude"
           domain={['auto', 'auto']}
-          tick={{ fill: '#8fa8c8', fontSize: 9, fontFamily: 'IBM Plex Mono' }}
+          tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'var(--font-mono)' }}
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => v.toFixed(3)}
-          width={48}
-          label={{ value: 'LAT', fill: '#8fa8c8', fontSize: 9, angle: -90, position: 'insideLeft' }}
+          width={60}
+          label={{ value: 'LAT', fill: 'var(--color-text-secondary)', fontSize: 9, angle: -90, position: 'insideLeft' }}
         />
         <Tooltip
           contentStyle={{
-            background: '#1e3048',
-            border: '1px solid #2d4160',
-            borderRadius: '4px',
+            background: 'var(--color-elevated)',
+            border: '1px solid var(--color-border)',
+            borderRadius: '2px',
             fontSize: 11,
-            fontFamily: 'IBM Plex Mono',
-            color: '#c9d6e8',
+            fontFamily: 'var(--font-mono)',
+            color: 'var(--color-text-primary)',
           }}
-          cursor={{ stroke: '#2d4160' }}
+          cursor={{ stroke: 'var(--color-border)' }}
           formatter={(v) => [Number(v).toFixed(4), '']}
         />
         <Scatter
           data={chartData}
-          fill="#00c8e0"
+          fill="var(--color-text-secondary)"
           opacity={0.7}
           shape={(props) => (
             <TruckDot

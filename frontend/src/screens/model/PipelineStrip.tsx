@@ -19,10 +19,10 @@ export default function PipelineStrip({ activeCount }: PipelineStripProps) {
         <div key={stage} className="flex shrink-0 items-center gap-2">
           <span
             className={clsx(
-              'rounded-full border px-3 py-1 text-label-ui whitespace-nowrap transition-colors',
+              'rounded-sm border px-3 py-1 text-label-ui uppercase whitespace-nowrap transition-colors',
               i < activeCount
-                ? 'border-sky bg-sky-tint text-[#0284C7]'
-                : 'border-line-strong bg-canvas text-muted',
+                ? 'border-sky bg-sky-tint text-sky'
+                : 'border-line bg-canvas text-muted',
             )}
           >
             {stage}

@@ -1,7 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
-/* Person 2 intelligence design system — global rules only (tokens live in @theme below). */
-@import "./design/tokens.css";
 
 @theme {
   --color-base: #0c1825;
@@ -16,6 +14,8 @@
   --color-risk-high: #fb923c;
   --color-risk-critical: #f87171;
   --color-border: #2d4160;
+  /* Ink for text/glyphs sitting on a filled accent (cyan button, risk fill). */
+  --color-on-accent: #0c1825;
 
   --font-sans: "IBM Plex Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
@@ -40,107 +40,66 @@
   --animate-ring: ring 0.6s ease-in-out;
   --animate-glow-critical: glow-critical 2s ease-in-out infinite;
 
-  /* ── Person 2 intelligence design system (ported from tailwind.config.ts) ──
-     Only `surface` collides with the command-center palette above, so the
-     ported light card surface is exposed as `card` (bg-card) instead. */
-  --color-navy: #0f172a;
-  --color-navy-dark: #0a192f;
-  --color-navy-light: #1e293b;
-  --color-sky: #0ea5e9;
-  --color-sky-cyan: #06b6d4;
-  --color-sky-light: #38bdf8;
-  --color-sky-tint: #e0f2fe;
-  --color-canvas: #f8fafc;
-  --color-card: #ffffff;
-  --color-line: #e2e8f0;
-  --color-line-strong: #cbd5e1;
-  --color-line-heavy: #94a3b8;
-  --color-muted: #64748b;
+  /* Provenance marks (DESIGN.md has no provenance palette; hues are the
+     dataviz skill's validated categorical slots, stepped for the dark
+     surface). Light-mode steps are below in [data-theme="light"]. */
+  --color-provenance-measured-dot: #3987e5;
+  --color-provenance-measured-fg: #8fb8f2;
+  --color-provenance-calculated-dot: #d55181;
+  --color-provenance-calculated-fg: #eb9dbb;
+  --color-provenance-predicted-dot: #9085e9;
+  --color-provenance-predicted-fg: #bdb5f5;
+  --color-provenance-recommended-dot: #2fa84f;
+  --color-provenance-recommended-fg: #7cd494;
+  --color-provenance-finance-dot: #c98500;
+  --color-provenance-finance-fg: #e8b85a;
 
-  --color-status-safe: #10b981;
-  --color-status-safe-tint: #ecfdf5;
-  --color-status-safe-border: #a7f3d0;
-  --color-status-safe-fg: #065f46;
-  --color-status-warning: #f59e0b;
-  --color-status-warning-tint: #fffbeb;
-  --color-status-warning-border: #fde68a;
-  --color-status-warning-fg: #92400e;
-  --color-status-critical: #ef4444;
-  --color-status-critical-tint: #fef2f2;
-  --color-status-critical-border: #fecaca;
-  --color-status-critical-fg: #991b1b;
-  --color-status-offline: #64748b;
-  --color-status-offline-tint: #f1f5f9;
-  --color-status-offline-border: #cbd5e1;
-  --color-status-offline-fg: #334155;
-
-  --color-provenance-measured-dot: #4f46e5;
-  --color-provenance-measured-fill: #eef2ff;
-  --color-provenance-measured-border: #c7d2fe;
-  --color-provenance-measured-fg: #3730a3;
-  --color-provenance-calculated-dot: #7c3aed;
-  --color-provenance-calculated-fill: #f5f3ff;
-  --color-provenance-calculated-border: #ddd6fe;
-  --color-provenance-calculated-fg: #5b21b6;
-  --color-provenance-predicted-dot: #0284c7;
-  --color-provenance-predicted-fill: #f0f9ff;
-  --color-provenance-predicted-border: #bae6fd;
-  --color-provenance-predicted-fg: #075985;
-  --color-provenance-recommended-dot: #059669;
-  --color-provenance-recommended-fill: #ecfdf5;
-  --color-provenance-recommended-border: #a7f3d0;
-  --color-provenance-recommended-fg: #065f46;
-  --color-provenance-finance-dot: #d97706;
-  --color-provenance-finance-fill: #fffbeb;
-  --color-provenance-finance-border: #fde68a;
-  --color-provenance-finance-fg: #92400e;
-
-  --text-headline-xl: 2.25rem;
-  --text-headline-xl--line-height: 2.75rem;
-  --text-headline-xl--letter-spacing: -0.025em;
+  /* Intelligence-screen type scale, mapped onto the DESIGN.md scale:
+     headline-xl→display, -lg→h1, -md→h2, -sm→h3, telemetry-xl→stat-value. */
+  --text-headline-xl: 32px;
+  --text-headline-xl--line-height: 1.1;
+  --text-headline-xl--letter-spacing: -0.02em;
   --text-headline-xl--font-weight: 700;
-  --text-headline-lg: 1.75rem;
-  --text-headline-lg--line-height: 2.25rem;
-  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg: 24px;
+  --text-headline-lg--line-height: 1.2;
+  --text-headline-lg--letter-spacing: -0.01em;
   --text-headline-lg--font-weight: 600;
-  --text-headline-md: 1.25rem;
-  --text-headline-md--line-height: 1.75rem;
-  --text-headline-md--letter-spacing: -0.015em;
+  --text-headline-md: 18px;
+  --text-headline-md--line-height: 1.25;
+  --text-headline-md--letter-spacing: -0.01em;
   --text-headline-md--font-weight: 600;
-  --text-headline-sm: 1rem;
-  --text-headline-sm--line-height: 1.5rem;
-  --text-headline-sm--letter-spacing: -0.01em;
+  --text-headline-sm: 15px;
+  --text-headline-sm--line-height: 1.3;
   --text-headline-sm--font-weight: 600;
-  --text-body-lg: 1rem;
-  --text-body-lg--line-height: 1.5rem;
+  --text-body-lg: 15px;
+  --text-body-lg--line-height: 1.5;
   --text-body-lg--font-weight: 400;
-  --text-body-md: 0.875rem;
-  --text-body-md--line-height: 1.375rem;
+  --text-body-md: 14px;
+  --text-body-md--line-height: 1.5;
   --text-body-md--font-weight: 400;
-  --text-body-sm: 0.75rem;
-  --text-body-sm--line-height: 1.125rem;
+  --text-body-sm: 12px;
+  --text-body-sm--line-height: 1.4;
   --text-body-sm--font-weight: 400;
-  --text-telemetry-xl: 2rem;
-  --text-telemetry-xl--line-height: 2.25rem;
-  --text-telemetry-xl--letter-spacing: -0.03em;
+  --text-telemetry-xl: 24px;
+  --text-telemetry-xl--line-height: 1.1;
+  --text-telemetry-xl--letter-spacing: -0.01em;
   --text-telemetry-xl--font-weight: 600;
-  --text-telemetry-md: 1.125rem;
-  --text-telemetry-md--line-height: 1.5rem;
-  --text-telemetry-md--letter-spacing: -0.02em;
+  --text-telemetry-md: 14px;
+  --text-telemetry-md--line-height: 1.25;
   --text-telemetry-md--font-weight: 500;
-  --text-label-code: 0.6875rem;
-  --text-label-code--line-height: 0.875rem;
-  --text-label-code--letter-spacing: 0.04em;
+  --text-label-code: 11px;
+  --text-label-code--line-height: 1;
+  --text-label-code--letter-spacing: 0.06em;
   --text-label-code--font-weight: 500;
-  --text-label-ui: 0.75rem;
-  --text-label-ui--line-height: 1rem;
-  --text-label-ui--letter-spacing: 0.01em;
+  --text-label-ui: 11px;
+  --text-label-ui--line-height: 1.2;
+  --text-label-ui--letter-spacing: 0.06em;
   --text-label-ui--font-weight: 500;
 
-  --shadow-level1: 0 2px 4px -1px rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --shadow-level2: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
-  --shadow-level3: 0 20px 25px -5px rgba(15, 23, 42, 0.15);
-  --shadow-focus-halo: 0 0 0 2px #ffffff, 0 0 0 4px #0ea5e9;
+  /* DESIGN.md → Elevation & Depth: tonal stepping only, no drop shadows. */
+  --shadow-level1: none;
+  --shadow-level2: none;
+  --shadow-level3: none;
 
   --breakpoint-tablet: 768px;
   --breakpoint-desktop: 1280px;
@@ -152,20 +111,97 @@
   }
 }
 
+/* ── Intelligence-screen tokens → Strategic Ops palette ─────────
+   The Person 2 screens were built on a separate light design system. Their
+   token names are kept (so screens need no rewrite) but every one now
+   resolves to a DESIGN.md colour, so they follow the dark/light theme with
+   the rest of the app. `inline` makes utilities reference the target
+   variable directly, so the [data-theme] overrides apply. */
+@theme inline {
+  --color-canvas: var(--color-base);
+  --color-card: var(--color-surface);
+  --color-line: var(--color-border);
+  --color-line-strong: var(--color-border-strong);
+  --color-line-heavy: var(--color-text-secondary);
+  --color-muted: var(--color-text-secondary);
+  --color-navy: var(--color-text-primary);
+  --color-sky: var(--color-primary);
+  --color-sky-tint: var(--color-elevated);
+
+  /* Status tiers: DESIGN.md badges are an elevated tonal fill with coloured
+     text, never a coloured background. */
+  --color-status-safe: var(--color-risk-low);
+  --color-status-safe-tint: var(--color-elevated);
+  --color-status-safe-border: color-mix(in srgb, var(--color-risk-low) 45%, transparent);
+  --color-status-safe-fg: var(--color-risk-low);
+  --color-status-warning: var(--color-risk-medium);
+  --color-status-warning-tint: var(--color-elevated);
+  --color-status-warning-border: color-mix(in srgb, var(--color-risk-medium) 45%, transparent);
+  --color-status-warning-fg: var(--color-risk-medium);
+  --color-status-critical: var(--color-risk-critical);
+  --color-status-critical-tint: var(--color-elevated);
+  --color-status-critical-border: color-mix(in srgb, var(--color-risk-critical) 45%, transparent);
+  --color-status-critical-fg: var(--color-risk-critical);
+  --color-status-offline: var(--color-text-secondary);
+  --color-status-offline-tint: var(--color-elevated);
+  --color-status-offline-border: var(--color-border);
+  --color-status-offline-fg: var(--color-text-secondary);
+
+  --color-provenance-measured-fill: var(--color-elevated);
+  --color-provenance-measured-border: color-mix(in srgb, var(--color-provenance-measured-dot) 45%, transparent);
+  --color-provenance-calculated-fill: var(--color-elevated);
+  --color-provenance-calculated-border: color-mix(in srgb, var(--color-provenance-calculated-dot) 45%, transparent);
+  --color-provenance-predicted-fill: var(--color-elevated);
+  --color-provenance-predicted-border: color-mix(in srgb, var(--color-provenance-predicted-dot) 45%, transparent);
+  --color-provenance-recommended-fill: var(--color-elevated);
+  --color-provenance-recommended-border: color-mix(in srgb, var(--color-provenance-recommended-dot) 45%, transparent);
+  --color-provenance-finance-fill: var(--color-elevated);
+  --color-provenance-finance-border: color-mix(in srgb, var(--color-provenance-finance-dot) 45%, transparent);
+
+  --shadow-focus-halo: 0 0 0 2px var(--color-base), 0 0 0 4px var(--color-primary);
+}
+
+:root {
+  /* One step above the structural border, for inputs and hovered panels. */
+  --color-border-strong: #3d5476;
+  /* Route lines on the fleet map: three categorical hues, none shared with the
+     risk colours on the truck markers (validated all-pairs, both themes). */
+  --color-route-1: #3987e5;
+  --color-route-2: #d55181;
+  --color-route-3: #c98500;
+}
+
 /* ── Light mode overrides ──────────────────────────────────── */
 [data-theme="light"] {
+  --color-border-strong: #9fb1c8;
+  --color-route-1: #2a78d6;
+  --color-route-2: #c2336f;
+  --color-route-3: #b87800;
+  --color-provenance-measured-dot: #2a78d6;
+  --color-provenance-measured-fg: #1d5aa6;
+  --color-provenance-calculated-dot: #c2336f;
+  --color-provenance-calculated-fg: #9d1b55;
+  --color-provenance-predicted-dot: #4a3aa7;
+  --color-provenance-predicted-fg: #3b2d8a;
+  --color-provenance-recommended-dot: #008300;
+  --color-provenance-recommended-fg: #0a6a1f;
+  --color-provenance-finance-dot: #b87800;
+  --color-provenance-finance-fg: #8a5300;
+  /* Light steps of the same hues, each chosen to hold WCAG AA (≥4.5:1) as
+     text on base, surface AND elevated — the dark values already do. */
   --color-base: #eef2f7;
   --color-surface: #ffffff;
-  --color-elevated: #dde5f0;
-  --color-primary: #0090a8;
-  --color-primary-dim: #007080;
+  --color-elevated: #e3e9f2;
+  --color-primary: #007388;
+  --color-primary-dim: #005e70;
   --color-text-primary: #0d1b2a;
   --color-text-secondary: #3d5a80;
-  --color-border: #bccada;
-  --color-risk-low: #0a9e88;
-  --color-risk-medium: #c8880a;
-  --color-risk-high: #c85010;
-  --color-risk-critical: #c02020;
+  --color-border: #c3cfdd;
+  --color-risk-low: #007064;
+  --color-risk-medium: #8f5f00;
+  --color-risk-high: #a8460a;
+  --color-risk-critical: #b91c1c;
+  --color-on-accent: #ffffff;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -183,6 +219,26 @@ body {
 }
 
 #root { height: 100%; display: flex; }
+
+/* Native controls (checkboxes, select menus, scrollbars) follow the theme
+   instead of rendering as light-mode widgets on a dark panel. */
+:root { color-scheme: dark; }
+[data-theme="light"] { color-scheme: light; }
+input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary); }
+
+/* Leaflet zoom / attribution controls in the tonal system. */
+.leaflet-bar a,
+.leaflet-bar a:hover {
+  background: var(--color-elevated) !important;
+  color: var(--color-text-primary) !important;
+  border-color: var(--color-border) !important;
+}
+.leaflet-bar { border: 1px solid var(--color-border) !important; border-radius: 2px !important; box-shadow: none !important; }
+.leaflet-control-attribution {
+  background: color-mix(in srgb, var(--color-base) 80%, transparent) !important;
+  color: var(--color-text-secondary) !important;
+}
+.leaflet-control-attribution a { color: var(--color-primary) !important; }
 
 /* ── Keyframe animations ───────────────────────────────────── */
 @keyframes slide-in-up {
@@ -235,7 +291,7 @@ body {
   color: var(--color-text-primary) !important;
   border: 1px solid var(--color-border) !important;
   border-radius: 4px !important;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important;
+  box-shadow: none !important;
 }
 .leaflet-popup-tip {
   background: var(--color-elevated) !important;
@@ -253,5 +309,6 @@ body {
   letter-spacing: 0.04em;
   white-space: nowrap;
   pointer-events: none;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.5);
+  /* Halo in the page's own base colour, so labels read on dark and light tiles. */
+  text-shadow: 0 0 3px var(--color-base), 0 0 6px var(--color-base);
 }

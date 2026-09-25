@@ -1,4 +1,4 @@
-# Domain Model — Cold-Chain Intelligence
+# Domain Model — Thermal Trace
 
 > Single source of truth for domain objects, fields, types and relationships.
 > Persisted objects come from `backend/models.py`; the embedded result shapes

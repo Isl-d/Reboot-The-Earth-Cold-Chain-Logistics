@@ -1,0 +1,383 @@
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+
+/* Tokens copied from frontend/src/index.css (source of truth: DESIGN.md) so the
+   landing page and the command center read as one product. landing/ imports
+   nothing from frontend/; keep these in step by hand. */
+@theme {
+  --color-base: #0c1825;
+  --color-surface: #162338;
+  --color-elevated: #1e3048;
+  --color-primary: #00c8e0;
+  --color-primary-dim: #0090a8;
+  --color-text-primary: #c9d6e8;
+  --color-text-secondary: #8fa8c8;
+  --color-risk-low: #22d4b0;
+  --color-risk-medium: #fbbf24;
+  --color-risk-high: #fb923c;
+  --color-risk-critical: #f87171;
+  --color-border: #2d4160;
+  --color-on-accent: #0c1825;
+
+  --color-provenance-measured-dot: #3987e5;
+  --color-provenance-measured-fg: #8fb8f2;
+  --color-provenance-calculated-dot: #d55181;
+  --color-provenance-calculated-fg: #eb9dbb;
+  --color-provenance-predicted-dot: #9085e9;
+  --color-provenance-predicted-fg: #bdb5f5;
+  --color-provenance-recommended-dot: #2fa84f;
+  --color-provenance-recommended-fg: #7cd494;
+  --color-provenance-finance-dot: #c98500;
+  --color-provenance-finance-fg: #e8b85a;
+
+  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --radius-sm: 2px;
+  --radius-md: 4px;
+  --radius-lg: 6px;
+}
+
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 4.5rem;
+}
+
+body {
+  margin: 0;
+  background: var(--color-base);
+  color: var(--color-text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+/* Fallback hero ground: shows whenever the background video is missing or
+   reduced motion is on. */
+.hero-fallback {
+  background:
+    radial-gradient(60% 50% at 70% 30%, color-mix(in srgb, var(--color-primary) 18%, transparent), transparent 70%),
+    radial-gradient(50% 60% at 15% 80%, color-mix(in srgb, var(--color-primary-dim) 16%, transparent), transparent 70%),
+    linear-gradient(180deg, #0a1420 0%, var(--color-base) 100%);
+}
+
+.grid-lines {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-border) 40%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-border) 40%, transparent) 1px, transparent 1px);
+  background-size: 48px 48px;
+  mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
+}
+
+/* Reveal: elements start slightly low and transparent, then settle in. */
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* Hero entrance: each block rises in on load, staggered by inline delay. */
+.rise {
+  animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+/* Hero ground: grid drifts, two glows wander behind it. */
+.grid-pan {
+  animation: grid-pan 24s linear infinite;
+}
+@keyframes grid-pan {
+  to {
+    background-position: 48px 48px;
+  }
+}
+.aurora {
+  overflow: hidden;
+}
+.aurora-blob {
+  position: absolute;
+  width: 46vw;
+  height: 46vw;
+  border-radius: 9999px;
+  filter: blur(90px);
+  opacity: 0.35;
+}
+.aurora-a {
+  top: -12%;
+  right: -8%;
+  background: var(--color-primary);
+  animation: drift-a 18s ease-in-out infinite alternate;
+}
+.aurora-b {
+  bottom: -20%;
+  left: -12%;
+  background: var(--color-primary-dim);
+  opacity: 0.28;
+  animation: drift-b 22s ease-in-out infinite alternate;
+}
+@keyframes drift-a {
+  to {
+    transform: translate(-14vw, 12vh) scale(0.85);
+  }
+}
+@keyframes drift-b {
+  to {
+    transform: translate(18vw, -10vh) scale(1.15);
+  }
+}
+
+.float-slow {
+  animation: float 7s ease-in-out infinite;
+}
+@keyframes float {
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.pulse-dot {
+  animation: pulse-dot 1.1s ease-in-out infinite;
+}
+@keyframes pulse-dot {
+  50% {
+    opacity: 0.3;
+  }
+}
+.pulse-ring {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+@keyframes pulse-ring {
+  from {
+    transform: scale(0.6);
+    opacity: 0.5;
+  }
+  to {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+
+.scroll-wheel {
+  animation: scroll-wheel 1.8s ease-in-out infinite;
+}
+@keyframes scroll-wheel {
+  0% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+  70% {
+    transform: translateY(10px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 0;
+  }
+}
+
+/* Primary buttons: a light sweep on hover. */
+.btn-shine {
+  position: relative;
+  overflow: hidden;
+}
+.btn-shine::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 50%, transparent 70%);
+  transform: translateX(-120%);
+  transition: transform 0.7s ease;
+}
+.btn-shine:hover::after {
+  transform: translateX(120%);
+}
+
+/* Cards lift and pick up the accent on hover. */
+.lift {
+  transition:
+    transform 0.3s ease,
+    border-color 0.3s ease,
+    box-shadow 0.3s ease;
+}
+.lift:hover {
+  transform: translateY(-4px);
+  border-color: color-mix(in srgb, var(--color-primary) 55%, transparent);
+  box-shadow: 0 18px 40px -24px color-mix(in srgb, var(--color-primary) 60%, transparent);
+}
+
+/* Pipeline: a bar sweeps across each stage in turn, on a loop. */
+.stage-bar {
+  transform: scaleX(0);
+  transform-origin: left;
+  animation: stage 7.2s linear infinite;
+  animation-delay: calc(var(--i) * 1.2s);
+}
+@keyframes stage {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  14% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  22% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+/* Scenario: bars grow and timeline dots pop once their Reveal is visible. */
+.grow-y {
+  transform: scaleY(0);
+  transform-origin: bottom;
+  transition: transform 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.is-visible .grow-y {
+  transform: scaleY(1);
+}
+.pop {
+  opacity: 0;
+  transform: translateX(-10px);
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+.is-visible .pop {
+  opacity: 1;
+  transform: none;
+}
+.selected-pulse {
+  animation: selected-pulse 2s ease-in-out infinite;
+}
+@keyframes selected-pulse {
+  50% {
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-primary) 25%, transparent);
+  }
+}
+
+/* Architecture: data "travels" along the flow, node by node. */
+.flow-node {
+  animation: flow-node 4.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.6s);
+}
+@keyframes flow-node {
+  0%,
+  22%,
+  100% {
+    border-color: color-mix(in srgb, var(--color-border) 70%, transparent);
+    color: var(--color-text-primary);
+    box-shadow: none;
+  }
+  8% {
+    border-color: var(--color-primary);
+    color: #fff;
+    box-shadow: 0 0 18px -4px var(--color-primary);
+  }
+}
+.flow-arrow {
+  animation: flow-arrow 4.2s ease-in-out infinite;
+  animation-delay: calc(var(--i) * 0.6s + 0.3s);
+  opacity: 0.35;
+}
+@keyframes flow-arrow {
+  0%,
+  20%,
+  100% {
+    opacity: 0.35;
+    transform: none;
+  }
+  8% {
+    opacity: 1;
+    transform: translateX(3px);
+  }
+}
+.cursor {
+  display: inline-block;
+  width: 0.6em;
+  height: 1.1em;
+  background: var(--color-primary);
+  vertical-align: text-bottom;
+  animation: blink 1s steps(1) infinite;
+}
+@keyframes blink {
+  50% {
+    opacity: 0;
+  }
+}
+
+/* CTA: a slow light sweep across the panel. */
+.sheen::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(105deg, transparent 40%, rgba(0, 200, 224, 0.12) 50%, transparent 60%);
+  transform: translateX(-100%);
+  animation: sheen 6s ease-in-out infinite;
+}
+@keyframes sheen {
+  60%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .reveal,
+  .grow-y,
+  .pop {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .rise,
+  .grid-pan,
+  .aurora-blob,
+  .float-slow,
+  .pulse-dot,
+  .pulse-ring,
+  .scroll-wheel,
+  .selected-pulse,
+  .flow-node,
+  .flow-arrow,
+  .cursor,
+  .sheen::after {
+    animation: none;
+  }
+  .stage-bar {
+    animation: none;
+    transform: none;
+    opacity: 0.4;
+  }
+  .lift:hover {
+    transform: none;
+  }
+}

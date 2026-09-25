@@ -1,4 +1,6 @@
-# AI Cold-Chain Management & Food Loss Prevention
+# Thermal Trace
+
+AI cold-chain management & food-loss prevention.
 
 A condition-aware cold-chain decision system. Simulated refrigerated trucks
 publish live telemetry; the platform validates and stores it; deterministic

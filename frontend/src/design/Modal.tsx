@@ -8,12 +8,12 @@ interface ModalProps {
   children: ReactNode
 }
 
-// DESIGN.md → Elevation & Depth → Surface Level 3
+// DESIGN.md → modal: elevated tone, 6px radius, no shadow.
 export default function Modal({ open, onClose, title, children }: ModalProps) {
   if (!open) return null
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-[rgba(15,23,42,0.65)] p-4"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-base/70 p-4"
       onClick={onClose}
     >
       <div
@@ -21,7 +21,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
         aria-modal="true"
         aria-label={title}
         onClick={(e) => e.stopPropagation()}
-        className={clsx('w-full max-w-lg rounded-xl bg-card p-6 shadow-level3')}
+        className="w-full max-w-lg rounded-lg border border-line bg-elevated p-6"
       >
         <div className="flex items-center justify-between">
           <h2 className="text-headline-md text-navy">{title}</h2>
@@ -29,7 +29,7 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className={clsx(FOCUS_RING, 'rounded text-muted hover:text-navy')}
+            className={clsx(FOCUS_RING, 'rounded-sm text-muted hover:text-navy')}
           >
             ×
           </button>

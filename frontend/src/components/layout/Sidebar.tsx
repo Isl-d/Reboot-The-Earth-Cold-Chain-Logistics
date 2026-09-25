@@ -1,7 +1,11 @@
 import { NavLink } from 'react-router-dom'
+import { useTheme } from '../../hooks/useTheme'
+import { BrandMark } from './BrandMark'
 
 // Both route sets live behind one rail: Person 1's command-center routes and
-// Person 2's intelligence routes. `/styleguide` is dev-only, matching App.tsx.
+// Person 2's intelligence routes. The dev-only `/styleguide` route (App.tsx)
+// is deliberately not linked here — the demo runs the dev server, so a link
+// would show judges a component catalogue. Open it by URL when checking design.
 const links = [
   { to: '/', label: 'OPS', icon: '◈', title: 'Command Center' },
   { to: '/fleet', label: 'FLEET', icon: '⬡', title: 'Fleet' },
@@ -13,19 +17,20 @@ const links = [
   { to: '/inventory', label: 'INV', icon: '▦', title: 'Inventory' },
   { to: '/comparison', label: 'CMP', icon: '⇄', title: 'Scenario Comparison' },
   { to: '/map', label: 'MAP', icon: '▧', title: 'Fleet Map' },
-  ...(import.meta.env.DEV
-    ? [{ to: '/styleguide', label: 'STYLE', icon: '◐', title: 'Style Guide' }]
-    : []),
 ]
 
 export function Sidebar() {
+  const { theme, toggleTheme } = useTheme()
   return (
     <aside className="w-14 bg-base border-r border-border flex flex-col items-center py-4 gap-1 shrink-0 overflow-y-auto">
-      <div className="mb-4">
-        <div className="w-8 h-8 rounded-sm bg-primary flex items-center justify-center">
-          <span className="text-base font-bold text-[10px] leading-none">CC</span>
-        </div>
-      </div>
+      <NavLink
+        to="/"
+        title="Thermal Trace · Command Center"
+        aria-label="Thermal Trace home"
+        className="mb-4 rounded-md outline-none focus-visible:shadow-focus-halo"
+      >
+        <BrandMark size={32} />
+      </NavLink>
       {links.map(({ to, label, icon, title }) => (
         <NavLink
           key={to}
@@ -44,6 +49,17 @@ export function Sidebar() {
           <span className="text-[9px] tracking-[0.06em] font-medium leading-none">{label}</span>
         </NavLink>
       ))}
+      {/* Theme applies app-wide, so the toggle lives in the rail, on every page. */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        className="mt-auto w-10 h-10 flex flex-col items-center justify-center gap-0.5 rounded-sm text-text-secondary hover:text-text-primary hover:bg-elevated transition-colors outline-none focus-visible:shadow-focus-halo"
+      >
+        <span className="text-sm leading-none">{theme === 'dark' ? '☀' : '☾'}</span>
+        <span className="text-[9px] tracking-[0.06em] font-medium leading-none">{theme === 'dark' ? 'LIGHT' : 'DARK'}</span>
+      </button>
     </aside>
   )
 }

@@ -3,7 +3,7 @@ import L from 'leaflet'
 import { MapContainer, Marker, Popup, TileLayer, Tooltip, useMap } from 'react-leaflet'
 import { useEffect } from 'react'
 import type { TruckSummary } from '../../types'
-import { HYPERMARKETS, MAP_CENTER, MAP_ZOOM, RISK_COLORS, SUPERMARKETS, WAREHOUSES } from './mapConfig'
+import { HYPERMARKETS, MAP_CENTER, MAP_ZOOM, PLACE_COLORS, RISK_COLORS, SUPERMARKETS, WAREHOUSES } from './mapConfig'
 
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -14,8 +14,8 @@ L.Icon.Default.mergeOptions({
 
 /* ── Truck icon (side-view box truck SVG) ──────────────────── */
 function createTruckIcon(riskLevel: string, isActive: boolean) {
-  const color = RISK_COLORS[riskLevel] ?? '#8fa8c8'
-  const dark = '#0c1825'
+  const color = RISK_COLORS[riskLevel] ?? 'var(--color-text-secondary)'
+  const dark = 'var(--color-on-accent)'
 
   const pulse = isActive
     ? `<circle cx="20" cy="12" r="18" fill="${color}" opacity="0">
@@ -49,11 +49,11 @@ function createTruckIcon(riskLevel: string, isActive: boolean) {
 
 /* ── Location icons ────────────────────────────────────────── */
 function createWarehouseIcon() {
-  const c = '#8fa8c8'
+  const c = PLACE_COLORS.warehouse
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34">
-    <polygon points="17,3 32,14 32,31 2,31 2,14" fill="${c}" opacity="0.9" stroke="#0c1825" stroke-width="1.5"/>
-    <rect x="13" y="20" width="8" height="11" fill="#0c1825" opacity="0.6"/>
-    <text x="17" y="17" text-anchor="middle" font-size="9" font-weight="600" fill="#0c1825" font-family="sans-serif">WH</text>
+    <polygon points="17,3 32,14 32,31 2,31 2,14" fill="${c}" opacity="0.9" stroke="var(--color-on-accent)" stroke-width="1.5"/>
+    <rect x="13" y="20" width="8" height="11" fill="var(--color-on-accent)" opacity="0.6"/>
+    <text x="17" y="17" text-anchor="middle" font-size="9" font-weight="600" fill="var(--color-on-accent)" font-family="sans-serif">WH</text>
     <!-- Snowflake -->
     <line x1="17" y1="22" x2="17" y2="30" stroke="${c}" stroke-width="1" opacity="0.8"/>
     <line x1="13" y1="26" x2="21" y2="26" stroke="${c}" stroke-width="1" opacity="0.8"/>
@@ -62,35 +62,35 @@ function createWarehouseIcon() {
 }
 
 function createHypermarketIcon() {
-  const c = '#22d4b0'
+  const c = PLACE_COLORS.store
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
-    <circle cx="15" cy="15" r="13" fill="${c}" opacity="0.9" stroke="#0c1825" stroke-width="1.5"/>
+    <circle cx="15" cy="15" r="13" fill="${c}" opacity="0.9" stroke="var(--color-on-accent)" stroke-width="1.5"/>
     <!-- Cart body -->
-    <rect x="9" y="11" width="12" height="8" rx="1" fill="#0c1825" opacity="0.7"/>
-    <line x1="7" y1="11" x2="9" y2="11" stroke="#0c1825" stroke-width="1.5"/>
+    <rect x="9" y="11" width="12" height="8" rx="1" fill="var(--color-on-accent)" opacity="0.7"/>
+    <line x1="7" y1="11" x2="9" y2="11" stroke="var(--color-on-accent)" stroke-width="1.5"/>
     <!-- Wheels -->
-    <circle cx="11" cy="21" r="1.5" fill="#0c1825" opacity="0.7"/>
-    <circle cx="18" cy="21" r="1.5" fill="#0c1825" opacity="0.7"/>
-    <text x="15" y="11" text-anchor="middle" font-size="6" font-weight="700" fill="#0c1825" font-family="sans-serif">H</text>
+    <circle cx="11" cy="21" r="1.5" fill="var(--color-on-accent)" opacity="0.7"/>
+    <circle cx="18" cy="21" r="1.5" fill="var(--color-on-accent)" opacity="0.7"/>
+    <text x="15" y="11" text-anchor="middle" font-size="6" font-weight="700" fill="var(--color-on-accent)" font-family="sans-serif">H</text>
   </svg>`
   return L.divIcon({ html: svg, className: '', iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30] })
 }
 
 function createSupermarketIcon() {
-  const c = '#fbbf24'
+  const c = PLACE_COLORS.store
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26">
-    <circle cx="13" cy="13" r="11" fill="${c}" opacity="0.9" stroke="#0c1825" stroke-width="1.5"/>
+    <circle cx="13" cy="13" r="11" fill="${c}" opacity="0.9" stroke="var(--color-on-accent)" stroke-width="1.5"/>
     <!-- Bag -->
-    <rect x="8" y="11" width="10" height="9" rx="1" fill="#0c1825" opacity="0.7"/>
-    <path d="M10 11 Q10 8 13 8 Q16 8 16 11" fill="none" stroke="#0c1825" stroke-width="1.5"/>
-    <text x="13" y="11" text-anchor="middle" font-size="5.5" font-weight="700" fill="#0c1825" font-family="sans-serif">S</text>
+    <rect x="8" y="11" width="10" height="9" rx="1" fill="var(--color-on-accent)" opacity="0.7"/>
+    <path d="M10 11 Q10 8 13 8 Q16 8 16 11" fill="none" stroke="var(--color-on-accent)" stroke-width="1.5"/>
+    <text x="13" y="11" text-anchor="middle" font-size="5.5" font-weight="700" fill="var(--color-on-accent)" font-family="sans-serif">S</text>
   </svg>`
   return L.divIcon({ html: svg, className: '', iconSize: [26, 26], iconAnchor: [13, 26], popupAnchor: [0, -26] })
 }
 
 function createLabelIcon(text: string, color: string) {
   return L.divIcon({
-    html: `<div style="color:${color};font-size:9px;font-weight:600;letter-spacing:0.04em;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,0.9),0 0 8px rgba(0,0,0,0.7);pointer-events:none;">${text}</div>`,
+    html: `<div style="color:${color};font-size:9px;font-weight:600;letter-spacing:0.04em;white-space:nowrap;text-shadow:0 0 3px var(--color-base),0 0 6px var(--color-base);pointer-events:none;">${text}</div>`,
     className: '',
     iconSize: [80, 12],
     iconAnchor: [40, 0],
@@ -140,39 +140,39 @@ export function LiveMap({ trucks, onTruckClick }: Props) {
       {WAREHOUSES.map((wh) => (
         <Marker key={wh.id} position={[wh.lat, wh.lon]} icon={createWarehouseIcon()}>
           <Tooltip direction="top" offset={[0, -34]} opacity={0.95}>
-            <LocationPopup name={wh.name} type="COLD STORAGE" color="#8fa8c8" />
+            <LocationPopup name={wh.name} type="COLD STORAGE" color={PLACE_COLORS.warehouse} />
           </Tooltip>
-          <Popup><LocationPopup name={wh.name} type="COLD STORAGE WAREHOUSE" color="#8fa8c8" /></Popup>
+          <Popup><LocationPopup name={wh.name} type="COLD STORAGE WAREHOUSE" color={PLACE_COLORS.warehouse} /></Popup>
         </Marker>
       ))}
       {WAREHOUSES.map((wh) => (
-        <Marker key={`${wh.id}-label`} position={[wh.lat - 0.003, wh.lon]} icon={createLabelIcon(wh.id, '#8fa8c8')} interactive={false} />
+        <Marker key={`${wh.id}-label`} position={[wh.lat - 0.003, wh.lon]} icon={createLabelIcon(wh.id, PLACE_COLORS.warehouse)} interactive={false} />
       ))}
 
       {/* ── Hypermarkets ────────────────────────────────────── */}
       {HYPERMARKETS.map((h) => (
         <Marker key={h.id} position={[h.lat, h.lon]} icon={createHypermarketIcon()}>
           <Tooltip direction="top" offset={[0, -30]} opacity={0.95}>
-            <LocationPopup name={h.name} type="HYPERMARKET" color="#22d4b0" />
+            <LocationPopup name={h.name} type="HYPERMARKET" color={PLACE_COLORS.store} />
           </Tooltip>
-          <Popup><LocationPopup name={h.name} type="HYPERMARKET" color="#22d4b0" /></Popup>
+          <Popup><LocationPopup name={h.name} type="HYPERMARKET" color={PLACE_COLORS.store} /></Popup>
         </Marker>
       ))}
       {HYPERMARKETS.map((h) => (
-        <Marker key={`${h.id}-label`} position={[h.lat - 0.0025, h.lon]} icon={createLabelIcon(h.name.split(' ')[0], '#22d4b0')} interactive={false} />
+        <Marker key={`${h.id}-label`} position={[h.lat - 0.0025, h.lon]} icon={createLabelIcon(h.name.split(' ')[0], PLACE_COLORS.store)} interactive={false} />
       ))}
 
       {/* ── Supermarkets ────────────────────────────────────── */}
       {SUPERMARKETS.map((s) => (
         <Marker key={s.id} position={[s.lat, s.lon]} icon={createSupermarketIcon()}>
           <Tooltip direction="top" offset={[0, -26]} opacity={0.95}>
-            <LocationPopup name={s.name} type="SUPERMARKET" color="#fbbf24" />
+            <LocationPopup name={s.name} type="SUPERMARKET" color={PLACE_COLORS.store} />
           </Tooltip>
-          <Popup><LocationPopup name={s.name} type="SUPERMARKET" color="#fbbf24" /></Popup>
+          <Popup><LocationPopup name={s.name} type="SUPERMARKET" color={PLACE_COLORS.store} /></Popup>
         </Marker>
       ))}
       {SUPERMARKETS.map((s) => (
-        <Marker key={`${s.id}-label`} position={[s.lat - 0.002, s.lon]} icon={createLabelIcon(s.name.split(' ')[0], '#fbbf24')} interactive={false} />
+        <Marker key={`${s.id}-label`} position={[s.lat - 0.002, s.lon]} icon={createLabelIcon(s.name.split(' ')[0], PLACE_COLORS.store)} interactive={false} />
       ))}
 
       {/* ── Trucks ──────────────────────────────────────────── */}
@@ -199,7 +199,7 @@ export function LiveMap({ trucks, onTruckClick }: Props) {
               </div>
               <button
                 onClick={() => onTruckClick(truck.id)}
-                style={{ marginTop: 8, fontSize: 11, color: '#00c8e0', letterSpacing: '0.04em', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                style={{ marginTop: 8, fontSize: 11, color: 'var(--color-primary)', letterSpacing: '0.04em', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
               >
                 VIEW DETAILS →
               </button>

@@ -16,7 +16,7 @@ export default function BreakdownBarChart({ data, color, height }: BreakdownBarC
       <BarChart data={sorted} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 4 }}>
         <CartesianGrid stroke={CHART_COLORS.grid} horizontal={false} />
         <XAxis type="number" tick={AXIS_STYLE} stroke={CHART_COLORS.grid} unit=" kg" />
-        <YAxis type="category" dataKey="label" tick={AXIS_STYLE} stroke={CHART_COLORS.grid} width={140} />
+        <YAxis type="category" dataKey="label" tick={AXIS_STYLE} stroke={CHART_COLORS.grid} width={172} />
         <CrosshairTooltip formatter={(value) => [`${value} kg`, 'Lost']} />
         <Bar dataKey="lostKg" fill={color} radius={[0, 3, 3, 0]} isAnimationActive={false} />
       </BarChart>

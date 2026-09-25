@@ -29,7 +29,7 @@ export function FilterGroup({ title, children, defaultOpen = true }: FilterGroup
 
 export function FilterPanel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={clsx('rounded-lg border border-line bg-card p-4', className)}>{children}</div>
+    <div className={clsx('rounded-md border border-line bg-card p-4', className)}>{children}</div>
   )
 }
 
@@ -41,13 +41,13 @@ export function FilterChip({
   onRemove: () => void
 }) {
   return (
-    <Pill className="border-sky-tint bg-sky-tint px-2.5 text-label-ui text-[#0284C7]">
+    <Pill className="border-line bg-sky-tint px-2.5 text-label-ui text-sky">
       {label}
       <button
         type="button"
         onClick={onRemove}
         aria-label={`Remove filter ${label}`}
-        className={clsx(FOCUS_RING, 'rounded-full leading-none hover:text-navy')}
+        className={clsx(FOCUS_RING, 'rounded-sm leading-none hover:text-navy')}
       >
         ×
       </button>
