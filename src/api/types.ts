@@ -84,6 +84,8 @@ export interface InventoryBatch {
   expectedExcessKg: number
   spoilageProbability: number
   recommendation: InventoryAction
+  /** PROPOSED backend field — undefined when this batch isn't tied to a truck. */
+  truckId: string | undefined
 }
 
 export interface TelemetrySample {

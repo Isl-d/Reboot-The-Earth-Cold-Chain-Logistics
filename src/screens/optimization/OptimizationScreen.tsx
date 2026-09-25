@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useLocation } from 'react-router-dom'
 import {
   useDeterioration,
   useEvaluateOptimization,
@@ -20,10 +21,18 @@ import {
   Thead,
   Tr,
 } from '@/design'
+import type { OptimizationNavState } from '@/lib/navigation'
 
 export default function OptimizationScreen() {
+  // Arriving from a row action elsewhere (e.g. Inventory's "Evaluate
+  // options") pins both the truck AND that row's own batch — Optimization
+  // would otherwise fall back to the selected truck's default batch, which
+  // is a different item than the one that was just evaluated.
+  const navState = useLocation().state as OptimizationNavState | null
+
   const trucksQuery = useSimTruckOptions()
-  const [truckId, setTruckId] = useState('')
+  const [truckId, setTruckId] = useState(navState?.truckId ?? '')
+  const [batchIdOverride, setBatchIdOverride] = useState(navState?.batchId)
 
   useEffect(() => {
     if (!truckId && trucksQuery.data && trucksQuery.data.length > 0) {
@@ -32,7 +41,12 @@ export default function OptimizationScreen() {
   }, [trucksQuery.data, truckId])
 
   const selectedTruck = trucksQuery.data?.find((t) => t.truckId === truckId)
-  const batchId = selectedTruck?.batchId ?? ''
+  const batchId = batchIdOverride ?? selectedTruck?.batchId ?? ''
+  // The truck's default cargo info doesn't apply when viewing a different
+  // (overridden) batch — e.g. arriving from Inventory's "Evaluate options".
+  const batchInfo = batchIdOverride
+    ? navState && { product: navState.product, quantityKg: navState.quantityKg }
+    : selectedTruck && { product: selectedTruck.product, quantityKg: selectedTruck.quantityKg }
 
   const simState = useSimulationState(truckId)
   const running = simState.data?.running ?? false
@@ -89,12 +103,15 @@ export default function OptimizationScreen() {
           <Select
             className="w-64"
             value={truckId}
-            onChange={(e) => setTruckId(e.target.value)}
+            onChange={(e) => {
+              setTruckId(e.target.value)
+              setBatchIdOverride(undefined)
+            }}
             options={trucksQuery.data?.map((t) => ({ value: t.truckId, label: t.label })) ?? [{ value: '', label: 'Loading…' }]}
           />
-          {selectedTruck && (
+          {batchInfo && (
             <span className="text-body-sm text-muted">
-              {selectedTruck.batchId} — {selectedTruck.product} ({selectedTruck.quantityKg} kg)
+              {batchId} — {batchInfo.product} ({batchInfo.quantityKg} kg)
             </span>
           )}
           <Button

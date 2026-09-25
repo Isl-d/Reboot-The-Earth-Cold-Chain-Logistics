@@ -1,10 +1,11 @@
 import type { StatusTier } from '@/design'
 
 /**
- * Buckets the backend's own spoilageProbability into a status tier for the
- * Risk chip — a presentation-only classification (like any Safe/Warning/
- * Critical chip in DESIGN.md), not a recomputation of the probability
- * itself. The number always comes straight from the backend.
+ * Buckets a backend-supplied probability (spoilageProbability) into a status
+ * tier — a presentation-only classification (like any Safe/Warning/Critical
+ * chip in DESIGN.md), not a recomputation of the probability itself. Shared
+ * across screens (Mathematical Model, Inventory) rather than living under
+ * one screen folder and being cross-imported by another.
  */
 export function riskTierFromProbability(spoilageProbability: number): StatusTier {
   if (spoilageProbability >= 0.4) return 'critical'

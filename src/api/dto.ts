@@ -110,6 +110,13 @@ export interface InventoryBatchDto {
   expectedExcessKg: number
   spoilageProbability: number
   recommendation: InventoryAction
+  /**
+   * PROPOSED addition, not in the spec's example JSON — needed for the
+   * "Evaluate options" row action (POST /api/optimization/evaluate needs a
+   * truckId). Absent when the batch isn't currently associated with a
+   * truck; see docs/api-contracts.md §7.
+   */
+  truckId?: string
 }
 
 // ---- Scenario comparison (§6) --------------------------------------------

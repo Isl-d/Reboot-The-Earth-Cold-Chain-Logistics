@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo } from 'react'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { useFoodLossAnalytics, useFoodLossSeries } from '@/api/hooks'
 import type { FoodLossBreakdownItem } from '@/api/types'
@@ -17,6 +17,7 @@ import {
   Thead,
   Tr,
 } from '@/design'
+import { filterBySelection, useMultiSelect } from '@/lib/useMultiSelect'
 import BreakdownBarChart from './BreakdownBarChart'
 
 function formatDate(ms: number): string {
@@ -24,19 +25,7 @@ function formatDate(ms: number): string {
 }
 
 function applyFilter(items: FoodLossBreakdownItem[], included: Set<string>): FoodLossBreakdownItem[] {
-  return included.size === 0 ? items : items.filter((i) => included.has(i.label))
-}
-
-function useMultiSelect() {
-  const [selected, setSelected] = useState<Set<string>>(new Set())
-  const toggle = (label: string) =>
-    setSelected((prev) => {
-      const next = new Set(prev)
-      next.has(label) ? next.delete(label) : next.add(label)
-      return next
-    })
-  const remove = (label: string) => setSelected((prev) => new Set([...prev].filter((l) => l !== label)))
-  return { selected, toggle, remove }
+  return filterBySelection(items, (i) => i.label, included)
 }
 
 export default function AnalyticsScreen() {

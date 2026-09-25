@@ -23,7 +23,7 @@ import {
 } from '@/design'
 import { formatClockTime } from '@/lib/datetime'
 import PipelineStrip from './PipelineStrip'
-import { riskLabelFromProbability, riskTierFromProbability } from './riskTier'
+import { riskLabelFromProbability, riskTierFromProbability } from '@/lib/risk'
 
 export default function ModelScreen() {
   const trucksQuery = useSimTruckOptions()

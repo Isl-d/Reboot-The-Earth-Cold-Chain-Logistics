@@ -19,6 +19,7 @@ screen rewrite.
 | 4 | `GET /api/analytics/scenario-comparison/{scenario}` | Proposed |
 | 5 | `POST /api/simulation/stop`, `POST /api/simulation/reset`, `GET /api/simulation/{truckId}` | Proposed |
 | 6 | `GET /api/trucks` | Proposed |
+| 7 | `truckId` field on `GET /api/inventory` rows | Proposed |
 
 ---
 
@@ -148,3 +149,29 @@ Open question: is a truck's current batch always 1:1 (a truck carries one
 batch at a time), or can a truck carry multiple batches? The frontend
 currently assumes 1:1 — selecting a truck shows its one current batch as
 read-only rather than offering an independent batch picker.
+
+## 7. `truckId` field on `GET /api/inventory` rows
+
+§5's inventory example JSON has no `truckId`, but the "Evaluate options" row
+action needs one — `POST /api/optimization/evaluate` requires `{ truckId,
+batchId }` (§ "Data you send"), and inventory sits at a store/warehouse
+location, not necessarily in a truck. Proposed: an optional `truckId` field,
+present only when the batch is currently associated with a truck:
+
+```json
+{
+  "batchId": "CHK-1029",
+  "product": "Fresh Chicken",
+  "locationId": "STORE01",
+  "quantityKg": 500,
+  "expiryDate": "2026-09-27",
+  "predictedDemandKg": 240,
+  "expectedExcessKg": 260,
+  "spoilageProbability": 0.62,
+  "recommendation": "TRANSFER",
+  "truckId": "T101"
+}
+```
+
+When absent, the frontend disables "Evaluate options" for that row rather
+than guessing a truck or sending a malformed request.

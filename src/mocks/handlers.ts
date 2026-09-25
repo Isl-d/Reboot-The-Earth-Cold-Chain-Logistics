@@ -220,6 +220,9 @@ export async function getInventory(): Promise<InventoryBatchDto[]> {
     const spoilageProbability = Math.round(seededRange(`inv:${batch.id}:risk`, 0.05, 0.85) * 100) / 100
     const predictedDemandKg = Math.round(batch.quantityKg * seededRange(`inv:${batch.id}:demand`, 0.35, 0.75))
     const expiryDays = Math.round(seededRange(`inv:${batch.id}:expiry`, 1, 6))
+    // Only batches currently a truck's cargo get a truckId (docs/api-contracts.md
+    // §7) — most inventory sits at a store with no associated truck.
+    const truck = TRUCKS.find((t) => t.batchId === batch.id)
     return {
       batchId: batch.id,
       product: batch.product,
@@ -230,6 +233,7 @@ export async function getInventory(): Promise<InventoryBatchDto[]> {
       expectedExcessKg: Math.max(0, batch.quantityKg - predictedDemandKg),
       spoilageProbability,
       recommendation: recommendations[Math.floor(seededRange(`inv:${batch.id}:rec`, 0, recommendations.length))],
+      truckId: truck?.id,
     }
   })
 }

@@ -19,5 +19,6 @@ export function adaptInventoryBatch(dto: InventoryBatchDto): InventoryBatch {
     expectedExcessKg: expectNumber(resource, 'expectedExcessKg', dto.expectedExcessKg),
     spoilageProbability: expectNumber(resource, 'spoilageProbability', dto.spoilageProbability),
     recommendation: dto.recommendation,
+    truckId: typeof dto.truckId === 'string' ? dto.truckId : undefined,
   }
 }
