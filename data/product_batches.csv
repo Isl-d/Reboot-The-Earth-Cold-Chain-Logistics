@@ -1,0 +1,8 @@
+id,product_id,quantity_kg,production_date,expiry_date,safe_min_temp_c,safe_max_temp_c,initial_shelf_life_hours,warehouse_id
+CHK-1029,chicken,500,2026-09-21,2026-09-28,0,4,168,WH01
+MLK-201,milk,800,2026-09-22,2026-10-02,2,6,240,WH01
+LET-305,lettuce,1200,2026-09-23,2026-10-03,0,4,240,WH02
+CHK-1030,chicken,700,2026-09-22,2026-09-29,0,4,168,WH02
+CHK-1028,chicken,300,2026-09-20,2026-09-26,0,4,168,WH01
+MLK-200,milk,250,2026-09-22,2026-10-01,2,6,240,WH01
+LET-304,lettuce,400,2026-09-23,2026-10-02,0,4,240,WH02

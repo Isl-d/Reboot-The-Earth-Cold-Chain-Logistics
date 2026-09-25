@@ -1,0 +1,4 @@
+id,name,safe_min_temp_c,safe_max_temp_c,ideal_temp_c,initial_shelf_life_hours,value_per_kg,activation_energy_j_mol,humidity_limit_pct
+chicken,Fresh Chicken,0,4,2,168,20,90000,90
+milk,Fresh Milk,2,6,4,240,6,80000,92
+lettuce,Lettuce,0,4,2,240,10,60000,95
