@@ -82,7 +82,7 @@ Not taken: any map, clustered markers, pie charts, °F (we use °C).
 - [x] Segment 2 — Data layer, API contracts, mock backend
 - [x] Segment 3 — Minimal shell
 - [x] Segment 4 — Simulation screen
-- [ ] Segment 5 — Mathematical Model screen
+- [x] Segment 5 — Mathematical Model screen
 - [ ] Segment 6 — Optimization screen
 - [ ] Segment 7 — Food-Loss Analytics screen
 - [ ] Segment 8 — Inventory screen
