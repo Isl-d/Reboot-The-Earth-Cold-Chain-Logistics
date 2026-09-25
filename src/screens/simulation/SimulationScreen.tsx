@@ -24,6 +24,7 @@ import {
   Button,
   Card,
   CHART_COLORS,
+  computeExcursionBands,
   CrosshairTooltip,
   ExcursionBand,
   ProvenanceBadge,
@@ -31,7 +32,6 @@ import {
   Select,
   StatusChip,
 } from '@/design'
-import { computeExcursionBands } from './excursions'
 import { formatClockTime, formatDuration } from './formatters'
 import ScenarioPicker from './ScenarioPicker'
 

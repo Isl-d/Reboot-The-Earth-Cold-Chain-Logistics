@@ -7,7 +7,13 @@ interface KpiCardProps {
   label: string
   value: string
   unit?: string
-  provenance: ProvenanceKind
+  /**
+   * Omit when this card sits inside a section that already carries one
+   * ProvenanceBadge for the whole group (e.g. several KPIs under one
+   * "Calculated" card header) — repeating it on every cramped mini-card
+   * both overflows and states the same thing three times.
+   */
+  provenance?: ProvenanceKind
   trend?: number[]
   trendTier?: StatusTier
 }
@@ -18,7 +24,7 @@ export default function KpiCard({ label, value, unit, provenance, trend, trendTi
     <Card className="p-4">
       <div className="flex items-start justify-between gap-2">
         <span className="text-body-sm text-muted">{label}</span>
-        <ProvenanceBadge kind={provenance} className="shrink-0" />
+        {provenance && <ProvenanceBadge kind={provenance} className="shrink-0" />}
       </div>
       <div className="mt-2 font-mono text-telemetry-xl tabular-nums text-navy">
         {value}

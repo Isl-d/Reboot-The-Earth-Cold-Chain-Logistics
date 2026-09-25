@@ -62,3 +62,38 @@ export function SafeLimitLine({ y, label }: { y: number; label?: string }) {
 export function ExcursionBand({ x1, x2 }: { x1: number | string; x2: number | string }) {
   return <ReferenceArea x1={x1} x2={x2} fill={CHART_COLORS.excursionFill} stroke={CHART_COLORS.excursion} strokeOpacity={0.3} />
 }
+
+export interface ExcursionRange {
+  x1: number
+  x2: number
+}
+
+interface TimedTemperatureSample {
+  timestampMs: number
+  temperatureC: number
+}
+
+/**
+ * Contiguous ranges where temperature exceeds the safe threshold, for
+ * ExcursionBand — shared by every screen that charts temperature over time
+ * (Simulation, Mathematical Model) instead of each reimplementing it.
+ */
+export function computeExcursionBands<T extends TimedTemperatureSample>(
+  samples: T[],
+  safeTemperatureC: number,
+): ExcursionRange[] {
+  const bands: ExcursionRange[] = []
+  let start: number | null = null
+  for (const sample of samples) {
+    const above = sample.temperatureC > safeTemperatureC
+    if (above && start === null) start = sample.timestampMs
+    if (!above && start !== null) {
+      bands.push({ x1: start, x2: sample.timestampMs })
+      start = null
+    }
+  }
+  if (start !== null && samples.length > 0) {
+    bands.push({ x1: start, x2: samples[samples.length - 1].timestampMs })
+  }
+  return bands
+}
