@@ -76,8 +76,14 @@ export default function Sidebar() {
                   FOCUS_RING,
                   'flex items-center gap-3 rounded px-3 py-2 text-body-md transition-colors',
                   collapsed && 'justify-center px-0',
+                  // The left-border + compensating pl-[9px] trick only works with
+                  // px-3's padding; collapsed's centered px-0 icon has no padding to
+                  // borrow from, so a border there would push the icon off-center.
+                  // Collapsed active state uses a sky-tinted icon instead.
                   isActive
-                    ? 'bg-navy-light text-white border-l-[3px] border-sky pl-[9px]'
+                    ? collapsed
+                      ? 'bg-navy-light text-sky'
+                      : 'bg-navy-light text-white border-l-[3px] border-sky pl-[9px]'
                     : 'text-white/70 hover:bg-navy-light hover:text-white',
                 )
               }
