@@ -23,6 +23,7 @@ os.environ["CC_TIMESCALE_ENABLED"] = "false"
 os.environ["CC_MQTT_HOST"] = "127.0.0.1"
 os.environ["CC_MQTT_PORT"] = "1"
 os.environ["CC_INTELLIGENCE_ENABLED"] = "false"
+os.environ["CC_LAYA_ENABLED"] = "false"
 os.environ["OPENROUTERAPIKEY"] = ""
 
 # The simulator modules are standalone scripts, not an installed package.
@@ -49,6 +50,7 @@ def live(client):
     from backend import cache as cache_mod
     from backend.db import session_scope
     from backend.models import (
+        DeviceEvent,
         Incident,
         IngestReject,
         Prediction,
@@ -58,7 +60,7 @@ def live(client):
     from backend.processing import tracker
 
     with session_scope() as session:
-        for model in (SensorReading, Incident, IngestReject, Prediction, SimulationRun):
+        for model in (SensorReading, DeviceEvent, Incident, IngestReject, Prediction, SimulationRun):
             session.execute(delete(model))
 
     tracker.reset()

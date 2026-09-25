@@ -1,68 +1,53 @@
 # The four-minute demo
 
-One presenter drives, one person handles the box. Nobody types a terminal
-command on stage. Rehearse three times.
+One presenter drives; one person keeps the terminal ready. Rehearse twice.
 
-## Fifteen minutes before
+The story is one truck and one failure: **T102 loses its refrigeration in
+transit, the system detects it, measures the damage, predicts the risk, chooses
+a cold store, diverts, and proves how much food it saved.**
+
+## Five minutes before
 
 ```bash
-make demo           # broker, database, backend, simulator, dashboard
-make model          # only if ollama has not pulled qwen2.5:7b yet
+make laya-pull       # once, before the event: ~1.4 GB of Laya checkpoints
+make demo            # broker, database, redis, laya, backend, simulator, frontend
+make reset           # everyone back to NORMAL
 ```
 
-- [ ] Phone hotspot on **2.4 GHz**, laptop IP fixed, same network as the NodeMCU.
-- [ ] `make watch` shows `coldguard/TRK-07/telemetry` arriving. Close it.
-- [ ] Box closed with two ice packs; resting air temperature **below 6 °C**.
-- [ ] Dashboard open, TRK-07 selected, `LIVE sensor` tag showing, `live` pill green.
-- [ ] QR code taped to the lid; open it once on your own phone.
-- [ ] Press **D**, press **Reset demo**, press **D** again to hide the panel.
-- [ ] Browser zoom so the fleet list and the options table are both readable.
+- [ ] Dashboard open at **http://localhost:5173**; `LIVE` pill green.
+- [ ] `make watch` in a side terminal shows `coldchain/trucks/.../telemetry`.
+      Close it before you start talking.
+- [ ] Open **Command Center**. T102 is moving, ~3–4 °C, risk LOW.
+- [ ] Have the API docs open in a second tab (**http://localhost:8000/docs**)
+      in case a judge asks what the numbers are.
 
 ## On stage
 
 | Time | You do | They see | You say |
 | --- | --- | --- | --- |
-| 0:00 | Box closed on the table | Twelve trucks moving on Doha; TRK-07 tagged **LIVE sensor**; heat layer on the roads | "Every one of these is a pallet of food. Eleven are simulated. This one is a real sensor, in this box." |
-| 0:40 | Lift the lid for five seconds | A bump on the blue line; the amber cargo line barely moves; the log says **door opening — no action** | "A door opening is not a failure. The air spikes; two tonnes of lettuce do not. If we alerted on this, nobody would read our alerts." |
-| 1:10 | Take the sensor out and hold it in your hand | Blue line climbs past 8 °C and stays; amber line follows slowly | "Now the cooling has actually failed." |
-| 1:50 | — | **Alert.** Freshness on arrival falls under six days, the truck turns amber | "Thirty-five seconds above the limit, door closed, temperature not coming down. That is a failure, not a door." |
-| 2:00 | — | Six options with numbers; recommendation in Arabic and English | "Continue as planned and it arrives below what the store accepts — rejected at the gate. Deliver it straight to the nearest supermarket instead and it arrives inside the window. Every number here was computed in Python. The model only wrote the sentence." |
-| 2:45 | Tap **Approve** | Route redraws to the supermarket; freshness on arrival back above six days; audit entry with its hash | "A person approved that. Nothing moves until someone does." |
-| 3:20 | — | Comparison screen | "Without ColdGuard: two tonnes rejected and landfilled. With it: two tonnes sold, about twenty thousand riyals, five tonnes of CO2e avoided." |
-| 3:45 | Put the sensor back in the box | Temperature falls; the cargo line follows slowly | "Scan the code on the box — the whole history of this shipment is on your phone." |
+| 0:00 | — | Four trucks on the Doha map, temperatures in mono type, risk badges | "Every one of these is a pallet of food. We know its temperature, its location, and how much safe life it has left." |
+| 0:20 | Click **T102** | 500 kg of fresh chicken, safe 0–4 °C, currently 3.8 °C, risk LOW | "This one is carrying five hundred kilos of chicken. Right now it is fine." |
+| 0:40 | `make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102` | Temperature climbs 3.8 → 4.4 → 5.1 → 5.9 → 6.7 → 7.4 °C | "Its refrigeration just failed. Watch the cargo warm." |
+| 1:00 | — | An incident opens; risk climbs through MEDIUM to HIGH/CRITICAL | "The system caught the deviation immediately — not at the gate, now." |
+| 1:20 | Open **Model** | Chain cards: temperature → thermal exposure → deterioration → remaining shelf life → spoilage → risk, each with a **provenance badge**; below them a **System 1 — Laya** card | "These are physics, not guesses. Thermal exposure is the integral of the degrees above the limit over time. Deterioration is an Arrhenius rate. The local System-1 model, Laya, reads the same facts and agrees — refrigeration failure, divert — and it cannot invent a number, because it never writes text." |
+| 2:00 | Open **Optimization** | WH01 18 min, WH02 27 min, WH03 46 min, with ETA, expected loss and a checked-then-selected candidate | "Three cold stores are in range. The optimizer minimizes transport plus food-loss plus delay, subject to ETA, capacity and temperature. It picked WH01." |
+| 2:30 | Open **Truck detail → recommendation** | `DIVERT → WH01`, ETA, and the LAYLA explanation | "The model did not choose this. The optimizer did. LAYLA only explains it — it is never allowed to invent a number." |
+| 3:00 | Open **Food Loss** | WITHOUT vs WITH the intervention; food saved (kg) and loss prevented (QAR) climbing | "Do nothing and we risk a large share of the load. Divert and we lose only the transit cost. That is real chicken the store can still sell, and real money not thrown away." |
+| 3:30 | Open **Comparison** | The two bars, without vs with, side by side | "This is the whole product in one picture: the sensors told us what was happening, the maths told us how bad it was, the optimizer told us what to do, and the food-loss engine proves it mattered." |
+| 3:50 | `make reset` | T102 returns to NORMAL, incident resolves | "Same platform, next truck." |
 
-## The questions judges ask
+## If something fails
 
-**"How do you know the sensor is not lying?"** Minus 127, a silent board or an
-impossible jump are all treated as a sensor fault: the freshness clock pauses
-and the decision is escalated to a person. We would rather say *we don't know*
-than produce a confident number from a broken sensor.
+- **No telemetry?** `make sim-logs`. If the broker is down, `make demo` again.
+- **Frontend blank?** Confirm the backend is on :8000 and reload; the vite proxy
+  forwards `/api` and `/ws`.
+- **No LLM key?** LAYLA falls back to a template explanation — the numbers are
+  identical, only the prose is plainer. Say so.
+- **Want a repeatable check without the UI?** `make test` runs the whole
+  refrigeration-failure story headless (`tests/test_demo.py`).
 
-**"Does the AI invent the numbers?"** No. Every figure comes from deterministic
-Python. The model receives a JSON of facts and writes two sentences. A guard
-re-reads its output and rejects any number that is not in the facts, in Arabic
-digits as well. If the model is slow or missing, a fixed template writes the
-same sentences. *(If asked to prove it: press D, turn on backup mode, or just
-point out that the card says `template` when ollama is not running.)*
+## One sentence to close
 
-**"What if it cannot decide?"** It says so. Press **D**, trigger a sensor fault,
-and the card comes back with no recommendation and four buttons: sell, donate,
-hold, reroute — plus the reason it will not choose.
-
-**"Is this real data?"** Roads from OSRM, places from OpenStreetMap, weather from
-Open-Meteo. Every file carries a `source` column. The product shelf-life
-parameters are literature-based assumptions and are labelled as such.
-
-**"What runs in the cloud?"** Nothing. This laptop, offline, no API keys.
-
-## If something goes wrong
-
-| Problem | Fix, in five seconds |
-| --- | --- |
-| Board will not connect | **D** → **Backup mode** — the simulator takes over TRK-07 and the demo carries on |
-| No alert after 45 s | **D** → pick TRK-07 → **Cooling failure** |
-| The local model is slow | Nothing to do; the card already says `template` and the numbers are identical |
-| Something looks wrong | **D** → **Reset demo** — back to the start, same seed, no restart |
-| Everything is on fire | Play the backup video |
-
-Have the backup video cued before you walk up.
+> The sensors tell us what is happening. Mathematics tells us how much damage
+> has occurred. AI predicts what happens next. Optimization chooses the action.
+> The food-loss engine proves it saved real food.

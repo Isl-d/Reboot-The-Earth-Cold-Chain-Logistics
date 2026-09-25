@@ -67,11 +67,16 @@ def _current(session, truck: Truck) -> dict:
     }
 
 
-@router.get("")
-def list_trucks() -> list[dict]:
+def fleet_snapshot() -> list[dict]:
+    """The live fleet view, shared by GET /api/trucks and the /ws/live HELLO."""
     with session_scope() as session:
         trucks = session.execute(select(Truck).order_by(Truck.id)).scalars().all()
         return [_current(session, t) for t in trucks]
+
+
+@router.get("")
+def list_trucks() -> dict:
+    return {"trucks": fleet_snapshot()}
 
 
 @router.get("/{truck_id}")

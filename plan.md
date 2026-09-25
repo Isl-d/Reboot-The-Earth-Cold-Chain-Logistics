@@ -1,5 +1,10 @@
 # Build Plan — Cold-Chain Intelligence (Person 2 frontend)
 
+> **Historical.** This was Person 2's standalone build plan. Those screens now
+> live in the merged app under `frontend/src/screens/` (see
+> [ARCHITECTURE.md](ARCHITECTURE.md)). Paths below refer to the retired
+> `legacy/person2-frontend/`. Kept as a record of the work and its decisions.
+
 AI-Powered Cold Chain Management & Food Loss Optimization System — intelligence / analytics frontend.
 
 **Sources of truth (read before any segment):**

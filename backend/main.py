@@ -18,7 +18,8 @@ from .db import health as db_health
 from .db import init_db
 from .ingest.consumer import pipeline
 from .intelligence.worker import worker as intelligence_worker
-from .routers import incidents, intelligence, internal, inventory, model, routes, simulation, telemetry, trucks, warehouses
+from .routers import events, incidents, intelligence, internal, inventory, model, opendata, routes, simulation, telemetry, trucks, warehouses
+from .routers.trucks import fleet_snapshot
 from .seed import seed
 from .ws import manager
 
@@ -65,6 +66,8 @@ app.include_router(telemetry.router)
 app.include_router(warehouses.router)
 app.include_router(inventory.router)
 app.include_router(incidents.router)
+app.include_router(events.router)
+app.include_router(opendata.router)
 app.include_router(routes.router)
 app.include_router(simulation.router)
 app.include_router(internal.router)
@@ -111,6 +114,12 @@ def healthz() -> dict:
 @app.websocket("/ws/live")
 async def ws_live(socket: WebSocket) -> None:
     await manager.connect(socket)
+    try:
+        # HELLO carries the current fleet so a client that connects mid-demo
+        # paints the map immediately instead of waiting for the next tick.
+        await socket.send_json({"event": "HELLO", "trucks": fleet_snapshot()})
+    except Exception:
+        pass
     try:
         while True:
             await socket.receive_text()  # client keep-alive; content ignored

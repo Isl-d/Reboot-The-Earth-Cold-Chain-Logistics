@@ -14,7 +14,7 @@ from ..config import settings
 from . import llm as llm_mod
 
 SYSTEM = (
-    "You are LAYLA, a cold-chain food-safety reasoning assistant. You receive "
+    "You are a cold-chain food-safety reasoning assistant. You receive "
     "deterministic, code-computed facts about one product batch. Estimate the "
     "spoilage probability and your confidence, and briefly explain. Never "
     "invent sensor readings, temperatures, shelf-life values or quantities. "
@@ -28,11 +28,26 @@ def _clamp(value: float, low: float, high: float) -> float:
 
 
 def deterministic_prior(features: dict) -> float:
-    deterioration = features.get("deteriorationFraction") or 0.0
-    exposure = features.get("thermalExposure") or 0.0
-    base = 1.0 - math.exp(-3.0 * float(deterioration))
-    weak = min(1.0, float(exposure) / 120.0)
-    return _clamp(0.75 * base + 0.25 * weak, 0.0, 1.0)
+    """Saturating exposure-response prior.
+
+    Two independent signals blend into the prior: the shelf life already spent
+    (deterioration) and the thermal exposure accumulated above the safe
+    maximum. Exposure uses a saturating curve with a configurable E50, so a
+    sustained excursion can raise the estimate even while deterioration is
+    still small. Both parameters are prototype calibrations, not certified
+    food-safety thresholds.
+    """
+    deterioration = float(features.get("deteriorationFraction") or 0.0)
+    exposure = float(features.get("thermalExposure") or 0.0)
+    base = 1.0 - math.exp(-3.0 * deterioration)
+    e50 = settings.spoilage_exposure_e50_cmin or 15.0
+    exposure_term = 1.0 - math.exp(-exposure / e50)
+    return _clamp(
+        settings.spoilage_base_weight * base
+        + settings.spoilage_exposure_weight * exposure_term,
+        0.0,
+        1.0,
+    )
 
 
 def deterministic_confidence(features: dict) -> float:
@@ -89,7 +104,7 @@ def predict(features: dict, batch: dict | None, client=None, use_llm: bool = Tru
     return {
         "spoilageProbability": round(guarded, 4),
         "confidence": round(confidence, 4),
-        "source": "layla",
+        "source": "explainer",
         "modelVersion": client.model,
         "rationale": (str(rationale)[:500] if rationale else None),
     }

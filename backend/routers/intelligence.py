@@ -116,6 +116,27 @@ def get_recommendation(batch_id: str, refresh: bool = Query(default=False)) -> d
     }
 
 
+# --------------------------------------------------------------- system 1 (Laya)
+@router.get("/system1/{truck_id}")
+def get_system1(truck_id: str) -> dict:
+    """The local Laya System-1 read for a truck, next to the deterministic decision."""
+    with session_scope() as session:
+        if session.get(Truck, truck_id) is None:
+            raise HTTPException(status_code=404, detail=f"unknown truck '{truck_id}'")
+    result = engine.evaluate_truck(truck_id, use_llm=False, persist=False)
+    if result is None:
+        raise HTTPException(status_code=404, detail=f"no data for truck '{truck_id}'")
+    system1 = result.get("system1")
+    return {
+        "truckId": truck_id,
+        "batchId": result.get("batchId"),
+        "available": system1 is not None,
+        "system1": system1,
+        "deterministicDecision": result.get("decision"),
+        "generatedAt": result.get("generatedAt"),
+    }
+
+
 # ----------------------------------------------------------------- optimization
 class OptimizeIn(BaseModel):
     truckId: str | None = None
@@ -222,7 +243,8 @@ def food_loss_analytics() -> dict:
         "estimatedFinancialLossPrevented": round(financial_loss_prevented, 2),
         "co2AvoidedKg": co2_avoided,
         "batches": batches,
-        "currency": "USD",
+        "currency": "QAR",
+        "provenance": "CALCULATED",
     }
 
 
@@ -319,25 +341,32 @@ def scenario_comparison(scenario: str) -> dict:
         food_saved_kg += float(loss.get("foodSavedKg") or 0.0)
         financial_saved += float(loss.get("financialLossPrevented") or 0.0)
 
-    # Defaults if no predictions exist (spec example values)
+    # No predictions yet: report honestly rather than inventing a headline
+    # number. The UI shows an empty state until the engine has run.
     if not without_pcts:
         return {
             "scenario": scenario.upper(),
-            "withoutInterventionLossPercent": 31.0,
-            "withOptimizationLossPercent": 4.0,
-            "foodSavedKg": 860.0,
-            "financialSavedQar": 9800.0,
+            "available": False,
+            "withoutInterventionLossPercent": None,
+            "withOptimizationLossPercent": None,
+            "foodSavedKg": 0.0,
+            "financialSavedQar": 0.0,
+            "currency": "QAR",
+            "provenance": "OPTIMIZED",
         }
 
     avg_without = round(sum(without_pcts) / len(without_pcts), 2)
-    avg_with = round(sum(with_pcts) / len(with_pcts), 2) if with_pcts else 4.0
+    avg_with = round(sum(with_pcts) / len(with_pcts), 2) if with_pcts else avg_without
 
     return {
         "scenario": scenario.upper(),
+        "available": True,
         "withoutInterventionLossPercent": avg_without,
         "withOptimizationLossPercent": avg_with,
         "foodSavedKg": round(food_saved_kg, 2),
         "financialSavedQar": round(financial_saved, 2),
+        "currency": "QAR",
+        "provenance": "OPTIMIZED",
     }
 
 
@@ -407,14 +436,14 @@ def ai_explain(body: ExplainIn) -> dict:
     client = llm_mod.get_client()
     if client.available:
         system = (
-            "You are LAYLA. Explain the cold-chain situation using ONLY the supplied "
+            "You are the cold-chain explainer. Explain the situation using ONLY the supplied "
             "facts and recommend an action. Never invent numbers. Reply as JSON: "
             '{"explanation": "<plain language>", "action": "<CONTINUE|MONITOR|'
             'PREPARE_INTERVENTION|DIVERT|TRANSFER|DISCOUNT|PRIORITIZE_SALE|REDISTRIBUTE>"}.'
         )
         reply = client.complete_json(system, str(facts))
         if reply:
-            return {"source": "layla", "modelVersion": client.model,
+            return {"source": "explainer", "modelVersion": client.model,
                     "explanation": reply.get("explanation"), "action": reply.get("action"),
                     "facts": facts}
 

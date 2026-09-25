@@ -1,4 +1,4 @@
-"""OpenRouter-backed LLM client for LAYLA-style reasoning.
+"""OpenRouter-backed LLM client for the cold-chain explainer (System 2).
 
 The model is a *reasoning* layer over code-computed facts. It returns JSON and
 is always optional: if there is no key, no network, or a bad response, callers
@@ -28,6 +28,8 @@ def api_key() -> str:
 
 
 def _parse_json(content: str) -> dict | None:
+    if not isinstance(content, str) or not content.strip():
+        return None
     try:
         parsed = json.loads(content)
         return parsed if isinstance(parsed, dict) else None
@@ -41,6 +43,26 @@ def _parse_json(content: str) -> dict | None:
         except json.JSONDecodeError:
             return None
     return None
+
+
+def _message_content(data: dict) -> str | None:
+    """Extract assistant text across OpenAI-compatible response shapes.
+
+    Reasoning models may return ``content: null`` (with the text in
+    ``reasoning``) or content as a list of parts; both must not crash the call.
+    """
+    choices = data.get("choices") or []
+    if not choices:
+        return None
+    message = choices[0].get("message") or {}
+    content = message.get("content")
+    if isinstance(content, list):
+        content = "".join(
+            part.get("text", "") for part in content if isinstance(part, dict)
+        )
+    if not content:
+        content = message.get("reasoning")
+    return content if isinstance(content, str) and content.strip() else None
 
 
 class LLMClient:
@@ -78,8 +100,8 @@ class LLMClient:
                     f"{settings.llm_base_url}/chat/completions", json=payload, headers=headers
                 )
                 response.raise_for_status()
-                content = response.json()["choices"][0]["message"]["content"]
-            return _parse_json(content)
+                content = _message_content(response.json())
+            return _parse_json(content) if content else None
         except Exception as exc:  # network, auth, shape — all fall back
             log.warning("LLM unavailable (%s); using deterministic output", type(exc).__name__)
             return None

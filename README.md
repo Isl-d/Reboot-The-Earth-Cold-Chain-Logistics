@@ -1,142 +1,147 @@
-# Cold-Chain Data Platform + Intelligence
+# AI Cold-Chain Management & Food Loss Prevention
 
-AI-powered cold-chain management: simulated trucks publish live telemetry, the
-platform validates and stores it, a deterministic intelligence layer scores
-risk and recommends diversions, and everything is exposed over REST and
-WebSocket for the command center.
+A condition-aware cold-chain decision system. Simulated refrigerated trucks
+publish live telemetry; the platform validates and stores it; deterministic
+mathematics measures how much thermal exposure and deterioration the cargo has
+accumulated; ML estimates spoilage risk; an optimizer evaluates nearby cold
+stores; a decision engine recommends an intervention; a food-loss engine proves
+what that intervention saved — and a single React app shows all of it.
 
-This repository is **Person 3 (data infrastructure)** and **Person 4
-(AI / math / optimization)** in one runnable stack. Every dependency is open
-source; there are no paid APIs. The one optional cloud call is an LLM used only
-to *explain* code-computed facts — the system works fully offline without it.
-
----
-
-## Architecture
+The product loop is:
 
 ```
- sensor-simulator/                 backend/                          frontend
- ┌──────────────────┐   MQTT      ┌──────────────────────────┐
- │ Truck physics    │ ─────────▶  │ ingest/consumer.py       │
- │ scenario engine  │  coldchain/ │  validate → normalize →  │
- │ every 2–5 s      │  trucks/+/  │  PostgreSQL + Redis      │
- └──────────────────┘  telemetry  │        │                 │
-                     ◀──────────  │        ▼                 │
-   control topic      coldchain/  │ intelligence/engine.py   │
-  (scenario/pause)    control/+   │  features → anomaly →    │
-                                  │  spoilage → risk →       │
-                                  │  optimize → decision →   │
-                                  │  food-loss               │
-                                  │        │                 │
-                                  │        ▼                 │
-                                  │ REST /api/*  +  /ws/live │ ─────────▶ map,
-                                  └──────────────────────────┘            alerts
+Sensors say what is happening
+   -> mathematics says how much exposure/deterioration has occurred
+   -> prediction says what may happen next
+   -> optimization says which action minimizes expected loss
+   -> the decision engine turns that into an operational action
+   -> the food-loss engine measures the value of that action
 ```
 
-* **Mosquitto** — MQTT broker.
-* **PostgreSQL 16** — system of record; `sensor_readings` is a **TimescaleDB**
-  hypertable when the extension is available, a plain indexed table otherwise.
-* **Redis** — current truck state, latest temperature/location, active alerts,
-  latest predictions. If Redis is down the same cache runs in-process.
-* **FastAPI** — ingestion, REST, WebSocket.
-* **Intelligence layer** — deterministic math plus an optional LLM explainer.
+For the full component-by-component reference, the data/AI split, and the thesis
+behind it, see **[AI_COLD_STORAGE_LOGISTICS.md](AI_COLD_STORAGE_LOGISTICS.md)**.
 
-## Quickstart
+## One command
 
 ```bash
-cp .env.example .env          # optional; add OPENROUTERAPIKEY to enable the LLM
-make demo                     # broker + db + redis + backend + simulator
-open http://localhost:8000/docs
+cp .env.example .env      # optional; add an OpenRouter key to enable the explainer
+make demo                 # broker + db + redis + backend + simulator + frontend
 ```
 
-Then, on stage:
+Then open **http://localhost:5173** (dashboard) and **http://localhost:8000/docs**
+(API). The whole stack runs offline; the only optional network call is the LLM
+used to *explain* code-computed facts.
+
+### The stage scenario (refrigeration failure)
 
 ```bash
 make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102
-make predict BATCH=CHK-1029
-make watch                    # raw MQTT traffic
-make reset                    # back to NORMAL
+make predict  BATCH=CHK-1029
+make reset
 make stop
 ```
+
+Truck T102 carries 500 kg of fresh chicken (safe 0–4 °C). Cooling stops, the
+cargo warms, thermal exposure accumulates, risk climbs, an incident opens, the
+optimizer compares WH01/WH02/WH03, the decision engine recommends `DIVERT`, and
+the food-loss panel shows the kg and QAR saved. See [pitch/DEMO_SCRIPT.md](pitch/DEMO_SCRIPT.md).
 
 ### Local development (no Docker)
 
 ```bash
-python3.12 -m venv .venv && .venv/bin/pip install -r requirements.txt
+python3 -m venv .venv && .venv/bin/pip install -r requirements.txt
 
-make dev-backend              # API on the host (needs Postgres/Redis/MQTT)
-make dev-sim                  # simulator on the host
-make dev-sim-dry              # print 5 simulated readings, no broker
-make dev-nobroker             # whole pipeline in-process, no broker/db/docker
-make test                     # full test suite (SQLite, no network)
+make dev-nobroker   # whole pipeline in-process, no broker/db/docker
+make dev-backend    # API on the host        (needs Postgres/Redis/MQTT)
+make dev-sim        # simulator on the host
+make dev-web        # frontend on the host   (needs the backend on :8000)
+make test           # full pytest suite (SQLite, no network)
 ```
 
-`make dev-nobroker` is the fastest way to see data move end to end: it steps
-the real simulator physics through the real ingestion pipeline and prints
-derived values, risk, incidents and the Person 4 prediction. Add `--ai` to call
-the real LLM instead of the offline heuristic:
+## Architecture
 
-```bash
-.venv/bin/python scripts/dev_no_broker.py --ticks 8 \
-    --scenario REFRIGERATION_FAILURE --truck T102 --ai
 ```
+frontend/                      REST + WebSocket               backend/                       MQTT            sensor-simulator/
+┌──────────────────────┐      ┌──────────────────┐      ┌──────────────────────────┐     ┌──────────┐    ┌──────────────┐
+│ Command Center        │ ◀──▶ │ /api/*           │ ◀──▶ │ ingest/  validate        │ ◀── │ Mosquitto│ ◀─ │ simulator.py │
+│ (Fleet, Map, Truck)   │      │ /ws/live         │      │ normalize → Postgres     │     │ 1883     │    │ scenarios.py │
+│ Intelligence          │      └──────────────────┘      │ → Redis → incidents      │     └──────────┘    │ fleet.py     │
+│ (Model, Optimization, │                                │ intelligence/            │                     └──────┬───────┘
+│  Food-loss, Inventory)│                                │ features → anomaly →     │                            │ reads
+└──────────────────────┘                                 │ spoilage → risk →        │                            ▼
+                                                          │ optimization → decision  │                     data/*.csv
+                                                          │ → food loss → explainer      │
+                                                          └──────────────────────────┘
+```
+
+Layer discipline: `data/` → `backend/ingest/` → `backend/intelligence/` (condition →
+prediction → optimization → decision → food loss) → `backend/routers/` → `frontend/`.
+See [ARCHITECTURE.md](ARCHITECTURE.md) for the full map and
+[docs/DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md) for the objects.
+
+## Repository layout
+
+| Path | What it is |
+|---|---|
+| `backend/` | FastAPI app: ingestion, REST, WebSocket, intelligence (Persons 3 + 4) |
+| `sensor-simulator/` | Truck physics + scenario engine, reads `data/*.csv` |
+| `frontend/` | The one React app: command center **and** intelligence screens |
+| `laya/` | Container for the local System-1 decision engine (`laya-serve`) |
+| `data/` | Reference CSVs (trucks, products, batches, warehouses, routes, inventory) + `opendata/` catalogue |
+| `tests/` | pytest suite, including the end-to-end demo test |
+| `legacy/` | Retired code kept for reference (`web/`, `simulator/`, `coldchain/`, `person2-frontend/`, old ColdGuard modules) |
+| `docs/` | thesis, API contract, domain model, design, person specs |
+| `firmware/`, `pitch/`, `example/`, `mdfile/` | Hardware, pitch deck, references |
+
+Anything in `legacy/` is dead; the canonical stack never imports it.
 
 ## Data flow
 
-1. **Simulator** (`sensor-simulator/`) reads the same `data/*.csv` the backend
-   seeds from, so fleet, routes and batches can never drift apart.
-2. **MQTT** carries one JSON message per truck per tick.
-3. **Ingestion** (`backend/ingest/`) validates shape, ranges, clock sanity and
-   device identity; rejects are written to `ingest_rejects`, never dropped.
-4. **Normalization** converts to canonical snake_case and UTC.
-5. **Storage**: `sensor_readings` (PostgreSQL/TimescaleDB) + live state (Redis).
-6. **Derived values** (`processing.py`): distance, speed, temperature deviation,
-   time above threshold, door duration, ETA.
-7. **Incidents** (`ingest/incidents.py`): deterministic rules create, update and
-   resolve rows; forwarded over the WebSocket.
-8. **Intelligence** (`backend/intelligence/`) runs off the hot path in a
-   throttled worker and writes `predictions`, which override the baseline risk
-   everywhere it is read.
+1. **Simulator** publishes one JSON message per truck per tick on
+   `coldchain/trucks/{truckId}/telemetry` (+ typed `.../events` on transitions).
+2. **Ingestion** (`backend/ingest/`) validates shape, ranges, clock sanity and
+   device identity. Rejects are written to `ingest_rejects`, never dropped.
+3. **Storage**: `sensor_readings` (PostgreSQL/TimescaleDB) + live state (Redis,
+   with an in-process fallback).
+4. **Derived values** (`backend/processing.py`): distance, speed, deviation,
+   time-above-threshold, door duration, ETA.
+5. **Incidents** (`backend/ingest/incidents.py`): deterministic rules, forwarded
+   over the WebSocket.
+6. **Intelligence** (`backend/intelligence/`) runs off the hot path in a throttled
+   worker and writes `predictions`, which override the baseline risk everywhere.
 
 ## MQTT contract
 
-Topic `coldchain/trucks/{truckId}/telemetry`:
+Telemetry — `coldchain/trucks/{truckId}/telemetry`:
 
 ```json
-{
-  "deviceId": "TRUCK-T102",
-  "truckId": "T102",
-  "timestamp": "2026-09-24T16:20:00Z",
-  "temperatureC": 7.2,
-  "humidityPct": 74,
-  "latitude": 25.2854,
-  "longitude": 51.531,
-  "speedKmh": 42,
-  "gForce": 0.2,
-  "doorOpen": false,
-  "refrigerationOn": true
-}
+{"deviceId":"TRUCK-T102","truckId":"T102","timestamp":"2026-09-24T16:20:00Z",
+ "temperatureC":7.2,"humidityPct":74,"latitude":25.2854,"longitude":51.531,
+ "speedKmh":42,"gForce":0.2,"doorOpen":false,"refrigerationOn":true}
 ```
 
-The short spellings from the original brief (`temperature`, `humidity`, `lat`,
-`lon`, `speed`) are also accepted on ingestion; all outbound payloads stay
-camelCase.
+Device events — `coldchain/trucks/{truckId}/events`:
 
-Topic `coldchain/trucks/{truckId}/events` carries scenario changes.
-Topic `coldchain/control/{truckId}` (or `.../all`) accepts
-`{"scenario": "...", "speedMultiplier": 1.0, "paused": false, "reset": false}`.
+```json
+{"deviceId":"TRUCK-T102","truckId":"T102","timestamp":"2026-09-25T09:00:00Z",
+ "type":"DOOR_OPENED","detail":"lid lifted","value":null}
+```
+
+Types: `DOOR_OPENED`, `DOOR_CLOSED`, `REFRIGERATION_ON`, `REFRIGERATION_OFF`,
+`SHOCK`, `POWER_LOST`, `POWER_RESTORED`, `SENSOR_FAULT`, `SCENARIO_CHANGED`.
+Unknown types are rejected with a reason.
+
+Control — `coldchain/control/{truckId}` (or `.../all`) accepts
+`{"scenario":"...","speedMultiplier":1.0,"paused":false,"reset":false}`.
+`speedMultiplier` scales how fast the truck moves along its route.
 
 ## WebSocket `/ws/live`
 
-Every reading:
+On connect the first frame is `HELLO` with the current fleet, then:
 
-```json
-{"event": "TRUCK_STATE_UPDATED", "truckId": "T102", "temperatureC": 7.2,
- "riskScore": 78, "riskLevel": "HIGH", ...}
-```
-
-Also emitted: `INCIDENT_CREATED`, `INCIDENT_UPDATED`, `PREDICTION_UPDATED`,
-`SIMULATION_EVENT`.
+`TRUCK_STATE_UPDATED`, `INCIDENT_CREATED`, `INCIDENT_UPDATED`,
+`PREDICTION_UPDATED`, `RECOMMENDATION_UPDATED`, `FOOD_LOSS_UPDATED`,
+`DEVICE_EVENT`.
 
 ## REST API
 
@@ -144,16 +149,14 @@ Also emitted: `INCIDENT_CREATED`, `INCIDENT_UPDATED`, `PREDICTION_UPDATED`,
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/trucks` | live fleet view (position, temperature, risk, incidents) |
+| GET | `/api/trucks` | live fleet view, `{trucks:[...]}` |
 | GET | `/api/trucks/{truckId}` | truck + batch + prediction + recommendation |
 | GET | `/api/trucks/{truckId}/telemetry` | history, `?from=&to=&limit=` |
-| GET | `/api/warehouses` | warehouse reference data |
-| GET | `/api/inventory` | inventory by batch |
+| GET | `/api/trucks/{truckId}/events` | device events (oldest first) |
+| GET | `/api/device-events` | device events across the fleet |
+| GET | `/api/warehouses` · `/api/inventory` | reference data, `{inventory:[...]}` |
 | GET | `/api/incidents` | incidents, `?status=OPEN&truckId=` |
-| POST | `/api/simulation/start` | resume |
-| POST | `/api/simulation/stop` | pause |
-| POST | `/api/simulation/reset` | reset to NORMAL |
-| POST | `/api/simulation/scenario` | `{"truckId","scenario","speedMultiplier"}` |
+| POST | `/api/simulation/start\|stop\|reset\|scenario` | demo control |
 | GET | `/healthz` | database / redis / mqtt status |
 
 **Intelligence (Person 4)**
@@ -162,9 +165,12 @@ Also emitted: `INCIDENT_CREATED`, `INCIDENT_UPDATED`, `PREDICTION_UPDATED`,
 |---|---|---|
 | GET | `/api/predictions/{batchId}` | unified prediction (`?refresh=true` re-runs) |
 | GET | `/api/risk/{batchId}` | risk score, level, factors, anomaly |
+| GET | `/api/model/{truckId}/thermal-exposure\|deterioration\|spoilage` | model chain |
+| GET | `/api/system1/{truckId}` | local Laya System-1 read + the deterministic decision |
 | POST | `/api/optimization/evaluate` | `{"truckId"}` or `{"batchId"}` |
 | GET | `/api/optimization/{batchId}` | warehouse candidates + selection |
-| GET | `/api/analytics/food-loss` | predicted / avoided loss and value |
+| GET | `/api/analytics/food-loss` · `/series` | predicted / avoided loss and value |
+| GET | `/api/analytics/scenario-comparison/{scenario}` | without vs with intervention |
 | GET | `/api/analytics/inventory` | forecast, excess, recommended action |
 | POST | `/api/ai/explain` | `{"facts"}` or `{"truckId"}` or `{"batchId"}` |
 | GET | `/api/recommendations/{batchId}` | action + destination + reasoning |
@@ -176,43 +182,7 @@ Also emitted: `INCIDENT_CREATED`, `INCIDENT_UPDATED`, `PREDICTION_UPDATED`,
 | GET | `/api/internal/context/{truckId}` | normalized context bundle |
 | POST | `/api/internal/predictions` | push a prediction (overrides baseline) |
 
-### Unified prediction response
-
-```json
-{
-  "batchId": "CHK-1029",
-  "thermalExposure": 42.8,
-  "deteriorationFraction": 0.184,
-  "remainingShelfLifeHours": 38,
-  "spoilageProbability": 0.73,
-  "confidence": 0.91,
-  "riskScore": 78,
-  "riskLevel": "HIGH",
-  "anomaly": true,
-  "recommendation": {
-    "action": "DIVERT",
-    "destinationId": "WH01",
-    "etaMinutes": 18,
-    "expectedLossPercent": 4.1,
-    "foodSavedKg": 82,
-    "reasoning": "..."
-  }
-}
-```
-
-## Scenarios
-
-Set per truck over the control topic or `POST /api/simulation/scenario`:
-
-| Scenario | Behaviour |
-|---|---|
-| `NORMAL` | temperature oscillates inside the safe range |
-| `TEMPERATURE_EXCURSION` | drifts above the safe maximum |
-| `DOOR_LEFT_OPEN` | door open, warming gradually, humidity falls |
-| `REFRIGERATION_FAILURE` | cooling off, warming fast |
-| `TRAFFIC_DELAY` | speed collapses, ETA grows |
-| `COMBINED_FAILURE` | refrigeration failure + traffic delay |
-| `G_FORCE_EVENT` | a handling shock is injected for a few seconds |
+Exact JSON for every endpoint is in [docs/API_CONTRACT.md](docs/API_CONTRACT.md).
 
 ## Intelligence model
 
@@ -221,37 +191,51 @@ Set per truck over the control topic or `POST /api/simulation/scenario`:
   discrete `D = Σ k(T_i) Δt_i`; remaining shelf life `= shelf_life · (1 − D)`.
   `Ea` and humidity limits are per-product configuration in `data/products.csv`.
 * **Risk** weighted blend of exposure, shelf life, spoilage, anomaly, delay and
-  humidity, with configurable LOW/MEDIUM/HIGH/CRITICAL bands.
+  humidity, with critical floors and configurable bands.
 * **Anomaly** rolling z-score plus refrigeration / door / GPS / shock rules.
 * **Spoilage** deterministic prior; the LLM may move it only within
-  `CC_LLM_PROBABILITY_BAND`.
+  `CC_LLM_PROBABILITY_BAND`. With no key it stays `heuristic`.
 * **Optimization** `min(C_transport + C_foodloss + C_delay)` subject to
   ETA ≤ remaining safe time, quantity ≤ capacity, and warehouse temperature.
   The LLM may rank **feasible** options; an infeasible pick is rejected.
-* **Food loss** predicted vs. with-intervention loss, kg and currency.
-* **Decision** deterministic action map; the LLM writes the explanation.
+* **Decision** deterministic action map (`CONTINUE`, `MONITOR`,
+  `PREPARE_INTERVENTION`, `DIVERT`); the LLM writes the explanation.
+* **Food loss** `lossWithout = clamp(deterioration + spoilageProbability)`,
+  `lossWith = min(lossWithout, selected candidate's expected loss)`,
+  `foodSaved = (lossWithout − lossWith) · quantity`. Currency is **QAR**.
 
 > These are prototype models for a hackathon. They are **not** certified
 > food-safety science, and the training/demo data is synthetic.
 
-## Configuration
+### Two AI layers
 
-All tunables are `CC_*` environment variables (see `.env.example`). Highlights:
+| Layer | Runs | Job | Constraint |
+|---|---|---|---|
+| **Laya** (System 1) | local, `laya` compose service, Apache-2.0 | typed decisions + confidence from the cold-chain state | **never generates text**; corroborates the deterministic decision, never overrides it |
+| **Explainer** (System 2) | cloud, OpenRouter `deepseek/deepseek-v4.1-flash` | turns the computed facts into prose | may only move the spoilage estimate within `CC_LLM_PROBABILITY_BAND` and rank feasible options |
 
-| Variable | Default | Purpose |
-|---|---|---|
-| `CC_DATABASE_URL` | `postgresql+psycopg://...` | database (SQLite works for dev) |
-| `CC_REDIS_URL` | `redis://localhost:6379/0` | live cache |
-| `CC_TIMESCALE_ENABLED` | `true` | hypertable when available |
-| `CC_READING_INTERVAL_S` | `3` | simulator cadence |
-| `CC_INTELLIGENCE_ENABLED` | `true` | run the Person 4 worker |
-| `CC_INTELLIGENCE_INTERVAL_S` | `5` | evaluation throttle |
-| `CC_LLM_MODEL` | `openrouter/free` | LLM model id |
-| `CC_LLM_PROBABILITY_BAND` | `0.35` | LLM spoilage guardrail |
-| `OPENROUTERAPIKEY` | – | optional; enables the LLM path |
+Laya ([Convai Innovations](https://huggingface.co/convaiinnovations/laya)) is a
+non-autoregressive decision engine: it answers typed questions (`choice` /
+`score` / `noul`) in a single forward pass and cannot invent a number. The
+backend asks it for a `condition`, a `recommended_action`, an `urgency`, and a
+`needs_human_review` signal, and exposes the result at `GET /api/system1/{truckId}`.
 
-> `OPENROUTERAPIKEY` is intentionally **not** `CC_`-prefixed. Keep it in
-> `.env` (git-ignored) and never commit it.
+Download its checkpoints once, before the demo (needs Docker running):
+
+```bash
+make laya-pull      # ~1.4 GB, cached in the laya_models volume
+```
+
+If the service is not running, the system is unchanged — the System-1 block is
+simply absent. Base checkpoints ship over-confident, so the UI labels its
+confidence **uncalibrated**.
+
+### Provenance
+
+Every important value carries a source:
+`MEASURED` (temperature), `CALCULATED` (exposure, deterioration, risk, food loss),
+`PREDICTED` (spoilage, anomaly), `OPTIMIZED` (warehouse choice),
+`AI-EXPLAINED` (explainer rationale), `SYNTHETIC` (the demo fleet).
 
 ## Tests
 
@@ -259,26 +243,42 @@ All tunables are `CC_*` environment variables (see `.env.example`). Highlights:
 make test        # or: .venv/bin/python -m pytest tests/ -q
 ```
 
-The suite runs on SQLite with Redis and MQTT pointed at closed ports — the
-offline fallbacks are part of what is tested. The LLM is always mocked, so
-tests make no network calls. 84 tests cover validation and rejection logging,
-normalization, derived values, incident rules, risk bands, simulator physics,
-the REST/WebSocket contract, and every deterministic intelligence model.
+The suite runs on SQLite with Redis and MQTT pointed at closed ports; the offline
+fallbacks are part of what is tested. The LLM is always mocked. `tests/test_demo.py`
+walks the whole refrigeration-failure story end to end.
 
-## Layout
+## Configuration
 
-```
-backend/
-  ingest/        MQTT consumer, validation, normalization, incident rules
-  routers/       REST endpoints (trucks, telemetry, simulation, intelligence, ...)
-  intelligence/  features, anomaly, spoilage, risk, optimization, decision, LLM
-  context.py     the normalized Person 3 → Person 4 bundle
-  processing.py  derived values    risk.py  baseline risk
-  models.py      SQLAlchemy models  cache.py  Redis (+ in-process fallback)
-  db.py seed.py ws.py main.py
-sensor-simulator/  simulator, scenario engine, fleet definitions
-data/              reference CSVs (seeded by the backend and read by the simulator)
-db/schema.sql      reference DDL
-scripts/           dev_no_broker.py
-tests/             pytest suite
-```
+All backend tunables are `CC_*` environment variables (see `.env.example`):
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `CC_DATABASE_URL` | `postgresql+psycopg://...` | database (SQLite works for dev) |
+| `CC_REDIS_URL` | `redis://localhost:6379/0` | live cache |
+| `CC_INTELLIGENCE_ENABLED` | `true` | run the Person 4 worker |
+| `CC_LLM_MODEL` | `deepseek/deepseek-v4.1-flash` | explainer model id |
+| `CC_LLM_PROBABILITY_BAND` | `0.35` | LLM spoilage guardrail |
+| `OPENROUTERAPIKEY` | – | optional; enables explainer (never commit) |
+
+## Ownership
+
+| Person | Owns |
+|---|---|
+| 1 | `frontend/` command center: dashboard, fleet, map, truck detail, incidents |
+| 2 | `frontend/` intelligence: simulation, model, optimization, food-loss, inventory, comparison |
+| 3 | `backend/ingest/`, `backend/routers/` (data), storage, `sensor-simulator/`, `data/` |
+| 4 | `backend/intelligence/`, `backend/context.py`, `backend/opendata/`, intelligence routes |
+
+Full ownership and boundaries: [ARCHITECTURE.md](ARCHITECTURE.md).
+
+## Open data
+
+Reference data is openly licensed and its provenance is served live at
+`GET /api/opendata` — 17 sources across geography, routing, weather, food
+science, emissions, physics and operations, each with its licence, access mode
+(`offline` / `network`) and fetch status. `data/opendata/provenance.json`
+records what actually arrived; `data/opendata/SOURCES.md` is the human-readable
+catalogue. Literature product values are marked `verified=no` and must not be
+presented as certified. The original open-data fetcher lives under
+`legacy/coldchain/`; the canonical backend serves the catalogue and reference
+CSVs and does not depend on the fetcher.

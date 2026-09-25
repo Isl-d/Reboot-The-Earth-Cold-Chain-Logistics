@@ -40,6 +40,7 @@ def thermal_exposure(truck_id: str) -> dict:
         "exposureMinutes": result.get("exposureMinutes"),
         "thermalExposure": result.get("thermalExposure"),
         "unit": "C*min",
+        "provenance": "CALCULATED",
     }
 
 
@@ -50,6 +51,7 @@ def deterioration(truck_id: str) -> dict:
         "deteriorationFraction": result.get("deteriorationFraction"),
         "remainingShelfLifeHours": result.get("remainingShelfLifeHours"),
         "confidence": result.get("confidence"),
+        "provenance": "CALCULATED",
     }
 
 
@@ -60,4 +62,5 @@ def spoilage(truck_id: str) -> dict:
         "spoilageProbability": result.get("spoilageProbability"),
         "confidence": result.get("confidence"),
         "modelVersion": result.get("modelVersion"),
+        "provenance": "PREDICTED",
     }

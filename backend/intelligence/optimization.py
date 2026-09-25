@@ -19,7 +19,7 @@ from ..geo import haversine_km
 from . import llm as llm_mod
 
 SYSTEM = (
-    "You are LAYLA, a cold-chain logistics assistant. You are given a list of "
+    "You are a cold-chain logistics assistant. You are given a list of "
     "already-computed, already-feasibility-checked warehouse options with their "
     "costs and ETAs. Choose the best feasible option and explain briefly. Never "
     "invent warehouses, distances, costs or ETAs. Reply ONLY as JSON: "
@@ -108,6 +108,7 @@ def evaluate(context: dict, features: dict, spoilage: dict,
         "objectiveValue": best["objective"] if best else None,
         "feasible": bool(feasible),
         "source": "deterministic",
+        "provenance": "OPTIMIZED",
         "rationale": None,
     }
 
@@ -133,7 +134,7 @@ def evaluate(context: dict, features: dict, spoilage: dict,
                 result["objectiveValue"] = next(
                     c["objective"] for c in feasible if c["warehouseId"] == chosen
                 )
-                result["source"] = "layla"
+                result["source"] = "explainer"
                 result["rationale"] = str(reply.get("rationale") or "")[:500] or None
 
     return result

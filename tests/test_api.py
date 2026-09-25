@@ -95,7 +95,7 @@ def test_telemetry_time_filter(client, live):
 
 
 def test_warehouses_stores_inventory(client, live):
-    assert len(client.get("/api/warehouses").json()["warehouses"]) == 2
+    assert len(client.get("/api/warehouses").json()["warehouses"]) == 3
     inv = client.get("/api/inventory").json()["inventory"]
     assert len(inv) == 7
     batch_inv = client.get("/api/inventory/CHK-1028").json()
@@ -116,6 +116,25 @@ def test_simulation_scenario_validation(client, live):
     assert client.post("/api/simulation/reset", json={}).json()["status"] == "reset"
 
 
+def test_simulation_mutations_return_full_state(client, live):
+    """POST mutations must return the state DTO the frontend adapter validates."""
+    ok = client.post("/api/simulation/scenario",
+                     json={"truckId": "T102", "scenario": "REFRIGERATION_FAILURE"}).json()
+    assert ok["truckId"] == "T102"
+    assert ok["batchId"] == "CHK-1029"
+    assert ok["scenario"] == "REFRIGERATION_FAILURE"
+    assert ok["startedAt"]
+    assert ok["status"] == "accepted"
+
+    stopped = client.post("/api/simulation/stop", json={"truckId": "T102"}).json()
+    assert stopped["running"] is False
+    assert stopped["status"] == "stopped"
+
+    reset = client.post("/api/simulation/reset", json={"truckId": "T102"}).json()
+    assert reset["status"] == "reset"
+    assert reset["batchId"] == "CHK-1029"
+
+
 def test_person4_context_and_prediction_roundtrip(client, live):
     pipeline.handle(_wire(temp=7.2))
 
@@ -124,7 +143,7 @@ def test_person4_context_and_prediction_roundtrip(client, live):
     assert ctx["batch"]["id"] == "CHK-1029"
     assert ctx["batch"]["safeMaxTempC"] == 4.0
     assert len(ctx["recentTelemetry"]) == 1
-    assert {w["id"] for w in ctx["candidateWarehouses"]} == {"WH01", "WH02"}
+    assert {w["id"] for w in ctx["candidateWarehouses"]} == {"WH01", "WH02", "WH03"}
 
     recorded = client.post("/api/internal/predictions", json={
         "truckId": "T102",
@@ -150,8 +169,37 @@ def test_person4_context_and_prediction_roundtrip(client, live):
     assert detail["recommendation"]["action"] == "DIVERT"
 
 
+def test_device_events_are_stored_and_served(client, live):
+    pipeline.handle_event({
+        "truckId": "T102", "deviceId": "TRUCK-T102", "type": "DOOR_OPENED",
+        "detail": "lid lifted", "timestamp": "2026-09-25T09:00:00Z",
+    })
+    body = client.get("/api/trucks/T102/events").json()
+    assert body["count"] == 1
+    assert body["events"][0]["type"] == "DOOR_OPENED"
+
+    fleet = client.get("/api/device-events").json()
+    assert fleet["count"] == 1
+
+
+def test_unknown_device_event_type_is_rejected(client, live):
+    assert pipeline.handle_event({"truckId": "T102", "type": "TELEPORTED"}) is None
+    assert client.get("/api/device-events").json()["count"] == 0
+
+
+def test_opendata_catalogue_is_served(client):
+    body = client.get("/api/opendata").json()
+    assert body["available"] is True
+    assert body["count"] >= 15
+    assert all("licence" in s and "category" in s for s in body["sources"])
+
+
 def test_websocket_receives_live_state(client, live):
     with client.websocket_connect("/ws/live") as ws:
+        hello = ws.receive_json()
+        assert hello["event"] == "HELLO"
+        assert {t["id"] for t in hello["trucks"]} == {"T101", "T102", "T103", "T104"}
+
         pipeline.handle(_wire(temp=3.5))
         message = ws.receive_json()
     assert message["event"] == "TRUCK_STATE_UPDATED"

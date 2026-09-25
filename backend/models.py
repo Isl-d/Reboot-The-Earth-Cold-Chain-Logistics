@@ -62,6 +62,28 @@ class Device(Base):
     last_seen_at: Mapped[dt.datetime | None] = mapped_column(DateTime(timezone=True))
 
 
+class DeviceEvent(Base):
+    """A typed thing a device reported between telemetry ticks.
+
+    Telemetry says "what the sensors read"; an event says "what happened"
+    (a door opened, the unit tripped). It explains the reading that follows
+    and is never used to drive a duration threshold — it has no duration.
+    """
+    __tablename__ = "device_events"
+    __table_args__ = (Index("ix_device_events_truck_ts", "truck_id", "ts"),)
+
+    id: Mapped[int] = mapped_column(
+        BigInteger().with_variant(Integer, "sqlite"), primary_key=True, autoincrement=True
+    )
+    ts: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), index=True)
+    truck_id: Mapped[str] = mapped_column(String, nullable=False)
+    device_id: Mapped[str | None] = mapped_column(String)
+    type: Mapped[str] = mapped_column(String, nullable=False)
+    detail: Mapped[str] = mapped_column(Text, default="")
+    value: Mapped[float | None] = mapped_column(Float)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
 class SensorReading(Base):
     __tablename__ = "sensor_readings"
     __table_args__ = (

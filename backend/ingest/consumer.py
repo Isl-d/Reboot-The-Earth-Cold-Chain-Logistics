@@ -20,9 +20,10 @@ from .. import processing, risk as risk_mod
 from ..config import settings
 from ..db import session_scope
 from ..intelligence import engine as intelligence_engine
-from ..models import Device, Incident, IngestReject, ProductBatch, Route, SensorReading, Truck
+from ..models import Device, DeviceEvent, Incident, IngestReject, ProductBatch, Route, SensorReading, Truck
 from ..ws import manager
 from . import incidents as incident_rules
+from .events import normalize_event
 from .normalize import normalize, to_wire
 from .validate import validate
 
@@ -116,8 +117,34 @@ class Pipeline:
         if topic.endswith("/telemetry"):
             self.handle(payload)
         elif topic.endswith("/events"):
-            log.info("truck event: %s", payload)
-            manager.broadcast_threadsafe({"event": "SIMULATION_EVENT", **payload})
+            truck_id = topic.split("/")[-2] if topic.count("/") >= 2 else None
+            self.handle_event(payload, truck_id)
+
+    # ----------------------------------------------------------- device events
+    def handle_event(self, raw: dict, truck_id: str | None = None) -> dict | None:
+        """Persist and forward one typed device event. Returns its wire form."""
+        event, reasons = normalize_event(raw, truck_id)
+        if event is None:
+            log.warning("rejected device event: %s | %s", "; ".join(reasons), str(raw)[:200])
+            return None
+
+        with session_scope() as session:
+            session.add(DeviceEvent(
+                ts=event["timestamp"], truck_id=event["truckId"],
+                device_id=event["deviceId"], type=event["type"],
+                detail=event["detail"], value=event["value"],
+            ))
+
+        wire = {
+            "truckId": event["truckId"],
+            "deviceId": event["deviceId"],
+            "timestamp": event["timestamp"].strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "type": event["type"],
+            "detail": event["detail"],
+            "value": event["value"],
+        }
+        manager.broadcast_threadsafe({"event": "DEVICE_EVENT", **wire})
+        return wire
 
     # -------------------------------------------------------------- pipeline
     def handle(self, raw: dict) -> None:

@@ -11,7 +11,7 @@ from backend.intelligence import llm as llm_mod
 
 class SmartFakeLLM:
     available = True
-    model = "fake-layla"
+    model = "fake-explainer"
 
     def complete_json(self, system, user, max_tokens=None):
         return {
@@ -54,7 +54,7 @@ def test_predictions_endpoint(client, live, fake_llm):
     assert body["truckId"] == "T102"
     assert body["riskLevel"] in {"HIGH", "CRITICAL"}
     assert 0.0 <= body["spoilageProbability"] <= 1.0
-    assert body["modelVersion"] == "fake-layla"
+    assert body["modelVersion"] == "fake-explainer"
     assert body["recommendation"]["action"] in {"DIVERT", "PREPARE_INTERVENTION"}
     assert "optimization" in body and "foodLoss" in body
 
@@ -71,7 +71,7 @@ def test_risk_and_recommendation_endpoints(client, live, fake_llm):
 
     rec = client.get("/api/recommendations/CHK-1029").json()
     assert rec["recommendation"]["action"] in {"DIVERT", "PREPARE_INTERVENTION"}
-    assert rec["recommendation"]["destinationId"] in {"WH01", "WH02", None}
+    assert rec["recommendation"]["destinationId"] in {"WH01", "WH02", "WH03", None}
 
 
 def test_optimization_endpoints(client, live, fake_llm):
@@ -80,7 +80,7 @@ def test_optimization_endpoints(client, live, fake_llm):
     assert stored["optimization"]["candidates"]
 
     evaluated = client.post("/api/optimization/evaluate", json={"truckId": "T102"}).json()
-    assert {c["warehouseId"] for c in evaluated["candidates"]} == {"WH01", "WH02"}
+    assert {c["warehouseId"] for c in evaluated["candidates"]} == {"WH01", "WH02", "WH03"}
 
 
 def test_optimization_requires_a_target(client, live):
@@ -91,11 +91,20 @@ def test_food_loss_analytics(client, live, fake_llm):
     _seed_risk()
     client.get("/api/predictions/CHK-1029")  # ensure a prediction exists
     body = client.get("/api/analytics/food-loss").json()
-    assert set(body["totals"]) == {
-        "predictedLossKg", "lossWithInterventionKg", "foodSavedKg",
-        "financialLoss", "financialLossPrevented"}
-    assert body["totals"]["foodSavedKg"] >= 0.0
+    for key in ("transportedKg", "atRiskKg", "lostKg", "savedKg",
+                "estimatedFinancialLoss", "estimatedFinancialLossPrevented"):
+        assert key in body
+    assert body["currency"] == "QAR"
+    assert body["savedKg"] >= 0.0
     assert body["batches"]
+
+
+def test_scenario_comparison_is_honest_when_empty(client, live):
+    """No predictions -> available false and nulls, never invented headline numbers."""
+    body = client.get("/api/analytics/scenario-comparison/REFRIGERATION_FAILURE").json()
+    assert body["available"] is False
+    assert body["withoutInterventionLossPercent"] is None
+    assert body["currency"] == "QAR"
 
 
 def test_inventory_analytics(client, live):
@@ -109,7 +118,7 @@ def test_ai_explain_with_facts_and_with_batch(client, live, fake_llm):
     by_facts = client.post("/api/ai/explain", json={
         "facts": {"batchId": "CHK-1029", "riskLevel": "HIGH", "temperatureC": 8.0}
     }).json()
-    assert by_facts["source"] == "layla"
+    assert by_facts["source"] == "explainer"
     assert by_facts["explanation"]
 
     _seed_risk()

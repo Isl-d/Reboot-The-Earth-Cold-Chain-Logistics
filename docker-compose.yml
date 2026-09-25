@@ -47,7 +47,7 @@ services:
       context: .
       dockerfile: backend/Dockerfile
     command: uvicorn backend.main:app --host 0.0.0.0 --port 8000
-    ports: ["8001:8000"]
+    ports: ["8000:8000"]
     environment:
       # Infrastructure — always uses internal Docker hostnames, not localhost
       CC_MQTT_HOST: mosquitto
@@ -65,12 +65,17 @@ services:
       CC_LLM_TIMEOUT_S: "${CC_LLM_TIMEOUT_S:-30}"
       CC_LLM_MAX_TOKENS: "${CC_LLM_MAX_TOKENS:-512}"
       CC_LLM_PROBABILITY_BAND: "${CC_LLM_PROBABILITY_BAND:-0.35}"
+      # Laya (local System 1 decision engine) — optional, corroborates only
+      CC_LAYA_ENABLED: "${CC_LAYA_ENABLED:-true}"
+      CC_LAYA_URL: "http://laya:8000"
+      CC_LAYA_MODEL: "${CC_LAYA_MODEL:-router}"
       # API key — used for OpenRouter; set to any non-empty string for local LAYLA
       OPENROUTERAPIKEY: "${OPENROUTERAPIKEY:-}"
     depends_on:
       mosquitto: {condition: service_started}
       timescaledb: {condition: service_healthy}
       redis: {condition: service_healthy}
+      laya: {condition: service_started}
 
   simulator:
     build:
@@ -83,5 +88,35 @@ services:
     depends_on:
       mosquitto: {condition: service_started}
 
+  laya:
+    build:
+      context: ./laya
+      dockerfile: Dockerfile
+    # Internal HTTP (backend -> http://laya:8000); 8100 on the host for
+    # `make laya-pull` and manual poking.
+    ports: ["8100:8000"]
+    volumes:
+      - laya_models:/models
+    healthcheck:
+      # Probe the real endpoint with empty questions (no forward pass).
+      test: ["CMD", "python", "-c", "import json,urllib.request,sys; req=urllib.request.Request('http://localhost:8000/v1/systemone', data=json.dumps({'state':'','questions':{}}).encode(), headers={'Content-Type':'application/json'}); sys.exit(0 if urllib.request.urlopen(req, timeout=5).status==200 else 1)"]
+      interval: 15s
+      timeout: 8s
+      retries: 40
+      start_period: 300s
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports: ["5173:5173"]
+    environment:
+      # Inside the compose network the backend is reachable by service name.
+      VITE_API_PROXY: "http://backend:8000"
+      VITE_USE_MOCKS: "false"
+    depends_on:
+      backend: {condition: service_started}
+
 volumes:
   db_data:
+  laya_models:

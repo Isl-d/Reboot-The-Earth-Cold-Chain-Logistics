@@ -1,5 +1,7 @@
 @import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
+/* Person 2 intelligence design system — global rules only (tokens live in @theme below). */
+@import "./design/tokens.css";
 
 @theme {
   --color-base: #0c1825;
@@ -37,6 +39,117 @@
   --animate-count-up: count-up 0.5s ease-out both;
   --animate-ring: ring 0.6s ease-in-out;
   --animate-glow-critical: glow-critical 2s ease-in-out infinite;
+
+  /* ── Person 2 intelligence design system (ported from tailwind.config.ts) ──
+     Only `surface` collides with the command-center palette above, so the
+     ported light card surface is exposed as `card` (bg-card) instead. */
+  --color-navy: #0f172a;
+  --color-navy-dark: #0a192f;
+  --color-navy-light: #1e293b;
+  --color-sky: #0ea5e9;
+  --color-sky-cyan: #06b6d4;
+  --color-sky-light: #38bdf8;
+  --color-sky-tint: #e0f2fe;
+  --color-canvas: #f8fafc;
+  --color-card: #ffffff;
+  --color-line: #e2e8f0;
+  --color-line-strong: #cbd5e1;
+  --color-line-heavy: #94a3b8;
+  --color-muted: #64748b;
+
+  --color-status-safe: #10b981;
+  --color-status-safe-tint: #ecfdf5;
+  --color-status-safe-border: #a7f3d0;
+  --color-status-safe-fg: #065f46;
+  --color-status-warning: #f59e0b;
+  --color-status-warning-tint: #fffbeb;
+  --color-status-warning-border: #fde68a;
+  --color-status-warning-fg: #92400e;
+  --color-status-critical: #ef4444;
+  --color-status-critical-tint: #fef2f2;
+  --color-status-critical-border: #fecaca;
+  --color-status-critical-fg: #991b1b;
+  --color-status-offline: #64748b;
+  --color-status-offline-tint: #f1f5f9;
+  --color-status-offline-border: #cbd5e1;
+  --color-status-offline-fg: #334155;
+
+  --color-provenance-measured-dot: #4f46e5;
+  --color-provenance-measured-fill: #eef2ff;
+  --color-provenance-measured-border: #c7d2fe;
+  --color-provenance-measured-fg: #3730a3;
+  --color-provenance-calculated-dot: #7c3aed;
+  --color-provenance-calculated-fill: #f5f3ff;
+  --color-provenance-calculated-border: #ddd6fe;
+  --color-provenance-calculated-fg: #5b21b6;
+  --color-provenance-predicted-dot: #0284c7;
+  --color-provenance-predicted-fill: #f0f9ff;
+  --color-provenance-predicted-border: #bae6fd;
+  --color-provenance-predicted-fg: #075985;
+  --color-provenance-recommended-dot: #059669;
+  --color-provenance-recommended-fill: #ecfdf5;
+  --color-provenance-recommended-border: #a7f3d0;
+  --color-provenance-recommended-fg: #065f46;
+  --color-provenance-finance-dot: #d97706;
+  --color-provenance-finance-fill: #fffbeb;
+  --color-provenance-finance-border: #fde68a;
+  --color-provenance-finance-fg: #92400e;
+
+  --text-headline-xl: 2.25rem;
+  --text-headline-xl--line-height: 2.75rem;
+  --text-headline-xl--letter-spacing: -0.025em;
+  --text-headline-xl--font-weight: 700;
+  --text-headline-lg: 1.75rem;
+  --text-headline-lg--line-height: 2.25rem;
+  --text-headline-lg--letter-spacing: -0.02em;
+  --text-headline-lg--font-weight: 600;
+  --text-headline-md: 1.25rem;
+  --text-headline-md--line-height: 1.75rem;
+  --text-headline-md--letter-spacing: -0.015em;
+  --text-headline-md--font-weight: 600;
+  --text-headline-sm: 1rem;
+  --text-headline-sm--line-height: 1.5rem;
+  --text-headline-sm--letter-spacing: -0.01em;
+  --text-headline-sm--font-weight: 600;
+  --text-body-lg: 1rem;
+  --text-body-lg--line-height: 1.5rem;
+  --text-body-lg--font-weight: 400;
+  --text-body-md: 0.875rem;
+  --text-body-md--line-height: 1.375rem;
+  --text-body-md--font-weight: 400;
+  --text-body-sm: 0.75rem;
+  --text-body-sm--line-height: 1.125rem;
+  --text-body-sm--font-weight: 400;
+  --text-telemetry-xl: 2rem;
+  --text-telemetry-xl--line-height: 2.25rem;
+  --text-telemetry-xl--letter-spacing: -0.03em;
+  --text-telemetry-xl--font-weight: 600;
+  --text-telemetry-md: 1.125rem;
+  --text-telemetry-md--line-height: 1.5rem;
+  --text-telemetry-md--letter-spacing: -0.02em;
+  --text-telemetry-md--font-weight: 500;
+  --text-label-code: 0.6875rem;
+  --text-label-code--line-height: 0.875rem;
+  --text-label-code--letter-spacing: 0.04em;
+  --text-label-code--font-weight: 500;
+  --text-label-ui: 0.75rem;
+  --text-label-ui--line-height: 1rem;
+  --text-label-ui--letter-spacing: 0.01em;
+  --text-label-ui--font-weight: 500;
+
+  --shadow-level1: 0 2px 4px -1px rgba(15, 23, 42, 0.06), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+  --shadow-level2: 0 10px 15px -3px rgba(15, 23, 42, 0.08), 0 4px 6px -2px rgba(15, 23, 42, 0.03);
+  --shadow-level3: 0 20px 25px -5px rgba(15, 23, 42, 0.15);
+  --shadow-focus-halo: 0 0 0 2px #ffffff, 0 0 0 4px #0ea5e9;
+
+  --breakpoint-tablet: 768px;
+  --breakpoint-desktop: 1280px;
+
+  --animate-indeterminate: indeterminate 1.4s ease-in-out infinite;
+  @keyframes indeterminate {
+    0% { transform: translateX(-100%); }
+    100% { transform: translateX(300%); }
+  }
 }
 
 /* ── Light mode overrides ──────────────────────────────────── */

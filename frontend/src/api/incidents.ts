@@ -2,6 +2,6 @@ import type { Incident } from '../types'
 import { apiClient } from './client'
 
 export async function getIncidents(): Promise<Incident[]> {
-  const { data } = await apiClient.get<Incident[]>('/incidents')
+  const { data } = await apiClient.get<Incident[]>('/api/incidents')
   return data
 }

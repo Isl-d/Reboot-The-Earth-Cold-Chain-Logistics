@@ -74,10 +74,10 @@ def _enrich(session, inv: Inventory) -> dict:
 
 
 @router.get("")
-def list_inventory() -> list[dict]:
+def list_inventory() -> dict:
     with session_scope() as session:
         rows = session.execute(select(Inventory).order_by(Inventory.batch_id)).scalars().all()
-        return [_enrich(session, inv) for inv in rows]
+        return {"inventory": [_enrich(session, inv) for inv in rows]}
 
 
 @router.get("/{batch_id}")

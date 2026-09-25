@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import logging
 import threading
+import time
 
 from ..config import settings
 
@@ -20,6 +21,7 @@ class IntelligenceWorker(threading.Thread):
         self._pending: set[str] = set()
         self._lock = threading.Lock()
         self._stop = threading.Event()
+        self._last_llm: dict[str, float] = {}
 
     def mark_dirty(self, truck_id: str) -> None:
         if not truck_id:
@@ -36,7 +38,18 @@ class IntelligenceWorker(threading.Thread):
                 self._pending.clear()
             for truck_id in batch:
                 try:
-                    engine.evaluate_truck(truck_id)
+                    # Deterministic chain every cycle (fast, no network).
+                    result = engine.evaluate_truck(truck_id, use_llm=False)
+                    level = (result or {}).get("riskLevel")
+
+                    # Ask the explainer only when it matters — when risk escalates
+                    # — and at most once per interval per truck, so a 5 s loop
+                    # never rate-limits the provider and healthy trucks cost nothing.
+                    if level in {"HIGH", "CRITICAL"}:
+                        now = time.monotonic()
+                        if (now - self._last_llm.get(truck_id, 0.0)) >= settings.llm_min_interval_s:
+                            engine.evaluate_truck(truck_id, use_llm=True)
+                            self._last_llm[truck_id] = now
                 except Exception:
                     log.exception("intelligence evaluation failed for %s", truck_id)
 

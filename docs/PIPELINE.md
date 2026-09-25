@@ -1,5 +1,11 @@
 # Full System Pipeline — AI Cold Chain & Food Loss Platform
 
+> **Vision vs. implementation.** This is the user-provided target diagram.
+> The shipped system implements it with a deliberately simpler stack: Mosquitto
+> (not Kafka), PostgreSQL/TimescaleDB + Redis (no object store), FastAPI, and a
+> Python intelligence engine. See [../ARCHITECTURE.md](../ARCHITECTURE.md) for
+> what actually runs.
+
 Provided by the user as the end-to-end architecture. Person 2 (this repo) owns only the analytics/intelligence frontend; everything above the AI DASHBOARD is backend/other team members.
 
 ```

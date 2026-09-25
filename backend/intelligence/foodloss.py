@@ -19,13 +19,15 @@ def compute(batch: dict | None, features: dict, spoilage: dict,
     deterioration = float(features.get("deteriorationFraction") or 0.0)
     spoilage_prob = float(spoilage.get("spoilageProbability") or 0.0)
 
-    # Loss if nothing is done: deterioration already accrued plus a share of
-    # the spoilage probability.
-    loss_without = _clamp(deterioration + 0.30 * spoilage_prob)
+    # Loss if nothing is done: the deterioration already accrued plus the
+    # spoilage probability, which is the share of the batch at risk of being
+    # unsellable if the excursion is allowed to continue. Doing nothing means
+    # accepting that whole risk.
+    loss_without = _clamp(deterioration + spoilage_prob)
 
-    # Loss if the selected (feasible) diversion is taken. Diverting can never
-    # be worse than doing nothing, so take the lower of "continue as-is" and
-    # the transit cost of the selected option.
+    # Loss if the selected (feasible) diversion is taken: the product reaches
+    # cold storage, so further loss is capped at the transit exposure of the
+    # chosen option. Diverting can never be worse than doing nothing.
     loss_with = loss_without
     selected = optimization.get("selectedWarehouseId")
     if selected and optimization.get("feasible"):

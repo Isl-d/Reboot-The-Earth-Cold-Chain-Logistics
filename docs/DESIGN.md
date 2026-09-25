@@ -131,6 +131,12 @@ spacing:
 
 ## Brand & Style
 
+> **Superseded:** the canonical visual system for the merged app is
+> [`../DESIGN.md`](../DESIGN.md) ("Strategic Ops": dark tactical slate, signal
+> cyan, IBM Plex), implemented by `frontend/src/index.css`. This light-system
+> document was Person 2's draft used while the intelligence screens were built
+> standalone; keep it only as a record of that work.
+
 This design system delivers an operational intelligence workspace tailored for food logistics, central cold-storage facilities, and hypermarkets across Qatar (such as Al Meera, Lulu Hypermarket, and Carrefour distribution hubs). Operating in an environment where ambient summer temperatures routinely surpass 45°C, cold-chain integrity is mission-critical. The design aesthetic balances authoritative industrial precision with calm, cognitive ease. It avoids alarmist noise while ensuring immediate legibility under high-stress incident triage.
 
 The aesthetic blends **Modern Corporate Enterprise** with **Industrial Telemetry Utility**:

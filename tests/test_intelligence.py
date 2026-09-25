@@ -115,7 +115,7 @@ def test_llm_estimate_is_clamped_to_the_band():
     prior = spoilage.deterministic_prior(feat)
     out = spoilage.predict(feat, BATCH, client=FakeLLM(
         {"spoilageProbability": 0.99, "confidence": 5, "rationale": "very risky"}))
-    assert out["source"] == "layla"
+    assert out["source"] == "explainer"
     assert out["spoilageProbability"] <= prior + 0.35 + 1e-3
     assert out["confidence"] == 1.0  # clamped
 
@@ -177,7 +177,7 @@ def test_llm_can_pick_a_feasible_alternative():
     sp = spoilage.predict(feat, BATCH, client=OfflineLLM())
     out = optimization.evaluate(_context(), feat, sp, client=FakeLLM(
         {"selectedWarehouseId": "WH02", "rationale": "closer to the store"}))
-    assert out["source"] == "layla"
+    assert out["source"] == "explainer"
     assert out["selectedWarehouseId"] == "WH02"
 
 
@@ -189,7 +189,8 @@ def test_food_saved_is_never_negative():
            "candidates": [{"warehouseId": "WH01", "expectedLossPercent": 2.0}]}
     out = foodloss.compute(BATCH, feat, sp, opt)
     assert out["foodSavedKg"] >= 0.0
-    assert out["predictedLossKg"] == 500.0 * 0.3 * 0.9  # deterioration 0 + 0.3*0.9
+    assert out["predictedLossKg"] == 500.0 * 0.9  # deterioration 0 + spoilage 0.9
+    assert out["lossWithInterventionKg"] == 500.0 * 0.02  # capped at transit loss
 
 
 def test_no_feasible_option_means_no_saving():

@@ -1,10 +1,11 @@
 # Twelve slides
 
-Non-technical. Two slides on the hardware. One number per slide where possible.
+Non-technical. One number per slide where possible.
 
-**1. A photo of the box.**
-"There is a real temperature sensor in this box. In four minutes I am going to
-break its cold chain in front of you."
+**1. The one-sentence product.**
+A condition-aware cold-chain decision system: it watches food in transit, measures
+how much safe life a failure has cost, and chooses the action that loses the
+least of it.
 
 **2. The problem.**
 13 % of food is lost between harvest and retail; another 19 % is wasted after.
@@ -17,56 +18,61 @@ Strategy 2030 targets −50 % food waste and −30 % food loss.
 
 **4. What actually goes wrong.**
 Nobody finds out until the load is rejected at the gate. By then the food is
-already gone, and so is the chance to do anything else with it.
+gone, and so is any chance to send it somewhere it could still be sold.
 
-**5. ColdGuard in one line.**
-A live freshness score for every pallet, and one recommended action a person
-approves with one tap.
+**5. The product in one line.**
+Sensors tell us what is happening; mathematics tells us how much damage has
+occurred; AI predicts what happens next; optimization chooses the action; and the
+food-loss engine proves what it saved.
 
-**6. The hardware.** *(photo: NodeMCU, DHT11, cooler box, ice packs)*
-About forty riyals of parts per pallet. Any sensor that can send a temperature
-works; this happens to be the cheapest one we could buy.
+**6. Detect at the moment of failure.**
+A live map of every truck, with an incident the instant a temperature leaves the
+safe band and stays there. Not a dashboard of charts — a decision surface.
 
-**7. Telling a door from a disaster.** *(the chart: blue air, amber cargo)*
-The air spikes when you open a door. Two tonnes of lettuce do not. We track the
-cargo temperature, not the sensor reading, and only alert on a real failure —
-because an alert nobody reads is worse than no alert.
+**7. Physics before AI.**
+Thermal exposure is the integral of the degrees above the limit over time.
+Deterioration is an Arrhenius rate. Remaining shelf life follows from it. Every
+one of those numbers is deterministic Python — no model touches them.
 
-**8. Predicting the outcome, not the temperature.**
-The question is not "how hot is it" but "will this still be accepted when it
-arrives". Q10 shelf-life model, per product, against the store's minimum.
+**8. AI where it earns its place.**
+Prediction (spoilage probability), anomaly detection, demand forecasting, and one
+optional model — LAYLA — that turns the calculated facts into an explanation.
+It is bounded: it may never invent a temperature, an ETA, a cost or a quantity.
 
-**9. Four things you can do.**
-Reroute, sell, donate, hold — each with its kilometres and its money, so the
-recommendation can be checked instead of trusted.
+**9. Optimization, not vibes.**
+`min(transport + food-loss + delay)` subject to ETA ≤ remaining safe time,
+warehouse capacity and temperature compatibility. The optimizer picks the
+warehouse. The model only explains the choice.
 
-**10. And when it should not decide.**
-Broken sensor, nothing within specification, a genuine tie, or an irreversible
-write-off: no recommendation, four buttons, and the reason. *This is the slide
-that separates us from a dashboard with a magic button.*
+**10. The number that matters.**
+Food saved (kg) and financial loss prevented (QAR): expected loss without the
+intervention minus expected loss with it. That is the whole point.
 
-**11. Where the AI is, and is not.**
-Every number is deterministic Python. A local model — no cloud, no API key —
-writes two sentences in Arabic and English from those numbers, and a guard
-rejects any figure it invents. Every decision is hash-chained to the one before.
+**11. Every value knows where it came from.**
+MEASURED, CALCULATED, PREDICTED, OPTIMIZED, AI-EXPLAINED, SYNTHETIC — shown on
+screen. Synthetic demo data is never dressed up as a real measurement, and
+literature values are marked as unverified.
 
 **12. The ask.**
-One cold-chain operator, one month, twenty pallets. We can tell you on day one
+One cold-chain operator, one month, twenty pallets. On day one we can tell you
 how much of your loss is refrigeration and how much is scheduling.
 
 ---
 
 ### Backup slides
 
-- **Real vs simulated.** Real: TRK-07's readings, the physical events, all the
-  logic, the local model, the open road and weather data. Simulated: eleven
-  trucks, their movement, store stock, and carrying out the actions.
-- **Heat-aware dispatch.** Leaving at 05:00 instead of 14:00 saves 1.7 hours of
-  shelf life before the truck has moved a metre.
-- **The freshness passport.** The QR code on the box. Scan it and the shipment's
-  whole history is on your phone — the beginnings of a GS1 EPCIS record.
-- **Roadmap.** Phone-camera quality check on arrival, predictive maintenance of
-  cooling units, driver voice alerts in five languages, sell-first warehouse
-  lists, a national food-loss and CO2 dashboard, a cold-chain gap map.
-- **Architecture.** One Python process, Postgres, MQTT, a local LLM, a React
-  dashboard. Nothing that cannot run on a laptop in a warehouse office.
+- **Provenance of data.** 17 openly licensed sources (geography, routing,
+  weather, food science, emissions) catalogued and served live at `/api/opendata`.
+- **The seam that makes it real.** `GET /api/internal/context/{truckId}` is the
+  single contract between the data platform and the intelligence engine, so they
+  can never disagree about what a truck is experiencing.
+- **Offline by design.** Mosquitto, Postgres/Timescale, Redis, Python and React.
+  With no API key the system still runs end to end; only the prose is plainer.
+- **Reproducibility.** One command (`make demo`), a reference scenario, and an
+  end-to-end test (`tests/test_demo.py`) that replays the whole failure.
+- **Beyond food.** The condition engine is configurable per product profile; the
+  same exposure → integrity → risk logic extends to pharmaceuticals and vaccines
+  later, without diluting the food demo today.
+- **Architecture.** Simulator → MQTT → FastAPI ingestion → Postgres + Redis →
+  intelligence engine → REST + WebSocket → one React dashboard. Nothing that
+  cannot run on a laptop in a warehouse office.

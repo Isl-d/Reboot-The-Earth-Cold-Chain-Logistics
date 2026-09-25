@@ -9,12 +9,13 @@ import datetime as dt
 import uuid
 
 from fastapi import APIRouter, Body, HTTPException
-from sqlalchemy import select, update
+from sqlalchemy import delete, select, update
 
+from ..cache import cache
 from ..config import settings
 from ..db import session_scope
 from ..ingest.consumer import pipeline
-from ..models import SimulationRun, Truck
+from ..models import DeviceEvent, Incident, Prediction, SensorReading, SimulationRun, Truck
 from ..processing import tracker
 
 router = APIRouter(prefix="/api/simulation", tags=["simulation"])
@@ -41,6 +42,24 @@ def _publish(truck_id: str | None, message: dict) -> bool:
     return pipeline.publish_control(target, message)
 
 
+def _state_response(truck_id: str | None, status: str, run_id: str, **extra) -> dict:
+    """The mutation responses are the full SimulationStateDto plus status/runId.
+
+    The frontend adapter validates the state fields (truckId, batchId,
+    startedAt, ...), so a bare ``{status, runId}`` would break Start/Stop/Reset.
+    """
+    if truck_id:
+        payload = _simulation_state(truck_id)
+    else:
+        payload = {
+            "truckId": None, "batchId": None, "scenario": "NORMAL",
+            "speedMultiplier": 1.0, "running": True, "startedAt": None,
+        }
+    payload.update({"status": status, "runId": run_id})
+    payload.update(extra)
+    return payload
+
+
 @router.post("/start")
 def start(body: dict | None = Body(default=None)) -> dict:
     body = body or {}
@@ -51,8 +70,7 @@ def start(body: dict | None = Body(default=None)) -> dict:
         scenario = "NORMAL"
     _publish(truck_id, {"scenario": scenario, "speedMultiplier": speed, "paused": False})
     run_id = _record(truck_id, scenario, speed)
-    return {"status": "started", "runId": run_id, "truckId": truck_id,
-            "scenario": scenario, "speedMultiplier": speed}
+    return _state_response(truck_id, "started", run_id)
 
 
 @router.post("/stop")
@@ -65,7 +83,7 @@ def stop(body: dict | None = Body(default=None)) -> dict:
         if truck_id:
             stmt = stmt.where(SimulationRun.truck_id == truck_id)
         session.execute(stmt.values(status="stopped", stopped_at=dt.datetime.now(dt.timezone.utc)))
-    return {"status": "stopped", "truckId": truck_id}
+    return _state_response(truck_id, "stopped", "")
 
 
 @router.post("/reset")
@@ -74,12 +92,33 @@ def reset(body: dict | None = Body(default=None)) -> dict:
     truck_id = body.get("truckId")
     _publish(truck_id, {"reset": True, "paused": False})
     tracker.reset(truck_id)
+    now = dt.datetime.now(dt.timezone.utc)
     with session_scope() as session:
         stmt = update(SimulationRun).where(SimulationRun.status == "running")
         if truck_id:
             stmt = stmt.where(SimulationRun.truck_id == truck_id)
-        session.execute(stmt.values(status="reset", stopped_at=dt.datetime.now(dt.timezone.utc)))
-    return {"status": "reset", "truckId": truck_id}
+        session.execute(stmt.values(status="reset", stopped_at=now))
+
+        # Reset must clear the *derived history* too, not just the live state.
+        # Otherwise the hot readings from the excursion stay inside the
+        # intelligence window and the truck reads CRITICAL at 2 C for minutes.
+        for model in (SensorReading, DeviceEvent, Prediction):
+            stmt = delete(model)
+            if truck_id:
+                stmt = stmt.where(model.truck_id == truck_id)
+            session.execute(stmt)
+
+        incidents = update(Incident).where(Incident.status == "OPEN").values(
+            status="RESOLVED", updated_at=now)
+        if truck_id:
+            incidents = incidents.where(Incident.truck_id == truck_id)
+        session.execute(incidents)
+
+    cache.clear()
+    # Drop any carried-forward explainer rationale for this truck.
+    from ..intelligence import engine as intelligence_engine
+    intelligence_engine.clear_rationale(truck_id)
+    return _state_response(truck_id, "reset", "")
 
 
 @router.post("/scenario")
@@ -96,8 +135,7 @@ def scenario(body: dict = Body(...)) -> dict:
         "scenario": name, "speedMultiplier": speed, "paused": False,
     })
     run_id = _record(truck_id, name, speed)
-    return {"status": "accepted", "runId": run_id, "truckId": truck_id,
-            "scenario": name, "published": published}
+    return _state_response(truck_id, "accepted", run_id, published=published, scenario=name)
 
 
 def _simulation_state(truck_id: str) -> dict:

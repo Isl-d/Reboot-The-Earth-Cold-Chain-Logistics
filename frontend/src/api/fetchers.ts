@@ -16,6 +16,7 @@ import {
   adaptSimTruckOption,
   adaptSimulationState,
   adaptSpoilagePrediction,
+  adaptSystem1,
   adaptTelemetrySample,
   adaptThermalExposure,
 } from './adapters'
@@ -33,6 +34,7 @@ import type {
   SimulationStartRequestDto,
   SimulationStateDto,
   SpoilagePredictionDto,
+  System1Dto,
   TelemetrySampleDto,
   ThermalExposureDto,
 } from './dto'
@@ -48,6 +50,7 @@ import type {
   SimTruckOption,
   SimulationState,
   SpoilagePrediction,
+  System1Decision,
   ThermalExposure,
 } from './types'
 
@@ -56,7 +59,7 @@ import type {
 export async function fetchSimTruckOptions(): Promise<SimTruckOption[]> {
   const dtos = USE_MOCKS
     ? await mock.getSimTruckOptions()
-    : (await apiClient.get<SimTruckOptionDto[]>(endpoints.trucks)).data
+    : (await apiClient.get<{ trucks: SimTruckOptionDto[] }>(endpoints.trucks)).data.trucks
   return dtos.map(adaptSimTruckOption)
 }
 
@@ -113,6 +116,13 @@ export async function fetchSpoilagePrediction(truckId: string): Promise<Spoilage
   return adaptSpoilagePrediction(dto)
 }
 
+// ---- System 1 (Laya, local) -------------------------------------------------
+// Always hits the real backend; mocks are not provided for a model we run locally.
+export async function fetchSystem1(truckId: string): Promise<System1Decision> {
+  const dto = await apiClient.get<System1Dto>(endpoints.system1(truckId)).then((r) => r.data)
+  return adaptSystem1(dto)
+}
+
 // ---- Optimization -----------------------------------------------------------
 
 export async function fetchOptimizationCandidates(truckId: string, batchId: string): Promise<OptimizationResult> {
@@ -150,7 +160,7 @@ export async function fetchFoodLossSeries(): Promise<FoodLossSeries> {
 export async function fetchInventory(): Promise<InventoryBatch[]> {
   const dtos = USE_MOCKS
     ? await mock.getInventory()
-    : (await apiClient.get<InventoryBatchDto[]>(endpoints.inventory)).data
+    : (await apiClient.get<{ inventory: InventoryBatchDto[] }>(endpoints.inventory)).data.inventory
   return dtos.map(adaptInventoryBatch)
 }
 
@@ -192,5 +202,15 @@ export interface TruckPositionDto {
 
 export async function fetchAllTruckPositions(): Promise<TruckPositionDto[]> {
   if (USE_MOCKS) return mock.getAllTruckPositions()
-  return (await apiClient.get<TruckPositionDto[]>(endpoints.trucks)).data
+  const dtos = (await apiClient.get<{ trucks: Array<Record<string, unknown>> }>(endpoints.trucks)).data.trucks
+  return dtos.map((t) => ({
+    truckId: String(t.id),
+    name: String(t.name ?? t.id),
+    lat: Number(t.latitude),
+    lon: Number(t.longitude),
+    temperatureC: t.temperatureC as number | undefined,
+    speedKmh: t.speedKmh as number | undefined,
+    risk: t.riskLevel as string | undefined,
+    product: t.product as string | undefined,
+  }))
 }

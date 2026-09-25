@@ -57,13 +57,16 @@ class Settings(BaseSettings):
     intelligence_interval_s: float = 5.0
     intelligence_telemetry_window: int = 120
 
-    # --- LLM (LAYLA) explainer --------------------------------------------
+    # --- LLM (System 2) explainer --------------------------------------------
     llm_model: str = "openrouter/free"
     llm_base_url: str = "https://openrouter.ai/api/v1"
     llm_timeout_s: float = 20.0
     llm_max_tokens: int = 512
     # The model may only move a deterministic estimate by this much.
     llm_probability_band: float = 0.35
+    # The background worker calls the LLM at most once this often per truck, so
+    # a 5 s evaluation loop cannot rate-limit the provider.
+    llm_min_interval_s: float = 45.0
     # Not CC_-prefixed because the key is shared with the wider toolchain.
     # Reads OPENROUTERAPIKEY from the environment or .env.
     openrouter_api_key: str = Field(
@@ -81,12 +84,28 @@ class Settings(BaseSettings):
     anomaly_z_threshold: float = 2.5
     anomaly_min_samples: int = 5
 
+    # --- spoilage prior calibration ---------------------------------------
+    # Saturating exposure-response: E50 is the thermal exposure (in °C·min)
+    # above the safe maximum at which ~63% of the batch is judged at risk.
+    # Prototype parameters, not certified food-safety thresholds.
+    spoilage_exposure_e50_cmin: float = 15.0
+    spoilage_base_weight: float = 0.4
+    spoilage_exposure_weight: float = 0.6
+
     # --- optimization economics -------------------------------------------
     transport_cost_per_km: float = 4.5
     delay_cost_per_min: float = 2.0
     # Extra fraction of shelf life lost per minute in transit.
     transit_loss_rate_per_min: float = 0.0008
     average_speed_kmh: float = 45.0
+
+    # --- Laya: local, non-autoregressive System 1 decision engine ----------
+    # Optional. It runs as a separate service (laya-serve) and is never allowed
+    # to override the deterministic decision engine; any failure is ignored.
+    laya_enabled: bool = True
+    laya_url: str = "http://localhost:8100"
+    laya_model: str = "router"  # router | english | multilingual
+    laya_timeout_s: float = 8.0
 
 
 settings = Settings()
