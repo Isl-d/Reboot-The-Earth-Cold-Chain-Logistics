@@ -1,42 +1,26 @@
 /*
-  Minimal, throwaway app shell (Segment 3 builds the real version).
-  Exists now only so routes render during scaffolding.
+  Real app shell (replaces Segment 0's throwaway version). Kept thin per
+  plan.md — Person 1 owns the eventual command-center landing page, so this
+  shell exists only so Person 2's 6 screens have somewhere to render during
+  standalone development, and drops in cleanly when merged.
 */
-import { NavLink, Outlet } from 'react-router-dom'
-
-const NAV_ITEMS = [
-  { to: '/simulation', label: 'Simulation' },
-  { to: '/model', label: 'Mathematical Model' },
-  { to: '/optimization', label: 'Optimization' },
-  { to: '/analytics', label: 'Food-Loss Analytics' },
-  { to: '/inventory', label: 'Inventory' },
-  { to: '/comparison', label: 'Scenario Comparison' },
-]
+import { Outlet } from 'react-router-dom'
+import PageGrid from './PageGrid'
+import Sidebar from './Sidebar'
+import TopBar from './TopBar'
 
 export default function Shell() {
   return (
-    <div style={{ display: 'flex', minHeight: '100vh' }}>
-      <nav style={{ width: 220, borderRight: '1px solid #E2E8F0', padding: '1rem' }}>
-        <div style={{ fontWeight: 600, marginBottom: '1rem' }}>Cold-Chain Intelligence</div>
-        {NAV_ITEMS.map((item) => (
-          <NavLink
-            key={item.to}
-            to={item.to}
-            style={({ isActive }) => ({
-              display: 'block',
-              padding: '0.5rem 0',
-              color: isActive ? '#0F172A' : '#64748B',
-              fontWeight: isActive ? 600 : 400,
-              textDecoration: 'none',
-            })}
-          >
-            {item.label}
-          </NavLink>
-        ))}
-      </nav>
-      <main style={{ flex: 1, padding: '1.5rem' }}>
-        <Outlet />
-      </main>
+    <div className="flex h-screen overflow-hidden bg-canvas">
+      <Sidebar />
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
+        <TopBar />
+        <main className="flex-1 overflow-y-auto p-3 tablet:p-4 desktop:p-6">
+          <PageGrid>
+            <Outlet />
+          </PageGrid>
+        </main>
+      </div>
     </div>
   )
 }
