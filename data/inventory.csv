@@ -1,0 +1,8 @@
+id,batch_id,location_type,location_id,quantity_kg,expiry_date,status
+INV-1,CHK-1028,warehouse,WH01,300,2026-09-26,in_stock
+INV-2,MLK-200,store,ST02,250,2026-10-01,in_stock
+INV-3,LET-304,store,ST01,400,2026-10-02,in_stock
+INV-4,CHK-1029,warehouse,WH01,0,2026-09-28,dispatched
+INV-5,MLK-201,warehouse,WH01,0,2026-10-02,dispatched
+INV-6,LET-305,warehouse,WH02,0,2026-10-03,dispatched
+INV-7,CHK-1030,warehouse,WH02,0,2026-09-29,dispatched

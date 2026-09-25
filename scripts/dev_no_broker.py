@@ -1,101 +1,159 @@
-"""Run the whole demo on one laptop with no broker, no database and no Docker.
+#!/usr/bin/env python3
+"""Run the whole pipeline on one host: no broker, no Postgres, no Redis.
 
-    python scripts/dev_no_broker.py            # backend on :8000, fleet running
-    python scripts/dev_no_broker.py --script   # plus the four-minute demo, on its own
+    python scripts/dev_no_broker.py --ticks 8
+    python scripts/dev_no_broker.py --scenario REFRIGERATION_FAILURE --truck T102
 
-This is a development harness, not the real path: on stage the NodeMCU and
-simulator/sim.py publish over MQTT. It exists so that anyone on the team can
-open the dashboard and work on the frontend without installing anything.
+The simulator's physics is stepped in-process and every reading is pushed
+through the *real* ingestion pipeline (``pipeline.handle``): validation,
+normalization, derived values, risk, incidents, storage and WebSocket fan-out.
+The app runs on a throwaway SQLite file with the in-process cache, so this is
+the fastest way to watch data move end to end before wiring Docker.
 
-It drives the same simulator physics straight into the ingest pipeline, so what
-you see is what MQTT would have delivered.
+This is a demo/inspection tool, not the production path: that is
+``make demo`` (Mosquitto + TimescaleDB + Redis + backend + simulator).
 """
 from __future__ import annotations
 
 import argparse
+import json
+import os
+import pathlib
 import random
 import sys
-import threading
-import time
-from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent.parent
+ROOT = pathlib.Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
-sys.path.insert(0, str(ROOT / "scripts"))
-sys.path.insert(0, str(ROOT / "simulator"))
-
-from places import FLEET, REAL_TRUCK                      # noqa: E402
-from sim import Truck, load_products, load_routes          # noqa: E402
-
-INTERVAL = 2.0
-OUTSIDE = 41.0
-
-# The stage script: what the presenter does to the real sensor, minute by
-# minute (CLAUDE.md section 8). Each entry is (seconds from start, air °C).
-STAGE = [(0, None), (40, "door"), (70, "hand"), (225, "back")]
+sys.path.insert(0, str(ROOT / "sensor-simulator"))
 
 
-class Stage:
-    """Replays what the physical box does to TRK-07, without the box."""
-
-    def __init__(self) -> None:
-        self.t0 = time.time()
-        self.air = 2.6
-
-    def air_c(self) -> tuple[float, bool]:
-        t = time.time() - self.t0
-        if 40 <= t < 46:                       # lid lifted for six seconds
-            target, door = 11.0, True
-        elif 70 <= t < 225:                    # held in a hand
-            target, door = 29.0, False
-        else:                                  # back in the cold box
-            target, door = 2.6, False
-        # A DHT11 is slow: move towards the target rather than jumping.
-        self.air += (target - self.air) * 0.22
-        return round(self.air, 1), door
+def configure_env(db_path: pathlib.Path) -> None:
+    """Pin every dependency to a local, offline substitute *before* import."""
+    os.environ["CC_DATABASE_URL"] = f"sqlite:///{db_path}"
+    os.environ["CC_REDIS_URL"] = "redis://127.0.0.1:1/0"
+    os.environ["CC_TIMESCALE_ENABLED"] = "false"
+    os.environ["CC_MQTT_HOST"] = "127.0.0.1"
+    os.environ["CC_MQTT_PORT"] = "1"
+    os.environ["CC_INTELLIGENCE_ENABLED"] = os.environ.get("CC_INTELLIGENCE_ENABLED", "false")
 
 
-def main() -> None:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--port", type=int, default=8000)
-    ap.add_argument("--script", action="store_true",
-                    help="also act out the four-minute demo on TRK-07")
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Cold-chain pipeline, no broker/db/docker")
+    ap.add_argument("--ticks", type=int, default=8, help="readings per truck")
+    ap.add_argument("--interval", type=float, default=3.0, help="seconds between ticks")
+    ap.add_argument("--truck", default="T102", help="truck the scenario applies to")
+    ap.add_argument("--scenario", default="NORMAL", help="scenario for --truck")
     ap.add_argument("--seed", type=int, default=7)
+    ap.add_argument("--db", default=str(ROOT / "dev_coldchain.db"))
+    ap.add_argument("--ai", action="store_true",
+                    help="call the real OpenRouter LLM (needs OPENROUTERAPIKEY); "
+                         "default is the offline heuristic")
     args = ap.parse_args()
 
-    import uvicorn
-    from backend import config
-    import backend.main as main_mod
+    db_path = pathlib.Path(args.db)
+    if db_path.exists():
+        db_path.unlink()
+    configure_env(db_path)
 
-    main_mod.ingest.start = lambda: None                   # no MQTT in this mode
+    from fastapi.testclient import TestClient
 
+    import fleet
+    from backend.ingest.consumer import pipeline
+    from backend.intelligence import llm as llm_mod
+    from backend.main import app
+    from simulator import Truck
+
+    if not args.ai:
+        llm_mod.set_client(llm_mod.LLMClient(key=""))  # force the offline heuristic
+
+    infos, _routes = fleet.load_trucks()
     rng = random.Random(args.seed)
-    routes, products = load_routes(), load_products()
-    sim = {tid: Truck(tid, r, p, q, s, products, rng) for tid, r, p, q, s in FLEET}
-    stage = Stage() if args.script else None
+    trucks = {info["id"]: Truck(info, rng) for info in infos}
+    for truck in trucks.values():
+        scenario = args.scenario if truck.info["id"] == args.truck else "NORMAL"
+        truck.control({"scenario": scenario})
 
-    def pump() -> None:
-        time.sleep(1.5)                                    # let the app start
-        print(f"feeding {len(sim)} trucks into the ingest pipeline"
-              + (" - demo script running on " + REAL_TRUCK if stage else ""))
-        while True:
-            for tid, truck in sim.items():
-                if tid == REAL_TRUCK:
-                    if stage is None:
-                        continue
-                    air, door = stage.air_c()
-                    main_mod.ingest.handle(tid, {"truck_id": tid, "air_c": air,
-                                                 "hum_pct": 62, "door_open": door})
-                    continue
-                msg = truck.step(INTERVAL, config.MAP_SPEED, routes[truck.route_id], OUTSIDE)
-                main_mod.ingest.handle(tid, msg)
-            time.sleep(INTERVAL)
+    print(f"pipeline on {db_path}  scenario={args.scenario} on {args.truck}  "
+          f"{args.ticks} ticks x {args.interval:g}s")
+    print("-" * 100)
 
-    threading.Thread(target=pump, name="dev-feed", daemon=True).start()
-    print(f"dashboard: run `npm run dev` in web/, then open http://localhost:5173")
-    print(f"API:       http://localhost:{args.port}/api/fleet")
-    uvicorn.run(main_mod.app, host="0.0.0.0", port=args.port, log_level="warning")
+    import datetime as dt
+
+    # Real ticks are seconds apart; the demo runs instantly, so advance a
+    # virtual clock to keep one stored reading per tick.
+    base = dt.datetime.now(dt.timezone.utc) - dt.timedelta(seconds=args.ticks * args.interval)
+
+    with TestClient(app) as client:
+        for tick in range(args.ticks):
+            stamp = (base + dt.timedelta(seconds=(tick + 1) * args.interval)).strftime(
+                "%Y-%m-%dT%H:%M:%SZ"
+            )
+            cells = []
+            state = {t["id"]: t for t in client.get("/api/trucks").json()["trucks"]}
+            for truck in trucks.values():
+                message = truck.step(args.interval)
+                message["timestamp"] = stamp
+                pipeline.handle(message)
+                current = state.get(truck.info["id"], {})
+                cells.append(
+                    f"{truck.info['id']} {message['temperatureC']:>5.1f}C "
+                    f"{current.get('riskLevel') or '-':<8} "
+                    f"{current.get('riskScore') if current.get('riskScore') is not None else '-':>3}"
+                )
+            print(f"tick {tick + 1:>2}  " + " | ".join(cells))
+
+        # A deliberately broken reading must be rejected and logged, not stored.
+        before = client.get("/api/trucks/T102/telemetry").json()
+        pipeline.handle({
+            "deviceId": "TRUCK-T102", "timestamp": "2026-09-24T16:20:00Z",
+            "temperatureC": 7.2, "humidityPct": 999, "latitude": 25.2854,
+            "longitude": 51.531, "speedKmh": 42, "gForce": 0.2,
+            "doorOpen": False, "refrigerationOn": True,
+        })
+        after = client.get("/api/trucks/T102/telemetry").json()
+        print("-" * 100)
+        print(f"bad reading rejected: stored {len(before)} -> {len(after)} readings")
+
+        print("\nGET /api/trucks")
+        for truck in client.get("/api/trucks").json()["trucks"]:
+            print("  " + json.dumps(truck))
+
+        print(f"\nGET /api/internal/context/{args.truck}  (the Person 4 hand-off)")
+        context = client.get(f"/api/internal/context/{args.truck}").json()
+        print("  truck    ", json.dumps(context["truck"]))
+        print("  batch    ", json.dumps(context["batch"]))
+        print(f"  history   {len(context['recentTelemetry'])} readings")
+        print(f"  warehouses {[w['id'] for w in context['candidateWarehouses']]}")
+
+        open_incidents = client.get("/api/incidents", params={"status": "OPEN"}).json()
+        print(f"\nGET /api/incidents?status=OPEN  -> {len(open_incidents)}")
+        for incident in open_incidents:
+            print(f"  {incident['severity']:<8} {incident['truckId']} "
+                  f"{incident['type']}: {incident['message']}")
+
+        batch_id = trucks[args.truck].info["batch_id"]
+        prediction = client.get(f"/api/predictions/{batch_id}").json()
+        print(f"\nGET /api/predictions/{batch_id}  (Person 4 intelligence, "
+              f"{'LLM' if args.ai else 'offline heuristic'})")
+        print(f"  thermal exposure   {prediction['thermalExposure']} C*min "
+              f"over {prediction['exposureMinutes']} min")
+        print(f"  deterioration      {prediction['deteriorationFraction']} "
+              f"-> {prediction['remainingShelfLifeHours']} h shelf life left")
+        print(f"  spoilage           {prediction['spoilageProbability']} "
+              f"(confidence {prediction['confidence']}, {prediction['spoilageSource']})")
+        print(f"  risk               {prediction['riskScore']} {prediction['riskLevel']}")
+        print(f"  anomaly            {prediction['anomaly']} {prediction['anomalyType']}")
+        recommendation = prediction["recommendation"]
+        print(f"  action             {recommendation['action']}"
+              + (f" -> {recommendation['destinationId']} "
+                 f"(ETA {recommendation['etaMinutes']} min)" if recommendation['destinationId'] else ""))
+        print(f"  food saved         {prediction['foodLoss']['foodSavedKg']} kg "
+              f"(financial loss prevented {prediction['foodLoss']['financialLossPrevented']})")
+
+    if db_path.exists():
+        db_path.unlink()
+    return 0
 
 
 if __name__ == "__main__":
-    main()
+    raise SystemExit(main())

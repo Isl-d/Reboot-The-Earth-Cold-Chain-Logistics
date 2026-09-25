@@ -1,199 +1,160 @@
-"""End-to-end run of the backend, from telemetry to an approved decision.
+"""REST + WebSocket contract, exercised end to end on SQLite with no broker."""
+from __future__ import annotations
 
-No broker and no database: telemetry is pushed straight into the ingest
-pipeline and the API is driven in-process, so this is the whole demo in one
-test — the same sequence the judges will watch.
-"""
-import asyncio
-import time
+import datetime as dt
 
-import httpx
-import pytest
+from sqlalchemy import select
 
-from backend import config
-from backend.freshness import get_product
+from backend.db import session_scope
+from backend.ingest.consumer import pipeline
+from backend.models import IngestReject, SensorReading
 
 
-def run(coro):
-    return asyncio.run(coro)
+def _wire(device="TRUCK-T102", temp=3.5, **over):
+    msg = {
+        "deviceId": device,
+        "truckId": device.replace("TRUCK-", ""),
+        "timestamp": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "temperatureC": temp,
+        "humidityPct": 74,
+        "latitude": 25.2854,
+        "longitude": 51.531,
+        "speedKmh": 42,
+        "gForce": 0.2,
+        "doorOpen": False,
+        "refrigerationOn": True,
+    }
+    msg.update(over)
+    return msg
 
 
-async def _client(app):
-    transport = httpx.ASGITransport(app=app)
-    return httpx.AsyncClient(transport=transport, base_url="http://test")
+def test_healthz_reports_fallback_cache(client):
+    body = client.get("/healthz").json()
+    assert body["status"] == "ok"
+    assert body["database"] is True
+    assert body["trucks"] == 4
 
 
-class Clock:
-    """A stage timeline the test can advance instantly."""
+def test_list_and_get_trucks(client, live):
+    listed = client.get("/api/trucks").json()["trucks"]
+    assert {t["id"] for t in listed} == {"T101", "T102", "T103", "T104"}
 
-    def __init__(self, start: float | None = None) -> None:
-        self.now = start if start is not None else time.time()
-
-    def __call__(self) -> float:
-        return self.now
-
-    def tick(self, seconds: float) -> float:
-        self.now += seconds
-        return self.now
+    detail = client.get("/api/trucks/T102").json()
+    assert detail["truck"]["id"] == "T102"
+    assert detail["batch"]["product"] == "Fresh Chicken"
+    assert detail["prediction"]["source"] == "baseline"
 
 
-def feed(ingest, truck_id, air_c, seconds, door=False, step=2.0):
-    """Push a stretch of telemetry at the real 2-second publish interval."""
-    for _ in range(int(seconds / step)):
-        ingest.clock.tick(step)
-        ingest.handle(truck_id, {"truck_id": truck_id, "air_c": air_c,
-                                 "hum_pct": 62, "door_open": door})
+def test_unknown_truck_is_404(client, live):
+    assert client.get("/api/trucks/NOPE").status_code == 404
+    assert client.get("/api/trucks/NOPE/telemetry").status_code == 404
 
 
-@pytest.fixture
-def api(monkeypatch):
-    """A fresh backend with MQTT and Postgres switched off."""
-    monkeypatch.setattr(config, "DB_URL", "")
-    import backend.main as main
+def test_ingest_updates_live_state_and_history(client, live):
+    pipeline.handle(_wire(temp=3.5))
 
-    monkeypatch.setattr(main.ingest, "start", lambda: None)
-    monkeypatch.setattr(main.ingest, "clock", Clock())
-    main.state.reset()
-    return main
+    trucks = {t["id"]: t for t in client.get("/api/trucks").json()["trucks"]}
+    assert trucks["T102"]["temperatureC"] == 3.5
+    assert trucks["T102"]["riskLevel"] == "LOW"
+    assert trucks["T102"]["riskScore"] is not None
 
-
-def test_the_whole_demo(api):
-    async def scenario():
-        async with await _client(api.app) as c:
-            api.state.bus.bind(asyncio.get_running_loop())
-
-            health = (await c.get("/healthz")).json()
-            assert health["ok"] and health["trucks"] == 12
-
-            # 0:00 the box is closed and TRK-07 is healthy
-            feed(api.ingest, "TRK-07", 2.5, 20)
-            fleet = (await c.get("/api/fleet")).json()
-            assert fleet["demo_speed"] == config.DEMO_SPEED
-            truck = next(t for t in fleet["trucks"] if t["truck_id"] == "TRK-07")
-            assert truck["live_sensor"] and truck["risk"] == "green"
-            assert truck["lat"] and truck["lon"]
-
-            # 0:40 the lid is lifted: a bump that recovers, and no alert
-            feed(api.ingest, "TRK-07", 10.0, 6)
-            feed(api.ingest, "TRK-07", 2.5, 10)
-            events = (await c.get("/api/events")).json()["events"]
-            assert any(e["type"] == "door" for e in events)
-            assert not any(e["alert"] for e in events)
-            assert (await c.get("/api/trucks/TRK-07")).json()["risk"] == "green"
-
-            # 1:10 the sensor is held in a hand: a real cooling failure
-            for step in (6, 10, 15, 20, 24, 27):
-                feed(api.ingest, "TRK-07", step, 4)
-            feed(api.ingest, "TRK-07", 28.0, 60)
-
-            for _ in range(40):                      # the planner runs off-thread
-                if api.state.decisions:
-                    break
-                await asyncio.sleep(0.05)
-
-            events = (await c.get("/api/events")).json()["events"]
-            assert any(e["type"] == "failure" and e["alert"] for e in events)
-
-            truck = (await c.get("/api/trucks/TRK-07")).json()
-            assert truck["risk"] in ("amber", "red")
-            assert truck["at_risk"]
-            assert truck["product_c"] < truck["air_c"]      # the pallet lags the air
-
-            # 2:00 options A-D with numbers and a bilingual recommendation
-            decisions = (await c.get("/api/decisions")).json()["decisions"]
-            assert len(decisions) == 1
-            decision = decisions[0]
-            assert [o["key"] for o in decision["options"]] == ["A", "B", "C", "D", "E", "F"]
-            assert set(decision["verbs"]) == {"continue", "reroute", "sell", "donate", "hold"}
-            assert decision["recommended"] == "C"
-            assert decision["needs_human_review"] is False
-            assert decision["text_en"] and decision["text_ar"]
-            assert decision["text_source"] in ("template", config.OLLAMA_MODEL)
-
-            # 2:45 a human approves, and only then does anything change
-            approved = (await c.post(f"/api/decisions/{decision['decision_id']}/approve",
-                                     json={"approved_by": "dispatcher"})).json()
-            assert approved["ok"]
-            after = approved["truck"]
-            assert after["status"] == "rerouted"
-            assert after["destination_name"] != truck["destination_name"]
-            assert after["reroute_geometry"] is not None
-            assert after["life_on_arrival_days"] >= get_product("lettuce").min_life_on_arrival_days
-
-            # approving twice is refused
-            again = await c.post(f"/api/decisions/{decision['decision_id']}/approve", json={})
-            assert again.status_code == 409
-
-            # 3:20 the comparison screen and the audit trail
-            impact = (await c.get("/api/impact")).json()
-            assert impact["with_coldguard"]["kg_accepted"] == 2000
-            assert impact["with_coldguard"]["co2e_saved_kg"] > 0
-            assert impact["without_coldguard"]["kg_rejected"] == 2000
-
-            audit = (await c.get("/api/audit")).json()
-            assert audit["chain_ok"] and len(audit["records"]) == 2
-            assert audit["records"][1]["payload"]["chosen"] == "C"
-
-            # 3:45 the QR page on the box
-            page = await c.get("/track/TRK-07")
-            assert page.status_code == 200 and "TRK-07" in page.text
-
-    run(scenario())
+    history = client.get("/api/trucks/T102/telemetry").json()
+    assert len(history) == 1
+    assert history[0]["temperatureC"] == 3.5
 
 
-def test_reference_data_endpoints(api):
-    async def scenario():
-        async with await _client(api.app) as c:
-            routes = (await c.get("/api/routes")).json()
-            assert len(routes["features"]) == 6
-            assert all("source" in f["properties"] for f in routes["features"])
+def test_high_temperature_ingest_raises_risk_and_incident(client, live):
+    pipeline.handle(_wire(temp=9.0))  # safe max is 4 C
 
-            places = (await c.get("/api/places")).json()["places"]
-            assert any(p["type"] == "food_bank" for p in places)
-            assert all("source" in p for p in places)
+    truck = next(t for t in client.get("/api/trucks").json()["trucks"] if t["id"] == "T102")
+    assert truck["riskLevel"] == "CRITICAL"
+    assert truck["activeIncident"] is True
 
-            dispatch = (await c.get("/api/dispatch")).json()["suggestions"]
-            assert len(dispatch) == 6
-            assert dispatch[0]["best_departure"] != dispatch[0]["worst_departure"]
-
-            heat = (await c.get("/api/heat")).json()
-            assert heat["rows"] and "heat_risk_0_100" in heat["rows"][0]
-
-    run(scenario())
+    open_incidents = client.get("/api/incidents", params={"status": "OPEN"}).json()
+    assert any(i["truckId"] == "T102" and i["type"] == "TEMPERATURE_EXCURSION" for i in open_incidents)
 
 
-def test_unknown_truck_and_decision_are_404(api):
-    async def scenario():
-        async with await _client(api.app) as c:
-            assert (await c.get("/api/trucks/TRK-99")).status_code == 404
-            assert (await c.get("/api/decisions/DEC-9999")).status_code == 404
-            assert (await c.get("/track/TRK-99")).status_code == 404
+def test_rejected_reading_is_logged(client, live):
+    pipeline.handle(_wire(humidityPct=150))
 
-    run(scenario())
-
-
-def test_reset_puts_everything_back(api):
-    async def scenario():
-        async with await _client(api.app) as c:
-            api.state.bus.bind(asyncio.get_running_loop())
-            feed(api.ingest, "TRK-05", 2.5, 10)
-            assert (await c.post("/api/demo/reset")).json()["ok"]
-            fleet = (await c.get("/api/fleet")).json()
-            assert fleet["totals"]["decisions"] == 0
-            assert all(t["status"] == "rolling" for t in fleet["trucks"])
-            assert (await c.get("/api/events")).json()["events"] == []
-
-    run(scenario())
+    with session_scope() as session:
+        rejects = session.execute(select(IngestReject)).scalars().all()
+        readings = session.execute(select(SensorReading)).scalars().all()
+    assert len(rejects) == 1
+    assert "humidityPct" in rejects[0].reason
+    assert readings == []
 
 
-def test_demo_fault_validates_its_input(api):
-    async def scenario():
-        async with await _client(api.app) as c:
-            bad = await c.post("/api/demo/fault",
-                               json={"truck_id": "TRK-03", "fault": "explode", "on": True})
-            assert bad.status_code == 400
-            ok = await c.post("/api/demo/fault",
-                              json={"truck_id": "TRK-03", "fault": "door", "on": True})
-            assert ok.status_code == 200          # reports ok:false without a broker
+def test_telemetry_time_filter(client, live):
+    base = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=5)
+    for offset in (0, 60, 120):
+        pipeline.handle(_wire(temp=3.0, timestamp=(base + dt.timedelta(seconds=offset)).strftime("%Y-%m-%dT%H:%M:%SZ")))
+    start = (base + dt.timedelta(seconds=30)).strftime("%Y-%m-%dT%H:%M:%SZ")
+    rows = client.get("/api/trucks/T102/telemetry", params={"from": start}).json()
+    assert len(rows) == 2
 
-    run(scenario())
+
+def test_warehouses_stores_inventory(client, live):
+    assert len(client.get("/api/warehouses").json()["warehouses"]) == 2
+    inv = client.get("/api/inventory").json()["inventory"]
+    assert len(inv) == 7
+    batch_inv = client.get("/api/inventory/CHK-1028").json()
+    assert batch_inv[0]["locationType"] == "warehouse"
+
+
+def test_simulation_scenario_validation(client, live):
+    bad = client.post("/api/simulation/scenario", json={"truckId": "T102", "scenario": "NOPE"})
+    assert bad.status_code == 422
+    assert "allowed" in bad.json()["detail"]
+
+    ok = client.post("/api/simulation/scenario", json={"truckId": "T102", "scenario": "REFRIGERATION_FAILURE"})
+    assert ok.status_code == 200
+    assert ok.json()["scenario"] == "REFRIGERATION_FAILURE"
+
+    assert client.post("/api/simulation/start", json={}).json()["status"] == "started"
+    assert client.post("/api/simulation/stop", json={}).json()["status"] == "stopped"
+    assert client.post("/api/simulation/reset", json={}).json()["status"] == "reset"
+
+
+def test_person4_context_and_prediction_roundtrip(client, live):
+    pipeline.handle(_wire(temp=7.2))
+
+    ctx = client.get("/api/internal/context/T102").json()
+    assert ctx["truck"]["id"] == "T102"
+    assert ctx["batch"]["id"] == "CHK-1029"
+    assert ctx["batch"]["safeMaxTempC"] == 4.0
+    assert len(ctx["recentTelemetry"]) == 1
+    assert {w["id"] for w in ctx["candidateWarehouses"]} == {"WH01", "WH02"}
+
+    recorded = client.post("/api/internal/predictions", json={
+        "truckId": "T102",
+        "batchId": "CHK-1029",
+        "thermalExposure": 42.8,
+        "remainingShelfLifeHours": 38,
+        "spoilageProbability": 0.73,
+        "confidence": 0.91,
+        "riskScore": 91,
+        "riskLevel": "CRITICAL",
+        "recommendation": {"action": "DIVERT", "destinationId": "WH01"},
+        "modelVersion": "person4-test",
+    })
+    assert recorded.status_code == 200
+
+    truck = next(t for t in client.get("/api/trucks").json()["trucks"] if t["id"] == "T102")
+    assert truck["riskScore"] == 91
+    assert truck["riskLevel"] == "CRITICAL"
+
+    detail = client.get("/api/trucks/T102").json()
+    assert detail["prediction"]["source"] == "person4"
+    assert detail["prediction"]["spoilageProbability"] == 0.73
+    assert detail["recommendation"]["action"] == "DIVERT"
+
+
+def test_websocket_receives_live_state(client, live):
+    with client.websocket_connect("/ws/live") as ws:
+        pipeline.handle(_wire(temp=3.5))
+        message = ws.receive_json()
+    assert message["event"] == "TRUCK_STATE_UPDATED"
+    assert message["truckId"] == "T102"
+    assert message["temperatureC"] == 3.5
+    assert "riskScore" in message and "riskLevel" in message

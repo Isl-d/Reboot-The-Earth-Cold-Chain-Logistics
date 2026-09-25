@@ -1,18 +1,12 @@
-node_modules
-dist
-dist-ssr
-*.local
-.env
-.env.local
-.DS_Store
-*.tsbuildinfo
-
-# Python (coldchain data platform)
 __pycache__/
 *.py[cod]
 .venv/
 venv/
+.env
 .pytest_cache/
-coldchain.db
-# redis-server writes its snapshot into the working directory
-dump.rdb
+node_modules/
+*.egg-info/
+.DS_Store
+dev_coldchain.db
+*.sqlite
+*.sqlite3

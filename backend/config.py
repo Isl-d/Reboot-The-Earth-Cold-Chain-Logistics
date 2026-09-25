@@ -1,105 +1,92 @@
-"""Single place for every tunable number in ColdGuard.
+"""Single place for every tunable number in the Person 3 data platform.
 
-Nothing here is a secret: Wi-Fi credentials live in the firmware only.
-Every value can be overridden with a COLDGUARD_* environment variable
-(see .env.example), so the demo laptop never needs a code change.
+Nothing here is a secret. Every value can be overridden with a ``CC_*``
+environment variable (see ``.env.example``) so the same image runs on a
+laptop and inside docker compose.
 """
 from __future__ import annotations
 
-import os
-from pathlib import Path
-
-ROOT = Path(__file__).resolve().parent.parent
-DATA_DIR = ROOT / "data"
+from pydantic import AliasChoices, Field
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
-def _f(name: str, default: float) -> float:
-    return float(os.getenv(name, default))
+class Settings(BaseSettings):
+    model_config = SettingsConfigDict(env_prefix="CC_", env_file=".env", extra="ignore")
+
+    app_name: str = "Cold-Chain Data Platform (Person 3)"
+
+    # --- infrastructure ---------------------------------------------------
+    mqtt_host: str = "localhost"
+    mqtt_port: int = 1883
+    mqtt_client_id: str = "coldchain-backend"
+    telemetry_topic: str = "coldchain/trucks/+/telemetry"
+    events_topic: str = "coldchain/trucks/+/events"
+    control_topic: str = "coldchain/control/{truck_id}"
+    database_url: str = "postgresql+psycopg://coldchain:coldchain@localhost:5432/coldchain"
+    redis_url: str = "redis://localhost:6379/0"
+    timescale_enabled: bool = True
+    cors_origins: str = "*"
+
+    # --- simulator cadence ------------------------------------------------
+    reading_interval_s: float = 3.0
+
+    # --- validation -------------------------------------------------------
+    min_plausible_temp_c: float = -60.0
+    max_plausible_temp_c: float = 80.0
+    max_clock_skew_future_s: float = 120.0
+    max_clock_skew_past_s: float = 7 * 24 * 3600.0
+
+    # --- baseline risk bands (Person 4 may override per truck) ------------
+    risk_low_max: float = 25.0
+    risk_medium_max: float = 50.0
+    risk_high_max: float = 75.0
+
+    # --- incident rules ---------------------------------------------------
+    gforce_shock_threshold: float = 1.0
+    gforce_hard_shock: float = 2.0
+    door_open_incident_s: float = 15.0
+    traffic_speed_threshold: float = 10.0
+
+    # --- derived physics --------------------------------------------------
+    ambient_temp_c: float = 38.0
+    # A reading is "stale" on the map after this many seconds without one.
+    stale_after_s: float = 30.0
+
+    # --- intelligence engine (Person 4), deterministic core ---------------
+    intelligence_enabled: bool = True
+    intelligence_interval_s: float = 5.0
+    intelligence_telemetry_window: int = 120
+
+    # --- LLM (LAYLA) explainer --------------------------------------------
+    llm_model: str = "openrouter/free"
+    llm_base_url: str = "https://openrouter.ai/api/v1"
+    llm_timeout_s: float = 20.0
+    llm_max_tokens: int = 512
+    # The model may only move a deterministic estimate by this much.
+    llm_probability_band: float = 0.35
+    # Not CC_-prefixed because the key is shared with the wider toolchain.
+    # Reads OPENROUTERAPIKEY from the environment or .env.
+    openrouter_api_key: str = Field(
+        default="",
+        validation_alias=AliasChoices("OPENROUTERAPIKEY", "OPENROUTER_API_KEY",
+                                      "CC_OPENROUTER_API_KEY"),
+    )
+
+    # --- deterioration model (Arrhenius) ----------------------------------
+    gas_constant_j_mol_k: float = 8.314
+    # Fallback activation energy when a product has none of its own.
+    activation_energy_default_j_mol: float = 80000.0
+
+    # --- anomaly detection -------------------------------------------------
+    anomaly_z_threshold: float = 2.5
+    anomaly_min_samples: int = 5
+
+    # --- optimization economics -------------------------------------------
+    transport_cost_per_km: float = 4.5
+    delay_cost_per_min: float = 2.0
+    # Extra fraction of shelf life lost per minute in transit.
+    transit_loss_rate_per_min: float = 0.0008
+    average_speed_kmh: float = 45.0
 
 
-def _i(name: str, default: int) -> int:
-    return int(os.getenv(name, default))
-
-
-def _s(name: str, default: str) -> str:
-    return os.getenv(name, default)
-
-
-# --- infrastructure -------------------------------------------------------
-MQTT_HOST = _s("COLDGUARD_MQTT_HOST", "localhost")
-MQTT_PORT = _i("COLDGUARD_MQTT_PORT", 1883)
-TELEMETRY_TOPIC = "coldguard/+/telemetry"
-CONTROL_TOPIC = "coldguard/control/{truck_id}"
-
-DB_URL = _s("COLDGUARD_DB_URL", "")           # empty -> in-memory only
-OLLAMA_URL = _s("COLDGUARD_OLLAMA_URL", "http://localhost:11434")
-OLLAMA_MODEL = _s("COLDGUARD_OLLAMA_MODEL", "qwen2.5:7b")
-OLLAMA_TIMEOUT_S = _f("COLDGUARD_OLLAMA_TIMEOUT_S", 5.0)
-
-# --- physics --------------------------------------------------------------
-# Two tonnes of lettuce do not follow a 2-second air reading. The air sensor
-# spikes at once (that is what the detector watches); the core temperature of
-# the pallet follows with a first-order lag. The shelf-life clock uses the
-# product temperature, which is what the food actually experiences.
-PRODUCT_LAG_H = _f("COLDGUARD_PRODUCT_LAG_H", 2.0)     # simulated hours to 63 %
-# Risk shown on the dashboard assumes a warm spell is fixed within this many
-# hours - unless the detector has confirmed a cooling failure, in which case
-# the projection is the honest worst case: it stays broken all the way.
-WARM_PROJECTION_H = _f("COLDGUARD_WARM_PROJECTION_H", 1.0)
-
-# --- demo clock -----------------------------------------------------------
-# 1 real second on stage = DEMO_SPEED simulated seconds. Always shown on screen.
-# This is the shelf-life clock: it is what makes spoilage visible in minutes.
-DEMO_SPEED = _f("COLDGUARD_DEMO_SPEED", 120.0)
-# Positions are animated more slowly, so a truck crosses its route over the
-# four minutes of the demo instead of arriving in twenty seconds. Pass the same
-# number to the simulator with --demo-speed. Both rates are shown on screen.
-MAP_SPEED = _f("COLDGUARD_MAP_SPEED", 10.0)
-
-# --- detector thresholds (demo values; real-world values in brackets) -----
-DOOR_WINDOW_S = _f("COLDGUARD_DOOR_WINDOW_S", 20.0)        # [10 min] transient rise
-FAILURE_HOLD_S = _f("COLDGUARD_FAILURE_HOLD_S", 35.0)      # [10 min] above alert limit
-DEFROST_MAX_RISE_C = _f("COLDGUARD_DEFROST_MAX_RISE_C", 2.0)
-DEFROST_MIN_S = _f("COLDGUARD_DEFROST_MIN_S", 6.0)      # shorter bumps are just noise
-SENSOR_GAP_S = _f("COLDGUARD_SENSOR_GAP_S", 10.0)          # no reading for this long
-SENSOR_JUMP_C = _f("COLDGUARD_SENSOR_JUMP_C", 15.0)        # jump between readings
-SENSOR_SENTINEL_C = -127.0
-# Temperature must not be clearly falling for a cooling failure to be declared.
-FAILURE_MAX_FALL_C_PER_S = _f("COLDGUARD_FAILURE_MAX_FALL_C_PER_S", 0.05)
-HISTORY_POINTS = _i("COLDGUARD_HISTORY_POINTS", 900)       # per truck ring buffer
-
-# --- planner economics ----------------------------------------------------
-COST_PER_KM_QAR = _f("COLDGUARD_COST_PER_KM_QAR", 3.5)     # diesel + driver, demo figure
-MARKDOWN_FRACTION = _f("COLDGUARD_MARKDOWN_FRACTION", 0.5)  # sell now at -50 %
-DONATION_VALUE_FRACTION = _f("COLDGUARD_DONATION_VALUE_FRACTION", 0.3)
-# Holding a load in a cold room keeps it fresh but misses today's delivery
-# slot: a renegotiation cost, not a loss of food.
-HOLD_PENALTY_FRACTION = _f("COLDGUARD_HOLD_PENALTY_FRACTION", 0.15)
-# When the two best options are this close in value, the system does not decide
-# on its own: it escalates and asks a person to choose.
-REVIEW_MARGIN_QAR = _f("COLDGUARD_REVIEW_MARGIN_QAR", 1500.0)
-# Above this value, an irreversible action (selling off or donating a load) is
-# always put to a person even when the arithmetic is clear-cut.
-REVIEW_VALUE_QAR = _f("COLDGUARD_REVIEW_VALUE_QAR", 15000.0)
-
-# Never disturb a shipment that is fine: another option must beat "continue as
-# planned" by at least this much before it is recommended.
-REROUTE_MIN_GAIN_QAR = _f("COLDGUARD_REROUTE_MIN_GAIN_QAR", 500.0)
-ROAD_FACTOR = _f("COLDGUARD_ROAD_FACTOR", 1.3)             # straight line -> road km
-TRUCK_SPEED_KMH = _f("COLDGUARD_TRUCK_SPEED_KMH", 60.0)
-# Hours between arriving at a node and the food reaching a shelf. Going through
-# the distribution warehouse costs most of a day; delivering straight to a store
-# costs a couple of hours. This is why option C buys back shelf life.
-HANDOVER_WAREHOUSE_H = _f("COLDGUARD_HANDOVER_WAREHOUSE_H", 20.0)
-HANDOVER_STORE_H = _f("COLDGUARD_HANDOVER_STORE_H", 1.0)
-
-# --- impact accounting (for the comparison screen) ------------------------
-# Emissions avoided when food is not thrown away, kg CO2e per kg of food.
-# FAO food-loss footprint, order-of-magnitude figure used for the demo only.
-CO2E_PER_KG_FOOD = _f("COLDGUARD_CO2E_PER_KG_FOOD", 2.5)
-
-# Every shipment leaves the port with 80 % of its shelf life: 8 days for
-# lettuce, matching the demo scenario in CLAUDE.md section 8.
-START_LIFE_FRACTION = _f("COLDGUARD_START_LIFE_FRACTION", 0.8)
-
-REAL_TRUCK = "TRK-07"
+settings = Settings()
