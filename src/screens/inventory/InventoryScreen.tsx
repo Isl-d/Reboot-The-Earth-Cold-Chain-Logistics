@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useEvaluateOptimization, useInventory } from '@/api/hooks'
 import type { InventoryBatch } from '@/api/types'
@@ -16,6 +16,10 @@ export default function InventoryScreen() {
   const inventory = useInventory()
   const evaluate = useEvaluateOptimization()
   const navigate = useNavigate()
+  // The mutation object is shared (one request at a time), but rows are
+  // independent — evaluate.isPending alone would disable every row's
+  // button while any single row's request is in flight.
+  const [pendingBatchId, setPendingBatchId] = useState<string | null>(null)
 
   const locationFilter = useMultiSelect()
   const productFilter = useMultiSelect()
@@ -48,9 +52,11 @@ export default function InventoryScreen() {
   function handleEvaluate(row: InventoryBatch) {
     if (!row.truckId) return
     const truckId = row.truckId
+    setPendingBatchId(row.batchId)
     evaluate.mutate(
       { truckId, batchId: row.batchId },
       {
+        onSettled: () => setPendingBatchId(null),
         onSuccess: () => {
           const state: OptimizationNavState = { truckId, batchId: row.batchId, product: row.product, quantityKg: row.quantityKg }
           navigate('/optimization', { state })
@@ -154,7 +160,7 @@ export default function InventoryScreen() {
                     <Button
                       variant="secondary"
                       className="whitespace-nowrap"
-                      disabled={!row.truckId || evaluate.isPending}
+                      disabled={!row.truckId || pendingBatchId === row.batchId}
                       title={row.truckId ? undefined : 'No truck currently associated with this batch'}
                       onClick={() => handleEvaluate(row)}
                     >

@@ -57,7 +57,9 @@ export default function OptimizationScreen() {
 
   const selected = optimization.data?.selectedCandidate
   const remainingSafeMinutes = deterioration.data ? deterioration.data.remainingShelfLifeHours * 60 : undefined
-  const quantityKg = selectedTruck?.quantityKg
+  // The constraint check must use the batch actually being shown, not the
+  // truck's default cargo — the same distinction batchInfo already makes.
+  const quantityKg = batchInfo?.quantityKg
 
   const constraints = selected
     ? [
