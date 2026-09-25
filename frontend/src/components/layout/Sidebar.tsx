@@ -1,5 +1,6 @@
 import { NavLink } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
+import { BrandMark } from './BrandMark'
 
 // Both route sets live behind one rail: Person 1's command-center routes and
 // Person 2's intelligence routes. The dev-only `/styleguide` route (App.tsx)
@@ -22,11 +23,14 @@ export function Sidebar() {
   const { theme, toggleTheme } = useTheme()
   return (
     <aside className="w-14 bg-base border-r border-border flex flex-col items-center py-4 gap-1 shrink-0 overflow-y-auto">
-      <div className="mb-4">
-        <div className="w-8 h-8 rounded-sm bg-primary flex items-center justify-center">
-          <span className="text-on-accent font-bold text-[10px] leading-none">TT</span>
-        </div>
-      </div>
+      <NavLink
+        to="/"
+        title="Thermal Trace · Command Center"
+        aria-label="Thermal Trace home"
+        className="mb-4 rounded-md outline-none focus-visible:shadow-focus-halo"
+      >
+        <BrandMark size={32} />
+      </NavLink>
       {links.map(({ to, label, icon, title }) => (
         <NavLink
           key={to}

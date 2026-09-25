@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useParams } from 'react-router-dom'
 import { RiskBadge } from '../components/common/RiskBadge'
+import { PageHeader } from '../components/layout/PageHeader'
 import { GpsTrajectoryChart } from '../components/charts/GpsTrajectoryChart'
 import { HumidityChart } from '../components/charts/HumidityChart'
 import { ThermalExposureChart } from '../components/charts/ThermalExposureChart'
@@ -21,8 +22,8 @@ const S = {
     padding: '6px 12px',
     borderBottom: '1px solid var(--color-border)',
     flexShrink: 0,
-    fontSize: 10,
-    letterSpacing: '0.08em',
+    fontSize: 11,
+    letterSpacing: '0.06em',
     textTransform: 'uppercase' as const,
     fontWeight: 500,
     color: 'var(--color-text-secondary)',
@@ -70,18 +71,19 @@ export function TruckDetail() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', width: '100%' }}>
 
       {/* Header */}
-      <header style={{
-        display: 'flex', alignItems: 'center', gap: 12,
-        padding: '0 16px', height: 44, flexShrink: 0,
-        background: 'var(--color-base)', borderBottom: '1px solid var(--color-border)',
-      }}>
-        <Link to="/fleet" style={{ fontSize: 11, color: 'var(--color-text-secondary)', textDecoration: 'none', letterSpacing: '0.04em' }}>← FLEET</Link>
-        <span style={{ color: 'var(--color-border)' }}>|</span>
-        <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>{truck.id}</span>
-        <RiskBadge level={prediction.riskLevel} score={prediction.riskScore} />
-        {truck.doorOpen      && <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-risk-critical)', letterSpacing: '0.04em' }}>● DOOR OPEN</span>}
-        {!truck.refrigerationOn && <span style={{ fontSize: 10, fontWeight: 700, color: 'var(--color-risk-critical)', letterSpacing: '0.04em' }}>● REFRIG OFF</span>}
-      </header>
+      <PageHeader
+        title={`Truck ${truck.id}`}
+        leading={
+          <Link to="/fleet" className="text-[11px] font-medium tracking-[0.06em] text-text-secondary no-underline transition-colors hover:text-primary">← FLEET</Link>
+        }
+        meta={
+          <>
+            <RiskBadge level={prediction.riskLevel} score={prediction.riskScore} />
+            {truck.doorOpen      && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-risk-critical)', letterSpacing: '0.06em' }}>● DOOR OPEN</span>}
+            {!truck.refrigerationOn && <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-risk-critical)', letterSpacing: '0.06em' }}>● REFRIG OFF</span>}
+          </>
+        }
+      />
 
       {/* Body — full-width grid, NO outer scroll */}
       <div style={{
@@ -99,7 +101,7 @@ export function TruckDetail() {
           <div style={S.panel}>
             <div style={S.panelHead}>Product</div>
             <div style={{ padding: '10px 12px' }}>
-              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 4 }}>{batch.product}</div>
+              <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 4 }}>{batch.product}</div>
               <div style={{ fontFamily: 'var(--font-mono)', fontSize: 11, color: 'var(--color-text-secondary)' }}>{batch.id} · {batch.quantityKg} kg</div>
             </div>
           </div>
@@ -108,14 +110,14 @@ export function TruckDetail() {
           <div style={S.panel}>
             <div style={S.panelHead}>Live Temperature</div>
             <div style={{ padding: '10px 12px' }}>
-              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 42, fontWeight: 700, lineHeight: 1, color: riskCol, animation: 'count-up 0.6s ease-out both' }}>
+              <div style={{ fontFamily: 'var(--font-mono)', fontSize: 42, fontWeight: 600, lineHeight: 1, color: riskCol, animation: 'count-up 0.6s ease-out both' }}>
                 {truck.temperatureC.toFixed(1)}°C
               </div>
               <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)', marginTop: 6 }}>
                 Safe: {batch.safeMinTempC}°C – {batch.safeMaxTempC}°C
               </div>
               {truck.temperatureC > batch.safeMaxTempC && (
-                <div style={{ marginTop: 4, fontSize: 10, fontWeight: 700, color: 'var(--color-risk-critical)', letterSpacing: '0.04em' }}>
+                <div style={{ marginTop: 4, fontSize: 10, fontWeight: 600, color: 'var(--color-risk-critical)', letterSpacing: '0.04em' }}>
                   +{(truck.temperatureC - batch.safeMaxTempC).toFixed(1)}°C ABOVE SAFE MAX
                 </div>
               )}
@@ -164,7 +166,7 @@ export function TruckDetail() {
           }}>
             <div style={S.panelHead}>Recommended Action</div>
             <div style={{ padding: '10px 12px' }}>
-              <div style={{ fontSize: 22, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 6 }}>{recommendation.action}</div>
+              <div style={{ fontSize: 22, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 6 }}>{recommendation.action}</div>
               {recommendation.destinationId && (
                 <div style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-primary)', marginBottom: 8 }}>→ {recommendation.destinationId}</div>
               )}

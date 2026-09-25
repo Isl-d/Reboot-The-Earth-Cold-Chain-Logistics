@@ -2,6 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { lazy, Suspense, type ReactNode } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import PageGrid from './components/layout/PageGrid'
+import { PageHeader } from './components/layout/PageHeader'
 import { Sidebar } from './components/layout/Sidebar'
 import './hooks/useTheme' // applies the stored theme before first paint
 import { CommandCenter } from './pages/CommandCenter'
@@ -35,9 +36,7 @@ const queryClient = new QueryClient({
 function IntelligencePage({ title, children }: { title: string; children: ReactNode }) {
   return (
     <div className="flex flex-1 flex-col overflow-hidden">
-      <header className="flex h-11 shrink-0 items-center border-b border-border bg-base px-4">
-        <h1 className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-primary">{title}</h1>
-      </header>
+      <PageHeader title={title} />
       <div className="flex-1 overflow-y-auto bg-base px-4 py-2">
         <PageGrid>
           <Suspense

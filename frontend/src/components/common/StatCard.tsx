@@ -15,7 +15,7 @@ export function StatCard({ label, value, unit, highlight, dim }: Props) {
           : 'border-border hover:border-primary/40'
       }`}
     >
-      <span className="text-[10px] font-medium tracking-[0.08em] uppercase text-text-secondary">
+      <span className="text-[11px] font-medium tracking-[0.06em] uppercase text-text-secondary">
         {label}
       </span>
       <div className="flex items-baseline gap-1.5">

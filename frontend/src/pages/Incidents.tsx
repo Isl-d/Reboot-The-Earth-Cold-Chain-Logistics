@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { PageHeader } from '../components/layout/PageHeader'
 import { useIncidents } from '../hooks/useIncidents'
 import type { IncidentStatus } from '../types'
 
 const SEVERITY_ORDER: Record<string, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
 
-const SEVERITY_COLORS: Record<string, { border: string; text: string; bg: string }> = {
-  CRITICAL: { border: 'var(--color-risk-critical)', text: 'var(--color-risk-critical)', bg: 'color-mix(in srgb, var(--color-risk-critical) 6%, transparent)' },
-  HIGH:     { border: 'var(--color-risk-high)',     text: 'var(--color-risk-high)',     bg: 'color-mix(in srgb, var(--color-risk-high) 6%, transparent)' },
-  MEDIUM:   { border: 'var(--color-risk-medium)',   text: 'var(--color-risk-medium)',   bg: '' },
-  LOW:      { border: 'var(--color-risk-low)',      text: 'var(--color-risk-low)',      bg: '' },
+// Severity rides on the left rule and the text colour only; every card sits on
+// the same surface (DESIGN.md: tonal steps, no tints or shadows).
+const SEVERITY_COLORS: Record<string, { border: string; text: string }> = {
+  CRITICAL: { border: 'var(--color-risk-critical)', text: 'var(--color-risk-critical)' },
+  HIGH:     { border: 'var(--color-risk-high)',     text: 'var(--color-risk-high)' },
+  MEDIUM:   { border: 'var(--color-risk-medium)',   text: 'var(--color-risk-medium)' },
+  LOW:      { border: 'var(--color-risk-low)',      text: 'var(--color-risk-low)' },
 }
 
 const TYPE_LABELS: Record<string, string> = {
@@ -42,78 +45,68 @@ export function Incidents() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* Header */}
-      <header style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 20px', height: 44, flexShrink: 0,
-        background: 'var(--color-base)', borderBottom: '1px solid var(--color-border)',
-      }}>
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>
-          Incidents
-        </span>
+      <PageHeader title="Incidents">
         <div style={{ display: 'flex', gap: 4 }}>
           {(['OPEN', 'RESOLVED'] as const).map((t) => (
             <button
               key={t}
               onClick={() => setTab(t)}
               style={{
-                padding: '4px 12px', borderRadius: 2, fontSize: 11,
+                padding: '4px 10px', borderRadius: 2, fontSize: 11,
                 letterSpacing: '0.04em', fontWeight: 500, cursor: 'pointer',
                 border: 'none', transition: 'all 0.15s',
-                background: tab === t
-                  ? t === 'OPEN' ? 'color-mix(in srgb, var(--color-risk-critical) 15%, transparent)' : 'color-mix(in srgb, var(--color-risk-low) 15%, transparent)'
-                  : 'var(--color-elevated)',
-                color: tab === t
-                  ? t === 'OPEN' ? 'var(--color-risk-critical)' : 'var(--color-risk-low)'
-                  : 'var(--color-text-secondary)',
+                // Same tab treatment as the Fleet filters: Signal Cyan marks the
+                // active control; risk colours stay reserved for risk state.
+                background: tab === t ? 'var(--color-primary)' : 'var(--color-elevated)',
+                color: tab === t ? 'var(--color-on-accent)' : 'var(--color-text-secondary)',
               }}
             >
               {t} {t === 'OPEN' && openCount > 0 ? `(${openCount})` : t === 'RESOLVED' && resolvedCount > 0 ? `(${resolvedCount})` : ''}
             </button>
           ))}
         </div>
-      </header>
+      </PageHeader>
 
       {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 20px' }}>
+      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px' }}>
         {filtered.length === 0 ? (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 200, gap: 8, color: 'var(--color-text-secondary)' }}>
             <span style={{ fontSize: 32, opacity: 0.2 }}>◎</span>
             <span style={{ fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>No {tab.toLowerCase()} incidents</span>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: 10 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: 8 }}>
             {filtered.map((inc, i) => {
               const sc = SEVERITY_COLORS[inc.severity] ?? SEVERITY_COLORS.LOW
               return (
                 <div
                   key={inc.id}
                   style={{
-                    background: sc.bg || 'var(--color-surface)',
+                    background: 'var(--color-surface)',
                     border: `1px solid var(--color-border)`,
                     borderLeft: `3px solid ${sc.border}`,
                     borderRadius: 4,
                     padding: '14px 16px',
                     animation: `slide-in-up 0.3s ease-out ${i * 60}ms both`,
-                    boxShadow: inc.severity === 'CRITICAL' ? '0 0 16px 2px color-mix(in srgb, var(--color-risk-critical) 12%, transparent)' : 'none',
                   }}
                 >
                   {/* Top row */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: sc.text }}>
+                        <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: sc.text }}>
                           {inc.severity}
                         </span>
                         <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)' }}>
                           {inc.id}
                         </span>
                         {tab === 'OPEN' && (
-                          <span style={{ fontSize: 9, background: sc.border, color: 'var(--color-on-accent)', padding: '1px 5px', borderRadius: 2, fontWeight: 700, letterSpacing: '0.06em' }}>
+                          <span style={{ fontSize: 9, background: 'var(--color-elevated)', color: sc.text, padding: '1px 5px', borderRadius: 2, fontWeight: 600, letterSpacing: '0.06em' }}>
                             OPEN
                           </span>
                         )}
                       </div>
-                      <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: 2 }}>
+                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 2 }}>
                         Truck {inc.truckId}
                       </div>
                       <div style={{ fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>

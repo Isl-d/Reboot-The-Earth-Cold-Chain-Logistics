@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { PageHeader } from '../components/layout/PageHeader'
 import { useTrucks } from '../hooks/useTrucks'
 import type { RiskLevel } from '../types'
 
@@ -25,7 +26,7 @@ export function Fleet() {
 
   const cols = [
     { key: 'id',      label: 'TRUCK',    w: '80px' },
-    { key: 'product', label: 'PRODUCT',  w: '1fr' },
+    { key: 'name',    label: 'NAME',     w: '1fr' },
     { key: 'temp',    label: 'TEMP',     w: '80px' },
     { key: 'hum',     label: 'HUMIDITY', w: '80px' },
     { key: 'speed',   label: 'SPEED',    w: '80px' },
@@ -39,14 +40,14 @@ export function Fleet() {
   return (
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
       {/* Header */}
-      <header style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 20px', height: 44, flexShrink: 0,
-        background: 'var(--color-base)', borderBottom: '1px solid var(--color-border)',
-      }}>
-        <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>
-          Fleet Overview · {visible.length} trucks
-        </span>
+      <PageHeader
+        title="Fleet Overview"
+        meta={
+          <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)' }}>
+            {visible.length} trucks
+          </span>
+        }
+      >
         <div style={{ display: 'flex', gap: 4 }}>
           {FILTERS.map((lvl) => (
             <button
@@ -69,17 +70,17 @@ export function Fleet() {
             </button>
           ))}
         </div>
-      </header>
+      </PageHeader>
 
       {/* Table header */}
       <div style={{
         display: 'grid', gridTemplateColumns: gridCols,
-        padding: '8px 20px', gap: 8, flexShrink: 0,
+        padding: '8px 16px', gap: 8, flexShrink: 0,
         borderBottom: '1px solid var(--color-border)',
         background: 'var(--color-base)',
       }}>
         {cols.map(c => (
-          <span key={c.key} style={{ fontSize: 10, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
+          <span key={c.key} style={{ fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
             {c.label}
           </span>
         ))}
@@ -93,7 +94,7 @@ export function Fleet() {
             onClick={() => navigate(`/trucks/${truck.id}`)}
             style={{
               display: 'grid', gridTemplateColumns: gridCols,
-              padding: '0 20px', gap: 8, alignItems: 'center',
+              padding: '0 16px', gap: 8, alignItems: 'center',
               height: 52, cursor: 'pointer',
               borderBottom: '1px solid color-mix(in srgb, var(--color-border) 50%, transparent)',
               transition: 'background 0.12s',
@@ -103,10 +104,10 @@ export function Fleet() {
             onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
           >
             {/* Truck ID */}
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 700, color: 'var(--color-text-primary)' }}>
+            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>
               {truck.id}
             </span>
-            {/* Product / name */}
+            {/* Name */}
             <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
               {truck.name}
             </span>
@@ -144,7 +145,7 @@ export function Fleet() {
               </span>
             </div>
             {/* Incident */}
-            <span style={{ fontSize: 11, fontWeight: 700, color: 'var(--color-risk-critical)', ...(truck.activeIncident ? { animation: 'pulse 2s infinite' } : { color: 'var(--color-text-secondary)', opacity: 0.3 }) }}>
+            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-risk-critical)', ...(truck.activeIncident ? { animation: 'pulse 2s infinite' } : { color: 'var(--color-text-secondary)', opacity: 0.3 }) }}>
               {truck.activeIncident ? '● ACTIVE' : '—'}
             </span>
           </div>

@@ -2,6 +2,7 @@ import { useNavigate } from 'react-router-dom'
 import { ConnectionStatus } from '../components/common/ConnectionStatus'
 import { NotificationBell } from '../components/common/NotificationBell'
 import { StatCard } from '../components/common/StatCard'
+import { PageHeader } from '../components/layout/PageHeader'
 import { IncidentPanel } from '../components/incident/IncidentPanel'
 import { LiveMap } from '../components/map/LiveMap'
 import { SimulationControls } from '../components/simulation/SimulationControls'
@@ -24,25 +25,17 @@ export function CommandCenter() {
     <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
 
       {/* ── Topbar ──────────────────────────────────────── */}
-      <header style={{
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        padding: '0 16px', height: 44, background: 'var(--color-base)',
-        borderBottom: '1px solid var(--color-border)', flexShrink: 0,
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-primary)' }}>
-            Thermal Trace · Command Center
-          </span>
-          <span style={{ color: 'var(--color-border)' }}>|</span>
+      <PageHeader
+        title="Thermal Trace · Command Center"
+        meta={
           <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)' }}>
             {new Date().toLocaleString()}
           </span>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          <ConnectionStatus connected={connected} lastEventTime={lastEventTime} />
-          <NotificationBell incidents={incidents} />
-        </div>
-      </header>
+        }
+      >
+        <ConnectionStatus connected={connected} lastEventTime={lastEventTime} />
+        <NotificationBell incidents={incidents} />
+      </PageHeader>
 
       {/* ── Stats row ───────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, padding: '8px 16px', flexShrink: 0 }}>

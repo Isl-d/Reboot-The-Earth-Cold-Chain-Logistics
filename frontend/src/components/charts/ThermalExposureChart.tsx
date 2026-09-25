@@ -13,7 +13,7 @@ export function ThermalExposureChart({ data, safeMaxTempC = 4, fill }: { data: T
   })
   return (
     <ResponsiveContainer width="100%" height={fill ? '100%' : 180}>
-      <AreaChart data={chartData} margin={{ top: 8, right: 16, left: -12, bottom: 0 }}>
+      <AreaChart data={chartData} margin={{ top: 8, right: 24, left: 4, bottom: 0 }}>
         <defs>
           <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
             <stop offset="5%" stopColor="var(--color-risk-high)" stopOpacity={0.5} />
@@ -21,7 +21,7 @@ export function ThermalExposureChart({ data, safeMaxTempC = 4, fill }: { data: T
           </linearGradient>
         </defs>
         <CartesianGrid strokeDasharray="2 4" stroke="var(--color-border)" vertical={false} />
-        <XAxis dataKey="time" tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'IBM Plex Mono' }} tickLine={false} axisLine={{ stroke: 'var(--color-border)' }} interval="preserveStartEnd" />
+        <XAxis dataKey="time" tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'IBM Plex Mono' }} tickLine={false} axisLine={{ stroke: 'var(--color-border)' }} interval="preserveStartEnd" minTickGap={24} />
         <YAxis tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'IBM Plex Mono' }} tickLine={false} axisLine={false} width={32} />
         <Tooltip contentStyle={{ background: 'var(--color-elevated)', border: '1px solid var(--color-border)', borderRadius: 4, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--color-text-primary)' }} formatter={(v) => [Number(v).toFixed(2), 'Exposure']} labelStyle={{ color: 'var(--color-text-secondary)' }} />
         <ReferenceLine y={35} stroke="var(--color-risk-critical)" strokeDasharray="4 3" strokeWidth={1.5} label={{ value: 'THRESHOLD', fill: 'var(--color-risk-critical)', fontSize: 8, position: 'right' }} />

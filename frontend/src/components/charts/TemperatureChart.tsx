@@ -16,9 +16,9 @@ export function TemperatureChart({ data, safeMinTempC = 0, safeMaxTempC = 4, fil
   const chartData = data.map((p) => ({ time: fmt(p.timestamp), temp: p.temperatureC }))
   return (
     <ResponsiveContainer width="100%" height={fill ? '100%' : 180}>
-      <LineChart data={chartData} margin={{ top: 8, right: 16, left: -12, bottom: 0 }}>
+      <LineChart data={chartData} margin={{ top: 8, right: 24, left: 4, bottom: 0 }}>
         <CartesianGrid strokeDasharray="2 4" stroke="var(--color-border)" vertical={false} />
-        <XAxis dataKey="time" tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'IBM Plex Mono' }} tickLine={false} axisLine={{ stroke: 'var(--color-border)' }} interval="preserveStartEnd" />
+        <XAxis dataKey="time" tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'IBM Plex Mono' }} tickLine={false} axisLine={{ stroke: 'var(--color-border)' }} interval="preserveStartEnd" minTickGap={24} />
         <YAxis tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'IBM Plex Mono' }} tickLine={false} axisLine={false} unit="°C" width={36} />
         <Tooltip contentStyle={{ background: 'var(--color-elevated)', border: '1px solid var(--color-border)', borderRadius: 4, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--color-text-primary)' }} formatter={(v) => [`${Number(v).toFixed(1)}°C`, 'Temp']} labelStyle={{ color: 'var(--color-text-secondary)' }} />
         <ReferenceLine y={safeMaxTempC} stroke="var(--color-risk-critical)" strokeDasharray="4 3" strokeWidth={1.5} label={{ value: `MAX ${safeMaxTempC}°C`, fill: 'var(--color-risk-critical)', fontSize: 9 }} />

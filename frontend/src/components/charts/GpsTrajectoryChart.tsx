@@ -33,7 +33,7 @@ export function GpsTrajectoryChart({ data, fill }: { data: TelemetryPoint[]; fil
 
   return (
     <ResponsiveContainer width="100%" height={fill ? '100%' : 180}>
-      <ScatterChart margin={{ top: 8, right: 12, left: -12, bottom: 0 }}>
+      <ScatterChart margin={{ top: 8, right: 24, left: 4, bottom: 12 }}>
         <XAxis
           dataKey="lon"
           type="number"
@@ -54,7 +54,7 @@ export function GpsTrajectoryChart({ data, fill }: { data: TelemetryPoint[]; fil
           tickLine={false}
           axisLine={false}
           tickFormatter={(v: number) => v.toFixed(3)}
-          width={48}
+          width={60}
           label={{ value: 'LAT', fill: 'var(--color-text-secondary)', fontSize: 9, angle: -90, position: 'insideLeft' }}
         />
         <Tooltip

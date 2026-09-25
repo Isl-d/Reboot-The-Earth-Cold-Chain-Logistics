@@ -72,7 +72,7 @@ export function NotificationBell({ incidents }: Props) {
       </button>
 
       {showPanel && (
-        <div className="absolute right-0 top-10 w-80 bg-elevated border border-border rounded-md shadow-2xl z-50 [animation:slide-in-up_0.2s_ease-out_both] overflow-hidden">
+        <div className="absolute right-0 top-10 w-80 bg-elevated border border-border rounded-md z-50 [animation:slide-in-up_0.2s_ease-out_both] overflow-hidden">
           <div className="px-3 py-2 border-b border-border flex items-center justify-between">
             <span className="text-[11px] tracking-[0.06em] uppercase font-medium text-text-secondary">
               Active Incidents

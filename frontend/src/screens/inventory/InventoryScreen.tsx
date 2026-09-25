@@ -142,7 +142,7 @@ export default function InventoryScreen() {
                   <Td numeric>{row.quantityKg} kg</Td>
                   <Td numeric>
                     {row.expiryDate}
-                    <span className="ml-1 text-muted">
+                    <span className="block text-body-sm text-muted">
                       ({row.daysUntilExpiry <= 0 ? 'expired' : `${row.daysUntilExpiry}d left`})
                     </span>
                   </Td>
