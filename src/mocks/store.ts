@@ -16,6 +16,8 @@ interface RunningSimulation {
   speedMultiplier: number
   startedAtMs: number
   running: boolean
+  /** Elapsed sim-minutes frozen at the moment of stop(); null while running. */
+  frozenElapsedMinutes: number | null
 }
 
 class MockSimulationStore {
@@ -31,6 +33,7 @@ class MockSimulationStore {
       speedMultiplier,
       startedAtMs: Date.now(),
       running: true,
+      frozenElapsedMinutes: null,
     }
     this.simulations.set(truckId, state)
     return state
@@ -39,7 +42,10 @@ class MockSimulationStore {
   stop(truckId: string): RunningSimulation | undefined {
     const state = this.simulations.get(truckId)
     if (!state) return undefined
-    state.running = false
+    if (state.running) {
+      state.frozenElapsedMinutes = this.elapsedSimMinutes(truckId)
+      state.running = false
+    }
     return state
   }
 
@@ -52,10 +58,11 @@ class MockSimulationStore {
     return this.simulations.get(truckId)
   }
 
-  /** Elapsed simulated minutes since start, scaled by speedMultiplier. 0 if never started. */
+  /** Elapsed simulated minutes since start, scaled by speedMultiplier. Frozen once stopped; 0 if never started. */
   elapsedSimMinutes(truckId: string): number {
     const state = this.simulations.get(truckId)
     if (!state) return 0
+    if (!state.running && state.frozenElapsedMinutes !== null) return state.frozenElapsedMinutes
     const realMsElapsed = Date.now() - state.startedAtMs
     return (realMsElapsed / 60_000) * state.speedMultiplier
   }

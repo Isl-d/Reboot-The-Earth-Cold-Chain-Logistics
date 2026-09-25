@@ -17,7 +17,7 @@ import type {
   SimulationStateDto,
   TelemetrySampleDto,
 } from '../api/dto'
-import { BATCHES, findBatch, STORES, WAREHOUSES } from './fixtures'
+import { BATCHES, findBatch, findTruck, STORES, WAREHOUSES } from './fixtures'
 import {
   deteriorationFractionAt,
   delayMinutesAt,
@@ -57,7 +57,7 @@ function toSimulationStateDto(truckId: string): SimulationStateDto {
   const state = mockSimulationStore.get(truckId)
   return {
     truckId,
-    batchId: state?.batchId ?? findBatch(BATCHES[0].id)!.id,
+    batchId: state?.batchId ?? findTruck(truckId)?.batchId ?? BATCHES[0].id,
     scenario: state?.scenario ?? 'NORMAL',
     speedMultiplier: state?.speedMultiplier ?? 1,
     running: state?.running ?? false,
@@ -154,9 +154,10 @@ export async function getOptimizationCandidates(truckId: string, batchId: string
   return computeOptimizationResult(truckId, batchId)
 }
 
-export async function evaluateOptimization(truckId: string, batchId: string): Promise<OptimizationResultDto> {
-  return computeOptimizationResult(truckId, batchId)
-}
+// The spec's GET (read candidates) and POST evaluate (§ "Data you send") ask
+// the optimizer the same question today, so this simply delegates — a future
+// backend that makes evaluate re-run with different inputs can diverge here.
+export const evaluateOptimization = getOptimizationCandidates
 
 // ---- Food-loss analytics -----------------------------------------------------
 
