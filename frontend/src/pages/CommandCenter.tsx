@@ -8,12 +8,13 @@ import { SimulationControls } from '../components/simulation/SimulationControls'
 import { useIncidents } from '../hooks/useIncidents'
 import { useTrucks } from '../hooks/useTrucks'
 import { useWebSocket } from '../hooks/useWebSocket'
-import { MOCK_STATS } from '../mocks/data'
+import { useFoodLossAnalytics } from '../api/hooks/useAnalytics'
 
 export function CommandCenter() {
   const navigate = useNavigate()
   const { data: trucks = [] } = useTrucks()
   const { data: incidents = [] } = useIncidents()
+  const { data: foodLoss } = useFoodLossAnalytics()
   const { connected, lastEventTime } = useWebSocket()
 
   const atRisk = trucks.filter((t) => t.riskLevel === 'HIGH' || t.riskLevel === 'CRITICAL').length
@@ -45,10 +46,10 @@ export function CommandCenter() {
 
       {/* ── Stats row ───────────────────────────────────── */}
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 8, padding: '8px 16px', flexShrink: 0 }}>
-        <StatCard label="Active Trucks" value={trucks.length || MOCK_STATS.activeTrucks} />
-        <StatCard label="At Risk" value={atRisk || MOCK_STATS.trucksAtRisk} highlight={atRisk > 0} />
-        <StatCard label="Food Saved" value={MOCK_STATS.foodSavedKg} unit="kg" />
-        <StatCard label="Loss Prevented" value={`QAR ${MOCK_STATS.lossPrevented.toLocaleString()}`} />
+        <StatCard label="Active Trucks" value={trucks.length} />
+        <StatCard label="At Risk" value={atRisk} highlight={atRisk > 0} />
+        <StatCard label="Food Saved" value={foodLoss ? Math.round(foodLoss.savedKg) : '—'} unit="kg" />
+        <StatCard label="Loss Prevented" value={foodLoss ? `QAR ${Math.round(foodLoss.estimatedFinancialLossPrevented).toLocaleString()}` : '—'} />
       </div>
 
       {/* ── Main grid: fills ALL remaining height ────────── */}

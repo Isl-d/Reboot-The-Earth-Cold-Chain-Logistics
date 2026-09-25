@@ -6,8 +6,8 @@ import type { IncidentStatus } from '../types'
 const SEVERITY_ORDER: Record<string, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
 
 const SEVERITY_COLORS: Record<string, { border: string; text: string; bg: string }> = {
-  CRITICAL: { border: 'var(--color-risk-critical)', text: 'var(--color-risk-critical)', bg: 'rgba(248,113,113,0.06)' },
-  HIGH:     { border: 'var(--color-risk-high)',     text: 'var(--color-risk-high)',     bg: 'rgba(251,146,60,0.06)' },
+  CRITICAL: { border: 'var(--color-risk-critical)', text: 'var(--color-risk-critical)', bg: 'color-mix(in srgb, var(--color-risk-critical) 6%, transparent)' },
+  HIGH:     { border: 'var(--color-risk-high)',     text: 'var(--color-risk-high)',     bg: 'color-mix(in srgb, var(--color-risk-high) 6%, transparent)' },
   MEDIUM:   { border: 'var(--color-risk-medium)',   text: 'var(--color-risk-medium)',   bg: '' },
   LOW:      { border: 'var(--color-risk-low)',      text: 'var(--color-risk-low)',      bg: '' },
 }
@@ -60,7 +60,7 @@ export function Incidents() {
                 letterSpacing: '0.04em', fontWeight: 500, cursor: 'pointer',
                 border: 'none', transition: 'all 0.15s',
                 background: tab === t
-                  ? t === 'OPEN' ? 'rgba(248,113,113,0.15)' : 'rgba(34,212,176,0.15)'
+                  ? t === 'OPEN' ? 'color-mix(in srgb, var(--color-risk-critical) 15%, transparent)' : 'color-mix(in srgb, var(--color-risk-low) 15%, transparent)'
                   : 'var(--color-elevated)',
                 color: tab === t
                   ? t === 'OPEN' ? 'var(--color-risk-critical)' : 'var(--color-risk-low)'
@@ -94,7 +94,7 @@ export function Incidents() {
                     borderRadius: 4,
                     padding: '14px 16px',
                     animation: `slide-in-up 0.3s ease-out ${i * 60}ms both`,
-                    boxShadow: inc.severity === 'CRITICAL' ? '0 0 16px 2px rgba(248,113,113,0.12)' : 'none',
+                    boxShadow: inc.severity === 'CRITICAL' ? '0 0 16px 2px color-mix(in srgb, var(--color-risk-critical) 12%, transparent)' : 'none',
                   }}
                 >
                   {/* Top row */}
@@ -108,7 +108,7 @@ export function Incidents() {
                           {inc.id}
                         </span>
                         {tab === 'OPEN' && (
-                          <span style={{ fontSize: 9, background: sc.border, color: '#0c1825', padding: '1px 5px', borderRadius: 2, fontWeight: 700, letterSpacing: '0.06em' }}>
+                          <span style={{ fontSize: 9, background: sc.border, color: 'var(--color-on-accent)', padding: '1px 5px', borderRadius: 2, fontWeight: 700, letterSpacing: '0.06em' }}>
                             OPEN
                           </span>
                         )}
@@ -152,7 +152,7 @@ export function Incidents() {
                       padding: '4px 12px', cursor: 'pointer',
                       transition: 'all 0.15s',
                     }}
-                    onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = 'var(--color-primary)'; (e.target as HTMLButtonElement).style.color = '#0c1825' }}
+                    onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = 'var(--color-primary)'; (e.target as HTMLButtonElement).style.color = 'var(--color-on-accent)' }}
                     onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.background = 'none'; (e.target as HTMLButtonElement).style.color = 'var(--color-primary)' }}
                   >
                     VIEW TRUCK →

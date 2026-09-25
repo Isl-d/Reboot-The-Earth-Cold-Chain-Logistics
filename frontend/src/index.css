@@ -14,6 +14,8 @@
   --color-risk-high: #fb923c;
   --color-risk-critical: #f87171;
   --color-border: #2d4160;
+  /* Ink for text/glyphs sitting on a filled accent (cyan button, risk fill). */
+  --color-on-accent: #0c1825;
 
   --font-sans: "IBM Plex Sans", system-ui, sans-serif;
   --font-mono: "IBM Plex Mono", monospace;
@@ -185,18 +187,21 @@
   --color-provenance-recommended-fg: #0a6a1f;
   --color-provenance-finance-dot: #b87800;
   --color-provenance-finance-fg: #8a5300;
+  /* Light steps of the same hues, each chosen to hold WCAG AA (≥4.5:1) as
+     text on base, surface AND elevated — the dark values already do. */
   --color-base: #eef2f7;
   --color-surface: #ffffff;
-  --color-elevated: #dde5f0;
-  --color-primary: #0090a8;
-  --color-primary-dim: #007080;
+  --color-elevated: #e3e9f2;
+  --color-primary: #007388;
+  --color-primary-dim: #005e70;
   --color-text-primary: #0d1b2a;
   --color-text-secondary: #3d5a80;
-  --color-border: #bccada;
-  --color-risk-low: #0a9e88;
-  --color-risk-medium: #c8880a;
-  --color-risk-high: #c85010;
-  --color-risk-critical: #c02020;
+  --color-border: #c3cfdd;
+  --color-risk-low: #007064;
+  --color-risk-medium: #8f5f00;
+  --color-risk-high: #a8460a;
+  --color-risk-critical: #b91c1c;
+  --color-on-accent: #ffffff;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -304,5 +309,6 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
   letter-spacing: 0.04em;
   white-space: nowrap;
   pointer-events: none;
-  text-shadow: 0 1px 3px rgba(0,0,0,0.8), 0 0 6px rgba(0,0,0,0.5);
+  /* Halo in the page's own base colour, so labels read on dark and light tiles. */
+  text-shadow: 0 0 3px var(--color-base), 0 0 6px var(--color-base);
 }

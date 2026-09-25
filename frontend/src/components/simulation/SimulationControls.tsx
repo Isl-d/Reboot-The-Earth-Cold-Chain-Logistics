@@ -16,7 +16,9 @@ interface Props {
 }
 
 export function SimulationControls({ trucks }: Props) {
-  const [selectedTruck, setSelectedTruck] = useState(trucks[0]?.id ?? '')
+  const [pickedTruck, setSelectedTruck] = useState('')
+  // Trucks arrive after the first render, so fall back to the first one.
+  const selectedTruck = pickedTruck || trucks[0]?.id || ''
   const [selectedScenario, setSelectedScenario] = useState<SimulationScenario>('TEMPERATURE_EXCURSION')
   const [status, setStatus] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
@@ -89,7 +91,7 @@ export function SimulationControls({ trucks }: Props) {
         <button
           onClick={handleTrigger}
           disabled={loading}
-          className="px-3 py-1.5 bg-risk-high text-[#0c1825] rounded-sm text-[12px] font-medium tracking-[0.04em] hover:bg-risk-critical transition-colors disabled:opacity-50"
+          className="px-3 py-1.5 bg-risk-high text-on-accent rounded-sm text-[12px] font-medium tracking-[0.04em] hover:bg-risk-critical transition-colors disabled:opacity-50"
         >
           TRIGGER
         </button>
@@ -99,7 +101,7 @@ export function SimulationControls({ trucks }: Props) {
         <button
           onClick={handleStart}
           disabled={loading}
-          className="px-3 py-1.5 bg-primary text-[#0c1825] rounded-sm text-[12px] font-medium tracking-[0.04em] hover:bg-primary-dim transition-colors disabled:opacity-50"
+          className="px-3 py-1.5 bg-primary text-on-accent rounded-sm text-[12px] font-medium tracking-[0.04em] hover:bg-primary-dim transition-colors disabled:opacity-50"
         >
           START SIM
         </button>

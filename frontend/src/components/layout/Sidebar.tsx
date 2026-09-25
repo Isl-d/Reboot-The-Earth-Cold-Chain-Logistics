@@ -25,7 +25,7 @@ export function Sidebar() {
     <aside className="w-14 bg-base border-r border-border flex flex-col items-center py-4 gap-1 shrink-0 overflow-y-auto">
       <div className="mb-4">
         <div className="w-8 h-8 rounded-sm bg-primary flex items-center justify-center">
-          <span className="text-base font-bold text-[10px] leading-none">CC</span>
+          <span className="text-on-accent font-bold text-[10px] leading-none">CC</span>
         </div>
       </div>
       {links.map(({ to, label, icon, title }) => (

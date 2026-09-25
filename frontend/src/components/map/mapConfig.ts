@@ -16,9 +16,16 @@ export const SUPERMARKETS = [
   { id: 'Family',   name: 'Family Food Centre',   lat: 25.2750, lon: 51.5200 },
 ]
 
+// CSS variables (index.css), so markers follow the dark/light theme.
 export const RISK_COLORS: Record<string, string> = {
-  LOW: '#22d4b0',
-  MEDIUM: '#fbbf24',
-  HIGH: '#fb923c',
-  CRITICAL: '#f87171',
+  LOW: 'var(--color-risk-low)',
+  MEDIUM: 'var(--color-risk-medium)',
+  HIGH: 'var(--color-risk-high)',
+  CRITICAL: 'var(--color-risk-critical)',
+}
+
+// Place markers stay neutral — DESIGN.md reserves risk colours for risk state.
+export const PLACE_COLORS = {
+  warehouse: 'var(--color-text-secondary)',
+  store: 'var(--color-text-primary)',
 }

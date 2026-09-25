@@ -62,7 +62,7 @@ export function NotificationBell({ incidents }: Props) {
 
         {open.length > 0 && (
           <span
-            className={`absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full text-[9px] font-bold px-0.5 text-[#0c1825] ${
+            className={`absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center rounded-full text-[9px] font-bold px-0.5 text-on-accent ${
               hasCritical ? 'bg-risk-critical animate-pulse' : 'bg-risk-medium'
             }`}
           >

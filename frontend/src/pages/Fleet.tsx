@@ -57,7 +57,7 @@ export function Fleet() {
                 letterSpacing: '0.04em', fontWeight: 500, cursor: 'pointer',
                 border: 'none', transition: 'all 0.15s',
                 background: filter === lvl ? 'var(--color-primary)' : 'var(--color-elevated)',
-                color: filter === lvl ? '#0c1825' : lvl === 'ALL' ? 'var(--color-text-secondary)' : RISK_COL[lvl as RiskLevel] ?? 'var(--color-text-secondary)',
+                color: filter === lvl ? 'var(--color-on-accent)' : lvl === 'ALL' ? 'var(--color-text-secondary)' : RISK_COL[lvl as RiskLevel] ?? 'var(--color-text-secondary)',
               }}
             >
               {lvl}

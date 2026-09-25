@@ -11,10 +11,9 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 // the surface tone with cyan text; destructive is Critical Rose with
 // Tactical Slate text.
 const VARIANT_CLASSES: Record<Variant, string> = {
-  // text-[color:…]: plain `text-base` is also Tailwind's 1rem font-size utility.
-  primary: 'bg-primary text-[color:var(--color-base)] hover:bg-primary-dim',
+  primary: 'bg-primary text-on-accent hover:bg-primary-dim',
   secondary: 'bg-surface text-primary border border-border hover:bg-elevated',
-  destructive: 'bg-risk-critical text-[color:var(--color-base)] hover:opacity-90',
+  destructive: 'bg-risk-critical text-on-accent hover:opacity-90',
 }
 
 export default function Button({ variant = 'primary', className, ...props }: ButtonProps) {
