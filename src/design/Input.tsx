@@ -1,5 +1,5 @@
 import type { InputHTMLAttributes } from 'react'
-import { clsx } from './clsx'
+import { clsx, FOCUS_RING } from './clsx'
 
 interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   /** Fixed trailing unit affordance, e.g. °C, min, QAR, kg — DESIGN.md → Form Inputs & Controls. */
@@ -11,7 +11,8 @@ export default function Input({ unit, className, ...props }: InputProps) {
     <div className={clsx('relative', className)}>
       <input
         className={clsx(
-          'focus-halo w-full rounded border border-line-strong bg-surface px-3 py-2',
+          FOCUS_RING,
+          'w-full rounded border border-line-strong bg-surface px-3 py-2',
           'font-mono text-body-md tabular-nums text-navy placeholder:text-muted',
           unit && 'pr-12',
         )}

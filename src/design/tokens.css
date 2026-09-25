@@ -11,8 +11,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Thermal Focus Indication — DESIGN.md "Elevation & Depth" */
-.focus-halo:focus-visible {
-  outline: none;
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #0ea5e9;
-}
+/*
+  Thermal Focus Indication (DESIGN.md → "Elevation & Depth") is applied via
+  Tailwind's `outline-none focus-visible:shadow-focus-halo` utilities, using
+  the `focus-halo` shadow token defined in tailwind.config.ts — no custom
+  CSS needed here.
+*/

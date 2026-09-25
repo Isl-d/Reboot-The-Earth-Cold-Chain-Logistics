@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes } from 'react'
-import { clsx } from './clsx'
+import { clsx, FOCUS_RING } from './clsx'
 
 type Variant = 'primary' | 'secondary' | 'destructive'
 
@@ -18,7 +18,8 @@ export default function Button({ variant = 'primary', className, ...props }: But
   return (
     <button
       className={clsx(
-        'focus-halo inline-flex items-center justify-center gap-2 rounded px-4 py-2',
+        FOCUS_RING,
+        'inline-flex items-center justify-center gap-2 rounded px-4 py-2',
         'text-body-md font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50',
         VARIANT_CLASSES[variant],
         className,

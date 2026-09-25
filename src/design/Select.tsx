@@ -1,5 +1,5 @@
 import type { SelectHTMLAttributes } from 'react'
-import { clsx } from './clsx'
+import { clsx, FOCUS_RING } from './clsx'
 
 interface Option {
   value: string
@@ -14,7 +14,8 @@ export default function Select({ options, className, ...props }: SelectProps) {
   return (
     <select
       className={clsx(
-        'focus-halo w-full rounded border border-line-strong bg-surface px-3 py-2',
+        FOCUS_RING,
+        'w-full rounded border border-line-strong bg-surface px-3 py-2',
         'text-body-md text-navy',
         className,
       )}

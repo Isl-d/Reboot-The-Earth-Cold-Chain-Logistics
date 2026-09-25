@@ -1,4 +1,5 @@
 import { clsx } from './clsx'
+import Pill from './Pill'
 import type { BackendAction, SpecAction } from './types'
 
 // The 5 actions from docs/PERSON_2_FRONTEND_INTELLIGENCE.md §5, styled with
@@ -32,9 +33,9 @@ interface ActionChipProps {
 export default function ActionChip({ action, className }: ActionChipProps) {
   const known = isSpecAction(action)
   return (
-    <span
+    <Pill
       className={clsx(
-        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5 text-label-ui',
+        'px-2.5 text-label-ui',
         known
           ? 'bg-provenance-recommended-fill border-provenance-recommended-border text-provenance-recommended-fg'
           : 'bg-status-offline-tint border-status-offline-border text-status-offline-fg',
@@ -42,6 +43,6 @@ export default function ActionChip({ action, className }: ActionChipProps) {
       )}
     >
       {known ? SPEC_ACTION_LABEL[action] : toTitleCase(action)}
-    </span>
+    </Pill>
   )
 }

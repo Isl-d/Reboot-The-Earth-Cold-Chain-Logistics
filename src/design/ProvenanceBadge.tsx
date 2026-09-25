@@ -1,4 +1,5 @@
 import { clsx } from './clsx'
+import Pill, { PillDot } from './Pill'
 import { PROVENANCE_LABEL, type ProvenanceKind } from './types'
 
 // DESIGN.md → Components → Data Provenance Badges
@@ -25,16 +26,9 @@ interface ProvenanceBadgeProps {
 
 export default function ProvenanceBadge({ kind, className }: ProvenanceBadgeProps) {
   return (
-    <span
-      className={clsx(
-        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2 py-0.5',
-        'text-label-code uppercase',
-        VARIANT_CLASSES[kind],
-        className,
-      )}
-    >
-      <span className={clsx('h-[6px] w-[6px] rounded-full', DOT_CLASSES[kind])} aria-hidden />
+    <Pill className={clsx('px-2 text-label-code uppercase', VARIANT_CLASSES[kind], className)}>
+      <PillDot className={DOT_CLASSES[kind]} />
       {PROVENANCE_LABEL[kind]}
-    </span>
+    </Pill>
   )
 }

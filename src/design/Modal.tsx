@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { clsx } from './clsx'
+import { clsx, FOCUS_RING } from './clsx'
 
 interface ModalProps {
   open: boolean
@@ -25,7 +25,12 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
       >
         <div className="flex items-center justify-between">
           <h2 className="text-headline-md text-navy">{title}</h2>
-          <button type="button" onClick={onClose} aria-label="Close" className="focus-halo rounded text-muted hover:text-navy">
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close"
+            className={clsx(FOCUS_RING, 'rounded text-muted hover:text-navy')}
+          >
             ×
           </button>
         </div>

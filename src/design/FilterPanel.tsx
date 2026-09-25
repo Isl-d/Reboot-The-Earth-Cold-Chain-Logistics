@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
-import { clsx } from './clsx'
+import { clsx, FOCUS_RING } from './clsx'
+import Pill from './Pill'
 
 // Collapsible filter side panel — plan.md "Approved extras" #3, borrowed from example 4 (Emerson).
 
@@ -16,7 +17,7 @@ export function FilterGroup({ title, children, defaultOpen = true }: FilterGroup
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="focus-halo flex w-full items-center justify-between text-label-ui uppercase text-muted"
+        className={clsx(FOCUS_RING, 'flex w-full items-center justify-between text-label-ui uppercase text-muted')}
       >
         {title}
         <span aria-hidden>{open ? '−' : '+'}</span>
@@ -40,16 +41,16 @@ export function FilterChip({
   onRemove: () => void
 }) {
   return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-sky-tint bg-sky-tint px-2.5 py-0.5 text-label-ui text-[#0284C7]">
+    <Pill className="border-sky-tint bg-sky-tint px-2.5 text-label-ui text-[#0284C7]">
       {label}
       <button
         type="button"
         onClick={onRemove}
         aria-label={`Remove filter ${label}`}
-        className="focus-halo rounded-full leading-none hover:text-navy"
+        className={clsx(FOCUS_RING, 'rounded-full leading-none hover:text-navy')}
       >
         ×
       </button>
-    </span>
+    </Pill>
   )
 }

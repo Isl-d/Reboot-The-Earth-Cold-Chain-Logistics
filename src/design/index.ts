@@ -1,4 +1,5 @@
 export { default as Button } from './Button'
+export { default as Pill, PillDot } from './Pill'
 export { default as ProvenanceBadge } from './ProvenanceBadge'
 export { default as StatusChip } from './StatusChip'
 export { default as ActionChip } from './ActionChip'

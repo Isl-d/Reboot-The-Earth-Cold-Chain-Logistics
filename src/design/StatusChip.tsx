@@ -1,4 +1,5 @@
 import { clsx } from './clsx'
+import Pill, { PillDot } from './Pill'
 import type { StatusTier } from './types'
 
 // DESIGN.md → Colors → Telemetry Status Semantics
@@ -34,16 +35,9 @@ interface StatusChipProps {
 
 export default function StatusChip({ tier, label, className }: StatusChipProps) {
   return (
-    <span
-      className={clsx(
-        'inline-flex items-center gap-1.5 whitespace-nowrap rounded-full border px-2.5 py-0.5',
-        'text-label-ui',
-        CLASSES[tier],
-        className,
-      )}
-    >
-      <span className={clsx('h-[6px] w-[6px] rounded-full', DOT_CLASSES[tier])} aria-hidden />
+    <Pill className={clsx('px-2.5 text-label-ui', CLASSES[tier], className)}>
+      <PillDot className={DOT_CLASSES[tier]} />
       {label ?? LABEL[tier]}
-    </span>
+    </Pill>
   )
 }

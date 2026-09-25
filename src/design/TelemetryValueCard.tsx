@@ -30,9 +30,11 @@ export default function TelemetryValueCard({
         <ProvenanceBadge kind={provenance} />
       </div>
       <div className="mt-2 font-mono text-telemetry-xl tabular-nums text-navy">{value}</div>
-      <div className="mt-2">
-        <MiniTrend data={trend} tier={trendTier} height={36} />
-      </div>
+      {trend.length > 1 && (
+        <div className="mt-2">
+          <MiniTrend data={trend} tier={trendTier} height={36} />
+        </div>
+      )}
       <div className="mt-3 flex items-center justify-between border-t border-line pt-2 text-label-ui text-muted">
         <span>{safeWindowLabel}</span>
         {qarAtRisk && <span className="font-mono tabular-nums text-status-warning-fg">{qarAtRisk}</span>}

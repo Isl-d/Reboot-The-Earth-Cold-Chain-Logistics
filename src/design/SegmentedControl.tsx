@@ -1,4 +1,4 @@
-import { clsx } from './clsx'
+import { clsx, FOCUS_RING } from './clsx'
 
 interface SegmentedControlProps<T extends string> {
   options: Array<{ value: T; label: string }>
@@ -24,7 +24,8 @@ export default function SegmentedControl<T extends string>({
             type="button"
             onClick={() => onChange(option.value)}
             className={clsx(
-              'focus-halo rounded px-3 py-1 text-label-ui transition-colors',
+              FOCUS_RING,
+              'rounded px-3 py-1 text-label-ui transition-colors',
               active ? 'bg-surface text-navy shadow-level1' : 'text-muted hover:text-navy',
             )}
           >
