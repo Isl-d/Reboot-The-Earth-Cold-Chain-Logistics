@@ -76,12 +76,20 @@ export default function AnalyticsScreen() {
       ]
     : []
 
+  // Cause, product, and warehouse each independently partition the SAME
+  // total lost kg — summing across all three would triple-count it. Each
+  // row's percentage is of its own dimension's (currently filtered) total.
+  const sumLostKg = (items: FoodLossBreakdownItem[]) => items.reduce((sum, r) => sum + r.lostKg, 0) || 1
+  const totalsByDimension = {
+    Cause: sumLostKg(byCause),
+    Product: sumLostKg(byProduct),
+    Warehouse: sumLostKg(byWarehouse),
+  }
   const detailRows = [
-    ...byCause.map((r) => ({ dimension: 'Cause', ...r })),
-    ...byProduct.map((r) => ({ dimension: 'Product', ...r })),
-    ...byWarehouse.map((r) => ({ dimension: 'Warehouse', ...r })),
+    ...byCause.map((r) => ({ dimension: 'Cause' as const, ...r })),
+    ...byProduct.map((r) => ({ dimension: 'Product' as const, ...r })),
+    ...byWarehouse.map((r) => ({ dimension: 'Warehouse' as const, ...r })),
   ]
-  const totalLostForDetail = detailRows.reduce((sum, r) => sum + r.lostKg, 0) || 1
 
   const activeChips = [
     ...[...productFilter.selected].map((l) => ({ label: `Product: ${l}`, remove: () => productFilter.remove(l) })),
@@ -250,7 +258,7 @@ export default function AnalyticsScreen() {
                 <Th>Dimension</Th>
                 <Th>Label</Th>
                 <Th className="text-right">Lost</Th>
-                <Th className="text-right">% of shown total</Th>
+                <Th className="text-right">% of dimension total</Th>
               </tr>
             </Thead>
             <tbody>
@@ -262,7 +270,7 @@ export default function AnalyticsScreen() {
                     <Td>{row.dimension}</Td>
                     <Td>{row.label}</Td>
                     <Td numeric>{row.lostKg} kg</Td>
-                    <Td numeric>{((row.lostKg / totalLostForDetail) * 100).toFixed(1)}%</Td>
+                    <Td numeric>{((row.lostKg / totalsByDimension[row.dimension]) * 100).toFixed(1)}%</Td>
                   </Tr>
                 ))}
             </tbody>
