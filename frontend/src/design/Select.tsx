@@ -15,7 +15,7 @@ export default function Select({ options, className, ...props }: SelectProps) {
     <select
       className={clsx(
         FOCUS_RING,
-        'w-full rounded border border-line-strong bg-card px-3 py-2',
+        'w-full rounded-sm border border-line bg-elevated px-3 py-2 focus:border-sky',
         'text-body-md text-navy',
         className,
       )}

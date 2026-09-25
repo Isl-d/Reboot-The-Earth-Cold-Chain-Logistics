@@ -15,7 +15,7 @@ export default function SegmentedControl<T extends string>({
   className,
 }: SegmentedControlProps<T>) {
   return (
-    <div className={clsx('inline-flex rounded border border-line-strong bg-canvas p-0.5', className)}>
+    <div className={clsx('inline-flex rounded-sm border border-line bg-canvas p-0.5', className)}>
       {options.map((option) => {
         const active = option.value === value
         return (
@@ -25,8 +25,8 @@ export default function SegmentedControl<T extends string>({
             onClick={() => onChange(option.value)}
             className={clsx(
               FOCUS_RING,
-              'rounded px-3 py-1 text-label-ui transition-colors',
-              active ? 'bg-card text-navy shadow-level1' : 'text-muted hover:text-navy',
+              'rounded-sm px-3 py-1 text-label-ui uppercase transition-colors',
+              active ? 'bg-elevated text-sky' : 'text-muted hover:text-navy',
             )}
           >
             {option.label}

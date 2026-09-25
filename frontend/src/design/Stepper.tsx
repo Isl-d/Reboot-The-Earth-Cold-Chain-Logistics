@@ -15,7 +15,7 @@ export default function Stepper({ originLabel, destinationLabel, etaMinutes }: S
         <span className="mt-1 text-body-sm text-navy">{originLabel}</span>
       </div>
       <div className="flex flex-1 flex-col items-center">
-        <div className="h-px w-full border-t-2 border-dashed border-line-strong" aria-hidden />
+        <div className="h-px w-full border-t-2 border-dashed border-line" aria-hidden />
         <span className="mt-1 font-mono text-label-ui tabular-nums text-muted">{etaMinutes} min</span>
       </div>
       <div className="flex flex-col items-center">

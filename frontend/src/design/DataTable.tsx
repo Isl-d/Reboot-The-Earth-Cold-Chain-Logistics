@@ -5,14 +5,14 @@ import type { StatusTier } from './types'
 // DESIGN.md → Components → Grid Data Tables
 export function Table({ children }: { children: ReactNode }) {
   return (
-    <div className="overflow-x-auto rounded-lg border border-line">
+    <div className="overflow-x-auto border border-line">
       <table className="w-full border-collapse">{children}</table>
     </div>
   )
 }
 
 export function Thead({ children }: { children: ReactNode }) {
-  return <thead className="border-b border-line-strong bg-canvas">{children}</thead>
+  return <thead className="border-b border-line bg-canvas">{children}</thead>
 }
 
 export function Th({ className, children, ...props }: ThHTMLAttributes<HTMLTableCellElement>) {
@@ -44,7 +44,7 @@ export function Tr({ children, statusTier, className }: TrProps) {
   return (
     <tr
       className={clsx(
-        'border-b border-line last:border-b-0',
+        'border-b border-line last:border-b-0 transition-colors hover:bg-elevated',
         statusTier && clsx('border-l-[3px]', STATUS_BORDER[statusTier]),
         className,
       )}
@@ -64,7 +64,7 @@ export function Td({ className, numeric, children, ...props }: TdProps) {
     <td
       className={clsx(
         'px-3 py-2 text-body-md text-navy',
-        numeric && 'text-right font-mono tabular-nums',
+        numeric && 'text-right font-mono tabular-nums whitespace-nowrap',
         className,
       )}
       {...props}

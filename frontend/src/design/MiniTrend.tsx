@@ -5,10 +5,10 @@ import type { StatusTier } from './types'
 // "micro trend sparkline" spec. Deliberately axis-less and non-interactive —
 // it signals direction, not exact values.
 const STROKE: Record<StatusTier, string> = {
-  safe: '#10B981',
-  warning: '#F59E0B',
-  critical: '#EF4444',
-  offline: '#64748B',
+  safe: 'var(--color-risk-low)',
+  warning: 'var(--color-risk-medium)',
+  critical: 'var(--color-risk-critical)',
+  offline: 'var(--color-text-secondary)',
 }
 
 interface MiniTrendProps {

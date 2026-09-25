@@ -6,7 +6,6 @@ import { IncidentPanel } from '../components/incident/IncidentPanel'
 import { LiveMap } from '../components/map/LiveMap'
 import { SimulationControls } from '../components/simulation/SimulationControls'
 import { useIncidents } from '../hooks/useIncidents'
-import { useTheme } from '../hooks/useTheme'
 import { useTrucks } from '../hooks/useTrucks'
 import { useWebSocket } from '../hooks/useWebSocket'
 import { MOCK_STATS } from '../mocks/data'
@@ -16,7 +15,6 @@ export function CommandCenter() {
   const { data: trucks = [] } = useTrucks()
   const { data: incidents = [] } = useIncidents()
   const { connected, lastEventTime } = useWebSocket()
-  const { theme, toggleTheme } = useTheme()
 
   const atRisk = trucks.filter((t) => t.riskLevel === 'HIGH' || t.riskLevel === 'CRITICAL').length
   const openIncidents = incidents.filter((i) => i.status === 'OPEN')
@@ -41,13 +39,6 @@ export function CommandCenter() {
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <ConnectionStatus connected={connected} lastEventTime={lastEventTime} />
-          <button
-            onClick={toggleTheme}
-            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
-            style={{ width: 32, height: 32, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: 2, background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text-secondary)' }}
-          >
-            {theme === 'dark' ? '☀' : '🌙'}
-          </button>
           <NotificationBell incidents={incidents} />
         </div>
       </header>

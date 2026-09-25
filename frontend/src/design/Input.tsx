@@ -12,7 +12,7 @@ export default function Input({ unit, className, ...props }: InputProps) {
       <input
         className={clsx(
           FOCUS_RING,
-          'w-full rounded border border-line-strong bg-card px-3 py-2',
+          'w-full rounded-sm border border-line bg-elevated px-3 py-2 focus:border-sky',
           'font-mono text-body-md tabular-nums text-navy placeholder:text-muted',
           unit && 'pr-12',
         )}

@@ -1,4 +1,5 @@
 import { NavLink } from 'react-router-dom'
+import { useTheme } from '../../hooks/useTheme'
 
 // Both route sets live behind one rail: Person 1's command-center routes and
 // Person 2's intelligence routes. `/styleguide` is dev-only, matching App.tsx.
@@ -19,6 +20,7 @@ const links = [
 ]
 
 export function Sidebar() {
+  const { theme, toggleTheme } = useTheme()
   return (
     <aside className="w-14 bg-base border-r border-border flex flex-col items-center py-4 gap-1 shrink-0 overflow-y-auto">
       <div className="mb-4">
@@ -44,6 +46,17 @@ export function Sidebar() {
           <span className="text-[9px] tracking-[0.06em] font-medium leading-none">{label}</span>
         </NavLink>
       ))}
+      {/* Theme applies app-wide, so the toggle lives in the rail, on every page. */}
+      <button
+        type="button"
+        onClick={toggleTheme}
+        title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+        className="mt-auto w-10 h-10 flex flex-col items-center justify-center gap-0.5 rounded-sm text-text-secondary hover:text-text-primary hover:bg-elevated transition-colors outline-none focus-visible:shadow-focus-halo"
+      >
+        <span className="text-sm leading-none">{theme === 'dark' ? '☀' : '☾'}</span>
+        <span className="text-[9px] tracking-[0.06em] font-medium leading-none">{theme === 'dark' ? 'LIGHT' : 'DARK'}</span>
+      </button>
     </aside>
   )
 }

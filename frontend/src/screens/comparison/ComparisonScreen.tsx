@@ -23,10 +23,10 @@ export default function ComparisonScreen() {
         already set `border-line` at the same specificity, and which one
         wins would depend on Tailwind's internal utility order, not this
         className string's order — the same cascade trap already hit once
-        in TopBar's range-control visibility fix. Hex values from
-        DESIGN.md's Critical/Safe status tiers.
+        in TopBar's range-control visibility fix. Colours are the themed
+        Critical/Safe status-tier borders.
       */}
-      <Card className="col-span-4 tablet:col-span-8 desktop:col-span-5 p-6" style={{ borderColor: '#FECACA' }}>
+      <Card className="col-span-4 tablet:col-span-8 desktop:col-span-5 p-6" style={{ borderColor: 'var(--color-status-critical-border)' }}>
         <div className="flex items-center justify-between">
           <StatusChip tier="critical" label="Without Intervention" />
           <ProvenanceBadge kind="calculated" compact />
@@ -57,7 +57,7 @@ export default function ComparisonScreen() {
         </div>
       </div>
 
-      <Card className="col-span-4 tablet:col-span-8 desktop:col-span-5 p-6" style={{ borderColor: '#A7F3D0' }}>
+      <Card className="col-span-4 tablet:col-span-8 desktop:col-span-5 p-6" style={{ borderColor: 'var(--color-status-safe-border)' }}>
         <div className="flex items-center justify-between">
           <StatusChip tier="safe" label="With Optimization" />
           <ProvenanceBadge kind="calculated" compact />

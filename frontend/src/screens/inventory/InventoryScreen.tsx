@@ -136,7 +136,7 @@ export default function InventoryScreen() {
             <tbody>
               {filteredRows.map((row) => (
                 <Tr key={row.batchId} statusTier={riskTierFromProbability(row.spoilageProbability)}>
-                  <Td>{row.batchId}</Td>
+                  <Td className="font-mono whitespace-nowrap">{row.batchId}</Td>
                   <Td>{row.product}</Td>
                   <Td>{row.locationId}</Td>
                   <Td numeric>{row.quantityKg} kg</Td>
