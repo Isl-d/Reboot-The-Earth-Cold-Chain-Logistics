@@ -1,0 +1,18 @@
+/*
+  Global styling that can't be expressed as Tailwind utility classes alone.
+  Color/type/radius/spacing/shadow tokens themselves live in tailwind.config.ts,
+  copied from docs/DESIGN.md.
+*/
+
+body {
+  background-color: #f8fafc; /* Canvas Base Layer */
+  color: #0f172a; /* on navy text default */
+  font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Thermal Focus Indication — DESIGN.md "Elevation & Depth" */
+.focus-halo:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #0ea5e9;
+}
