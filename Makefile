@@ -77,4 +77,10 @@ dev-web:      ## run the frontend dev server on the host (needs the backend on :
 dev-nobroker: ## the whole pipeline on one host, no broker/db/docker
 	$(PYTHON) scripts/dev_no_broker.py
 
-.PHONY: help demo stop nuke status clean logs sim-logs laya-pull laya-logs watch reset scenario predict test dev-backend dev-sim dev-sim-dry dev-web dev-nobroker
+dev-landing:  ## run the static landing page on :5174 (no backend needed)
+	cd landing && npm install && npm run dev
+
+build-landing: ## build the landing page into landing/dist
+	cd landing && npm install && npm run build
+
+.PHONY: help demo stop nuke status clean logs sim-logs laya-pull laya-logs watch reset scenario predict test dev-backend dev-sim dev-sim-dry dev-web dev-nobroker dev-landing build-landing

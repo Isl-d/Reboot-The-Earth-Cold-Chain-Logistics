@@ -1,4 +1,4 @@
-# Architecture — Cold-Chain Intelligence
+# Architecture — Thermal Trace
 
 > Single source of truth for the system architecture. If this document and any
 > other file disagree, this document wins. Domain objects live in

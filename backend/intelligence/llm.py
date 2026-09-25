@@ -92,7 +92,7 @@ class LLMClient:
             "Authorization": f"Bearer {self._key}",
             "Content-Type": "application/json",
             "HTTP-Referer": "https://github.com/coldchain",
-            "X-Title": "Cold-Chain Intelligence",
+            "X-Title": "Thermal Trace",
         }
         try:
             with httpx.Client(timeout=settings.llm_timeout_s) as http:

@@ -2,7 +2,9 @@ import { NavLink } from 'react-router-dom'
 import { useTheme } from '../../hooks/useTheme'
 
 // Both route sets live behind one rail: Person 1's command-center routes and
-// Person 2's intelligence routes. `/styleguide` is dev-only, matching App.tsx.
+// Person 2's intelligence routes. The dev-only `/styleguide` route (App.tsx)
+// is deliberately not linked here — the demo runs the dev server, so a link
+// would show judges a component catalogue. Open it by URL when checking design.
 const links = [
   { to: '/', label: 'OPS', icon: '◈', title: 'Command Center' },
   { to: '/fleet', label: 'FLEET', icon: '⬡', title: 'Fleet' },
@@ -14,9 +16,6 @@ const links = [
   { to: '/inventory', label: 'INV', icon: '▦', title: 'Inventory' },
   { to: '/comparison', label: 'CMP', icon: '⇄', title: 'Scenario Comparison' },
   { to: '/map', label: 'MAP', icon: '▧', title: 'Fleet Map' },
-  ...(import.meta.env.DEV
-    ? [{ to: '/styleguide', label: 'STYLE', icon: '◐', title: 'Style Guide' }]
-    : []),
 ]
 
 export function Sidebar() {
@@ -25,7 +24,7 @@ export function Sidebar() {
     <aside className="w-14 bg-base border-r border-border flex flex-col items-center py-4 gap-1 shrink-0 overflow-y-auto">
       <div className="mb-4">
         <div className="w-8 h-8 rounded-sm bg-primary flex items-center justify-center">
-          <span className="text-on-accent font-bold text-[10px] leading-none">CC</span>
+          <span className="text-on-accent font-bold text-[10px] leading-none">TT</span>
         </div>
       </div>
       {links.map(({ to, label, icon, title }) => (

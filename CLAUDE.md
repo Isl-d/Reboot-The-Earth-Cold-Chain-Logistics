@@ -30,6 +30,7 @@ Decision → Food Loss → UI**, each stage mapped to a file in ARCHITECTURE.md.
 | `make dev-backend` / `dev-sim` / `dev-web` | individual services on the host |
 | `make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102` | drive the demo |
 | `make reset` | every truck back to NORMAL |
+| `make dev-landing` / `build-landing` | the static landing page on :5174 |
 
 ## Ownership (one owner per area)
 
@@ -56,6 +57,8 @@ Shared contract files (change needs both owners): `docs/API_CONTRACT.md`,
   measured, or literature values as certified thresholds.
 - **One frontend.** `frontend/` is the app; `legacy/person2-frontend/` is its
   historical source. Nothing in the canonical stack imports from `legacy/`.
+  `landing/` is a separate static marketing page, not a second app: no API
+  calls, imports nothing from `frontend/`, and its demo figures are labelled.
 - `backend/geo.py` is canonical (used by `processing.py`) — do not treat it as
   legacy.
 - Work in the canonical tree; prototype tunables go in `backend/config.py` as

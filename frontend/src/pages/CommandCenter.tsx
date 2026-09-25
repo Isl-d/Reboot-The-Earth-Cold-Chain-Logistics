@@ -31,7 +31,7 @@ export function CommandCenter() {
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <span style={{ fontSize: 11, fontWeight: 600, letterSpacing: '0.14em', textTransform: 'uppercase', color: 'var(--color-text-primary)' }}>
-            Cold Chain Command Center
+            Thermal Trace · Command Center
           </span>
           <span style={{ color: 'var(--color-border)' }}>|</span>
           <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)' }}>

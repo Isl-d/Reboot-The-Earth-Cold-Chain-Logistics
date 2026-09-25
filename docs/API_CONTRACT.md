@@ -1,4 +1,4 @@
-# API Contract — Cold-Chain Intelligence
+# API Contract — Thermal Trace
 
 > Single source of truth for every wire shape. Domain objects and their types
 > live in [`DOMAIN_MODEL.md`](DOMAIN_MODEL.md). In the JSON examples below,
