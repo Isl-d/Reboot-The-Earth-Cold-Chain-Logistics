@@ -85,7 +85,7 @@ Not taken: any map, clustered markers, pie charts, °F (we use °C).
 - [x] Segment 5 — Mathematical Model screen
 - [x] Segment 6 — Optimization screen
 - [x] Segment 7 — Food-Loss Analytics screen
-- [ ] Segment 8 — Inventory screen
+- [x] Segment 8 — Inventory screen
 - [ ] Segment 9 — Scenario Comparison screen
 - [ ] Segment 10 — Definition-of-done verification
 
