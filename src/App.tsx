@@ -1,14 +1,18 @@
-import { lazy, Suspense } from 'react'
+import { lazy } from 'react'
 import { Navigate, Route, Routes } from 'react-router-dom'
 import Shell from './layout/Shell'
-import SimulationScreen from './screens/simulation/SimulationScreen'
-import ModelScreen from './screens/model/ModelScreen'
-import OptimizationScreen from './screens/optimization/OptimizationScreen'
-import AnalyticsScreen from './screens/analytics/AnalyticsScreen'
-import InventoryScreen from './screens/inventory/InventoryScreen'
-import ComparisonScreen from './screens/comparison/ComparisonScreen'
 
+// Every screen (Recharts-heavy) is code-split per route — Shell wraps the
+// Outlet in one Suspense boundary so the sidebar/top bar never unmount
+// during a chunk load, only the content area shows a fallback.
+const SimulationScreen = lazy(() => import('./screens/simulation/SimulationScreen'))
+const ModelScreen = lazy(() => import('./screens/model/ModelScreen'))
+const OptimizationScreen = lazy(() => import('./screens/optimization/OptimizationScreen'))
+const AnalyticsScreen = lazy(() => import('./screens/analytics/AnalyticsScreen'))
+const InventoryScreen = lazy(() => import('./screens/inventory/InventoryScreen'))
+const ComparisonScreen = lazy(() => import('./screens/comparison/ComparisonScreen'))
 const StyleGuideScreen = lazy(() => import('./screens/styleguide/StyleGuideScreen'))
+
 const isDev = import.meta.env.DEV
 
 export default function App() {
@@ -22,16 +26,7 @@ export default function App() {
         <Route path="/analytics" element={<AnalyticsScreen />} />
         <Route path="/inventory" element={<InventoryScreen />} />
         <Route path="/comparison" element={<ComparisonScreen />} />
-        {isDev && (
-          <Route
-            path="/styleguide"
-            element={
-              <Suspense fallback={null}>
-                <StyleGuideScreen />
-              </Suspense>
-            }
-          />
-        )}
+        {isDev && <Route path="/styleguide" element={<StyleGuideScreen />} />}
         <Route path="*" element={<Navigate to="/simulation" replace />} />
       </Route>
     </Routes>

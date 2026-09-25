@@ -111,6 +111,14 @@ export interface FoodLossSeries {
   byWarehouse: FoodLossBreakdownItem[]
 }
 
+export interface SimTruckOption {
+  truckId: string
+  label: string
+  batchId: string
+  product: string
+  quantityKg: number
+}
+
 export interface ScenarioComparison {
   scenario: ScenarioId
   withoutInterventionLossPercent: number

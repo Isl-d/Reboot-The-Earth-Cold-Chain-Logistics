@@ -13,11 +13,12 @@ import type {
   OptimizationResultDto,
   ScenarioComparisonDto,
   ScenarioId,
+  SimTruckOptionDto,
   SimulationStartRequestDto,
   SimulationStateDto,
   TelemetrySampleDto,
 } from '../api/dto'
-import { BATCHES, findBatch, findTruck, STORES, WAREHOUSES } from './fixtures'
+import { BATCHES, findBatch, findTruck, STORES, TRUCKS, WAREHOUSES } from './fixtures'
 import {
   deteriorationFractionAt,
   delayMinutesAt,
@@ -31,6 +32,21 @@ import {
 } from './scenarioEngine'
 import { seededRange } from './seededRandom'
 import { mockSimulationStore } from './store'
+
+// ---- Trucks (picklist metadata) --------------------------------------------
+
+export async function getSimTruckOptions(): Promise<SimTruckOptionDto[]> {
+  return TRUCKS.map((truck) => {
+    const batch = findBatch(truck.batchId)
+    return {
+      truckId: truck.id,
+      label: truck.label,
+      batchId: truck.batchId,
+      product: batch?.product ?? 'Unknown product',
+      quantityKg: batch?.quantityKg ?? 0,
+    }
+  })
+}
 
 // ---- Simulation -----------------------------------------------------------
 
@@ -224,7 +240,11 @@ export async function getTruckTelemetry(truckId: string): Promise<TelemetrySampl
   const state = mockSimulationStore.get(truckId)
   const scenario: ScenarioId = state?.scenario ?? 'NORMAL'
   const simMinutes = mockSimulationStore.elapsedSimMinutes(truckId)
-  const points = Math.min(60, Math.max(1, Math.ceil(simMinutes)))
+  // Sample density is tied to REAL elapsed seconds, not sim-minutes — at a
+  // high speedMultiplier, 1 sim-minute passes in well under a second, which
+  // would otherwise starve the chart of new points between 2s polls.
+  const realSecondsElapsed = state ? (simMinutes * 60) / state.speedMultiplier : 0
+  const points = Math.min(60, Math.max(1, Math.ceil(realSecondsElapsed)))
   const startedAtMs = state?.startedAtMs ?? Date.now()
   return Array.from({ length: points }, (_, i) => {
     const t = (simMinutes / points) * (i + 1)

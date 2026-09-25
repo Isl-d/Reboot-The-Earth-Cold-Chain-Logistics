@@ -81,6 +81,18 @@ export default {
         tablet: '768px',
         desktop: '1280px',
       },
+      keyframes: {
+        indeterminate: {
+          '0%': { transform: 'translateX(-100%)' },
+          '100%': { transform: 'translateX(300%)' },
+        },
+      },
+      animation: {
+        // Simulation screen's "still running" progress bar — no fixed total
+        // duration to compute a real percentage against, so this signals
+        // activity rather than completion.
+        indeterminate: 'indeterminate 1.4s ease-in-out infinite',
+      },
     },
   },
   plugins: [],

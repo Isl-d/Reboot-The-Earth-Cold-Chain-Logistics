@@ -13,6 +13,7 @@ import {
   adaptInventoryBatch,
   adaptOptimizationResult,
   adaptScenarioComparison,
+  adaptSimTruckOption,
   adaptSimulationState,
   adaptSpoilagePrediction,
   adaptTelemetrySample,
@@ -28,6 +29,7 @@ import type {
   OptimizationResultDto,
   ScenarioComparisonDto,
   ScenarioId,
+  SimTruckOptionDto,
   SimulationStartRequestDto,
   SimulationStateDto,
   SpoilagePredictionDto,
@@ -43,10 +45,20 @@ import type {
   InventoryBatch,
   OptimizationResult,
   ScenarioComparison,
+  SimTruckOption,
   SimulationState,
   SpoilagePrediction,
   ThermalExposure,
 } from './types'
+
+// ---- Trucks (picklist metadata) --------------------------------------------
+
+export async function fetchSimTruckOptions(): Promise<SimTruckOption[]> {
+  const dtos = USE_MOCKS
+    ? await mock.getSimTruckOptions()
+    : (await apiClient.get<SimTruckOptionDto[]>(endpoints.trucks)).data
+  return dtos.map(adaptSimTruckOption)
+}
 
 // ---- Simulation -----------------------------------------------------------
 

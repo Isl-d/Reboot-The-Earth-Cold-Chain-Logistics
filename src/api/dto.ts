@@ -161,3 +161,17 @@ export interface LiveMessageDto {
   truckId: string
   sample: TelemetrySampleDto
 }
+
+/**
+ * GET /api/trucks — simulation-config metadata (which trucks exist and what
+ * they're carrying), for the Simulation screen's truck/batch selectors. Not
+ * to be confused with Person 1's live `Truck` interface (GPS/telemetry) in
+ * shared-types.ts — this is just picklist data.
+ */
+export interface SimTruckOptionDto {
+  truckId: string
+  label: string
+  batchId: string
+  product: string
+  quantityKg: number
+}

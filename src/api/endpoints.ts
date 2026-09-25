@@ -19,4 +19,5 @@ export const endpoints = {
   inventory: '/api/inventory',
   truckTelemetry: (truckId: string) => `/api/trucks/${truckId}/telemetry`,
   scenarioComparison: (scenario: string) => `/api/analytics/scenario-comparison/${scenario}`,
+  trucks: '/api/trucks',
 } as const

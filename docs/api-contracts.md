@@ -18,6 +18,7 @@ screen rewrite.
 | 3 | `GET /api/analytics/food-loss/series` | Proposed |
 | 4 | `GET /api/analytics/scenario-comparison/{scenario}` | Proposed |
 | 5 | `POST /api/simulation/stop`, `POST /api/simulation/reset`, `GET /api/simulation/{truckId}` | Proposed |
+| 6 | `GET /api/trucks` | Proposed |
 
 ---
 
@@ -128,3 +129,22 @@ lists stop and reset, and the frontend needs a way to read current state
 ```
 
 All three respond with the same shape as the `GET` above.
+
+## 6. `GET /api/trucks`
+
+The Simulation screen's spec (§1) asks for truck and product/batch controls,
+but no endpoint lists which trucks/batches exist to choose from — likely
+Person 1's Fleet domain (see docs/PIPELINE.md) already has this data.
+Proposed, kept intentionally small (picklist metadata only, not live
+GPS/telemetry — that's Person 1's `Truck` interface):
+
+```json
+[
+  { "truckId": "T101", "label": "T-101 — Doha Industrial Route", "batchId": "CHK-1029", "product": "Fresh Chicken", "quantityKg": 500 }
+]
+```
+
+Open question: is a truck's current batch always 1:1 (a truck carries one
+batch at a time), or can a truck carry multiple batches? The frontend
+currently assumes 1:1 — selecting a truck shows its one current batch as
+read-only rather than offering an independent batch picker.
