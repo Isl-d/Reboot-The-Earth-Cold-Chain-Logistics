@@ -9,12 +9,14 @@ import datetime as dt
 import uuid
 
 from fastapi import APIRouter, Body, HTTPException
+from pydantic import BaseModel
 from sqlalchemy import delete, select, update
 
 from ..cache import cache
 from ..config import settings
 from ..db import session_scope
 from ..ingest.consumer import pipeline
+from ..manual import manual
 from ..models import DeviceEvent, Incident, Prediction, SensorReading, SimulationRun, Truck
 from ..processing import tracker
 
@@ -115,9 +117,10 @@ def reset(body: dict | None = Body(default=None)) -> dict:
         session.execute(incidents)
 
     cache.clear()
-    # Drop any carried-forward explainer rationale for this truck.
+    # Drop carried-forward explainer rationale and the computed snapshots.
     from ..intelligence import engine as intelligence_engine
     intelligence_engine.clear_rationale(truck_id)
+    intelligence_engine.clear_snapshots(truck_id)
     return _state_response(truck_id, "reset", "")
 
 
@@ -178,6 +181,41 @@ def _simulation_state(truck_id: str) -> dict:
 @router.get("/state/{truck_id}")
 def get_simulation_state(truck_id: str) -> dict:
     return _simulation_state(truck_id)
+
+
+# ------------------------------------------------------------------ manual mode
+class ManualIn(BaseModel):
+    truckId: str
+    temperatureC: float | None = None
+    humidityPct: float | None = None
+    speedKmh: float | None = None
+    gForce: float | None = None
+    doorOpen: bool | None = None
+    refrigerationOn: bool | None = None
+
+
+@router.get("/manual")
+def get_manual() -> dict:
+    """The current manual overrides, per truck."""
+    return {"manual": manual.all()}
+
+
+@router.post("/manual")
+def set_manual(body: ManualIn) -> dict:
+    """Set manual telemetry for one truck; the simulator is paused for it."""
+    with session_scope() as session:
+        if session.get(Truck, body.truckId) is None:
+            raise HTTPException(status_code=404, detail=f"unknown truck '{body.truckId}'")
+    values = body.model_dump(exclude={"truckId"})
+    applied = manual.set(body.truckId, values)
+    return {"truckId": body.truckId, "manual": True, "values": applied}
+
+
+@router.delete("/manual/{truck_id}")
+def clear_manual(truck_id: str) -> dict:
+    """Stop manual mode for one truck and let the simulator resume."""
+    manual.clear(truck_id)
+    return {"truckId": truck_id, "manual": False}
 
 
 # NOTE: this /{truck_id} catch-all MUST remain last to avoid shadowing the

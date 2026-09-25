@@ -54,7 +54,7 @@ def test_predictions_endpoint(client, live, fake_llm):
     assert body["truckId"] == "T102"
     assert body["riskLevel"] in {"HIGH", "CRITICAL"}
     assert 0.0 <= body["spoilageProbability"] <= 1.0
-    assert body["modelVersion"] == "fake-explainer"
+    assert body["modelVersion"] == "heuristic-1"  # deterministic; the LLM never changes stored values
     assert body["recommendation"]["action"] in {"DIVERT", "PREPARE_INTERVENTION"}
     assert "optimization" in body and "foodLoss" in body
 

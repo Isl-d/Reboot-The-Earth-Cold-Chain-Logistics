@@ -19,6 +19,10 @@ _WEIGHTS = {
     "anomaly": 0.15,
     "route_delay": 0.10,
     "humidity_exposure": 0.05,
+    # Weight 0: reported for transparency and used by the floors below, so a
+    # single hot reading raises risk immediately (accumulated exposure needs
+    # at least two readings).
+    "temperature_deviation": 0.0,
 }
 
 # (condition factor value, score floor)
@@ -26,6 +30,9 @@ _FLOORS = (
     ("spoilage_probability", 80.0, 80.0),
     ("anomaly", 90.0, 78.0),
     ("thermal_exposure", 100.0, 75.0),
+    # 4 °C above the safe maximum floors the score at CRITICAL; 2 °C at HIGH.
+    ("temperature_deviation", 100.0, 80.0),
+    ("temperature_deviation", 50.0, 55.0),
 )
 
 
@@ -46,6 +53,7 @@ def score(features: dict, spoilage: dict, anomaly: dict,
         "anomaly": _clamp(float(anomaly.get("score") or 0.0) * 100.0) if anomaly.get("anomaly") else 0.0,
         "route_delay": _clamp(float(route_delay_min) / 30.0 * 100.0),
         "humidity_exposure": _clamp(float(features.get("humidityExposure") or 0.0) / 120.0 * 100.0),
+        "temperature_deviation": _clamp(float(features.get("currentDeviationC") or 0.0) / 4.0 * 100.0),
     }
 
     combined = sum(_WEIGHTS[name] * value for name, value in factors.items())

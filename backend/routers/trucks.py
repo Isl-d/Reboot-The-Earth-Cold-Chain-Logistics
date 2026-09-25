@@ -22,7 +22,13 @@ def _current(session, truck: Truck) -> dict:
 
     risk = state.get("risk") or {}
     pred = common.latest_prediction(session, truck.id)
-    if pred and pred.risk_score is not None:
+    # Prefer the canonical snapshot so the fleet risk matches the Model page.
+    from ..intelligence import engine as _engine
+    _snap = _engine.snapshot(truck.id)
+    if _snap is not None:
+        _result = _snap[1]
+        risk_score, risk_level = _result.get("riskScore"), _result.get("riskLevel")
+    elif pred and pred.risk_score is not None:
         risk_score, risk_level = pred.risk_score, pred.risk_level
     else:
         risk_score, risk_level = risk.get("riskScore"), risk.get("riskLevel")
@@ -107,7 +113,26 @@ def get_truck(truck_id: str) -> dict:
             "factors": risk.get("factors", {}),
         }
         recommendation = None
-        if pred is not None:
+        # Prefer the canonical snapshot: the same computed facts the Model and
+        # Optimization pages show, so nothing can disagree about one truck.
+        from ..intelligence import engine as _engine
+        _snap = _engine.snapshot(truck_id)
+        if _snap is not None:
+            _result = _snap[1]
+            prediction.update({
+                "thermalExposure": _result.get("thermalExposure"),
+                "exposureMinutes": _result.get("exposureMinutes"),
+                "deteriorationFraction": _result.get("deteriorationFraction"),
+                "remainingShelfLifeHours": _result.get("remainingShelfLifeHours"),
+                "spoilageProbability": _result.get("spoilageProbability"),
+                "confidence": _result.get("confidence"),
+                "riskScore": _result.get("riskScore"),
+                "riskLevel": _result.get("riskLevel"),
+                "source": "snapshot",
+                "factors": (_result.get("riskFactors") or {}),
+            })
+            recommendation = _result.get("recommendation")
+        elif pred is not None:
             prediction.update(common.prediction_wire(pred))
             prediction["source"] = "person4"
             recommendation = pred.recommendation

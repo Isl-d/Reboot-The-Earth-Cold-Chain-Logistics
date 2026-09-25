@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cold-Chain Manual Control</title>
+  <style>
+    :root { color-scheme: dark; --bg:#0c1825; --surface:#162338; --elev:#1e3048; --line:#2d4160;
+            --text:#c9d6e8; --muted:#8fa8c8; --primary:#00c8e0; --crit:#f87171; --ok:#22d4b0; }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--bg); color:var(--text);
+           font:14px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; }
+    header { display:flex; align-items:center; justify-content:space-between; gap:16px;
+             padding:14px 20px; border-bottom:1px solid var(--line); background:var(--bg); position:sticky; top:0; }
+    h1 { font-size:14px; letter-spacing:.12em; text-transform:uppercase; margin:0; }
+    .muted { color:var(--muted); }
+    .mono { font-family:ui-monospace,SFMono-Regular,Menlo,monospace; font-variant-numeric:tabular-nums; }
+    main { display:grid; grid-template-columns: 320px 1fr; gap:16px; padding:20px; align-items:start; }
+    @media (max-width: 900px){ main { grid-template-columns:1fr; } }
+    .panel { background:var(--surface); border:1px solid var(--line); border-radius:6px; padding:16px; }
+    .panel h2 { font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:0 0 12px; }
+    label { display:block; font-size:11px; letter-spacing:.06em; text-transform:uppercase; color:var(--muted); margin:10px 0 4px; }
+    input[type=number], select { width:100%; padding:8px; background:var(--elev); color:var(--text);
+           border:1px solid var(--line); border-radius:4px; font-family:ui-monospace,monospace; }
+    input[type=range]{ width:100%; }
+    .row { display:flex; gap:10px; align-items:center; }
+    .row > * { flex:1; }
+    .check { display:flex; align-items:center; gap:8px; margin-top:12px; color:var(--text); }
+    button { padding:9px 12px; border-radius:4px; border:1px solid var(--line); background:var(--elev);
+             color:var(--text); font-size:11px; letter-spacing:.06em; text-transform:uppercase; cursor:pointer; }
+    button.primary { background:var(--primary); color:#06202a; border-color:var(--primary); font-weight:600; }
+    button.danger { background:var(--crit); color:#200; border-color:var(--crit); }
+    button:disabled { opacity:.5; cursor:not-allowed; }
+    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+    .stat { display:flex; justify-content:space-between; border-bottom:1px solid var(--line); padding:6px 0; }
+    .stat:last-child { border-bottom:0; }
+    .chip { display:inline-block; padding:2px 8px; border-radius:999px; border:1px solid var(--line);
+            font-size:11px; letter-spacing:.04em; }
+    .chip.on { border-color:var(--primary); color:var(--primary); }
+    .chip.warn { border-color:var(--crit); color:var(--crit); }
+    table { width:100%; border-collapse:collapse; }
+    th,td { text-align:left; padding:6px 8px; border-bottom:1px solid var(--line); font-size:12px; }
+    th { color:var(--muted); text-transform:uppercase; letter-spacing:.06em; font-size:10px; }
+    .actions { display:flex; gap:8px; margin-top:14px; flex-wrap:wrap; }
+    .note { color:var(--muted); font-size:12px; margin-top:10px; }
+    #status { font-size:12px; color:var(--primary); min-height:18px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Cold-Chain · Manual Control</h1>
+    <span class="muted mono" id="health">connecting…</span>
+  </header>
+
+  <main>
+    <section class="panel">
+      <h2>Truck</h2>
+      <select id="truck"></select>
+      <div class="stat"><span class="muted">Temperature</span><span class="mono" id="cur-temp">—</span></div>
+      <div class="stat"><span class="muted">Humidity</span><span class="mono" id="cur-hum">—</span></div>
+      <div class="stat"><span class="muted">Speed</span><span class="mono" id="cur-speed">—</span></div>
+      <div class="stat"><span class="muted">G-force</span><span class="mono" id="cur-g">—</span></div>
+      <div class="stat"><span class="muted">Door</span><span id="cur-door" class="chip">—</span></div>
+      <div class="stat"><span class="muted">Refrigeration</span><span id="cur-ref" class="chip">—</span></div>
+      <div class="stat"><span class="muted">Risk</span><span class="mono" id="cur-risk">—</span></div>
+
+      <h2 style="margin-top:18px">Scenario</h2>
+      <select id="scenario">
+        <option>NORMAL</option>
+        <option>TEMPERATURE_EXCURSION</option>
+        <option selected>REFRIGERATION_FAILURE</option>
+        <option>DOOR_LEFT_OPEN</option>
+        <option>TRAFFIC_DELAY</option>
+        <option>COMBINED_FAILURE</option>
+        <option>G_FORCE_EVENT</option>
+      </select>
+      <div class="actions">
+        <button id="set-scenario">Set scenario</button>
+        <button id="reset" class="danger">Reset truck</button>
+      </div>
+      <p class="note">Manual mode pauses the simulator for this truck and emits exactly the values you set.</p>
+    </section>
+
+    <section class="panel">
+      <h2>Manual telemetry</h2>
+      <div class="grid2">
+        <div>
+          <label>Temperature °C</label>
+          <input id="temperatureC" type="number" step="0.1" value="2.5" />
+          <input id="temperatureC-range" type="range" min="-10" max="45" step="0.1" value="2.5" />
+        </div>
+        <div>
+          <label>Humidity %</label>
+          <input id="humidityPct" type="number" step="1" value="85" />
+          <input id="humidityPct-range" type="range" min="0" max="100" step="1" value="85" />
+        </div>
+        <div>
+          <label>Speed km/h</label>
+          <input id="speedKmh" type="number" step="1" value="40" />
+        </div>
+        <div>
+          <label>G-force</label>
+          <input id="gForce" type="number" step="0.01" value="0.02" />
+        </div>
+      </div>
+
+      <label class="check"><input id="doorOpen" type="checkbox" /> Door open</label>
+      <label class="check"><input id="refrigerationOn" type="checkbox" checked /> Refrigeration on</label>
+
+      <div class="actions">
+        <button id="apply" class="primary">Apply manual</button>
+        <button id="stop">Stop manual</button>
+      </div>
+      <div id="status"></div>
+
+      <h2 style="margin-top:22px">Active manual overrides</h2>
+      <table>
+        <thead><tr><th>Truck</th><th>Temp</th><th>Hum</th><th>Speed</th><th>Door</th><th>Refrig</th></tr></thead>
+        <tbody id="overrides"><tr><td colspan="6" class="muted">None</td></tr></tbody>
+      </table>
+    </section>
+  </main>
+
+  <script>
+    const fields = ['temperatureC','humidityPct','speedKmh','gForce','doorOpen','refrigerationOn'];
+    let currentTruck = '';
+
+    async function j(url, opt) {
+      const r = await fetch(url, opt);
+      if (!r.ok) throw new Error(url + ' → ' + r.status);
+      return r.json();
+    }
+
+    function link(a, b) {
+      a.addEventListener('input', () => { b.value = a.value; });
+    }
+    link(document.getElementById('temperatureC'), document.getElementById('temperatureC-range'));
+    link(document.getElementById('temperatureC-range'), document.getElementById('temperatureC'));
+    link(document.getElementById('humidityPct'), document.getElementById('humidityPct-range'));
+    link(document.getElementById('humidityPct-range'), document.getElementById('humidityPct'));
+
+    function setStatus(msg, bad) {
+      const el = document.getElementById('status');
+      el.textContent = msg;
+      el.style.color = bad ? 'var(--crit)' : 'var(--primary)';
+    }
+
+    function chip(el, on, labelOn, labelOff) {
+      el.textContent = on ? labelOn : labelOff;
+      el.className = 'chip ' + (on ? 'on' : 'warn');
+    }
+
+    async function loadTrucks() {
+      const { trucks } = await j('/api/trucks');
+      const sel = document.getElementById('truck');
+      sel.innerHTML = trucks.map(t => `<option value="${t.id}">${t.id} — ${t.product || ''}</option>`).join('');
+      if (!currentTruck) currentTruck = trucks[0]?.id || '';
+      sel.value = currentTruck;
+      sel.onchange = () => { currentTruck = sel.value; refreshCurrent(); };
+      refreshCurrent();
+    }
+
+    async function refreshCurrent() {
+      if (!currentTruck) return;
+      try {
+        const d = await j('/api/trucks/' + currentTruck);
+        const t = d.truck || {}; const p = d.prediction || {};
+        document.getElementById('cur-temp').textContent = t.temperatureC != null ? t.temperatureC.toFixed(1) + ' °C' : '—';
+        document.getElementById('cur-hum').textContent = t.humidityPct != null ? t.humidityPct.toFixed(1) + ' %' : '—';
+        document.getElementById('cur-speed').textContent = t.speedKmh != null ? t.speedKmh.toFixed(0) + ' km/h' : '—';
+        document.getElementById('cur-g').textContent = t.gForce != null ? Number(t.gForce).toFixed(2) : '—';
+        chip(document.getElementById('cur-door'), !!t.doorOpen, 'OPEN', 'closed');
+        chip(document.getElementById('cur-ref'), t.refrigerationOn !== false, 'ON', 'OFF');
+        document.getElementById('cur-risk').textContent = p.riskLevel ? (p.riskLevel + ' ' + (p.riskScore ?? '')) : '—';
+      } catch { /* transient */ }
+    }
+
+    async function loadOverrides() {
+      try {
+        const { manual } = await j('/api/simulation/manual');
+        const keys = Object.keys(manual || {});
+        const body = document.getElementById('overrides');
+        if (!keys.length) { body.innerHTML = '<tr><td colspan="6" class="muted">None</td></tr>'; return; }
+        body.innerHTML = keys.map(k => {
+          const m = manual[k];
+          return `<tr><td class="mono">${k}</td><td class="mono">${m.temperatureC ?? '—'}</td>
+            <td class="mono">${m.humidityPct ?? '—'}</td><td class="mono">${m.speedKmh ?? '—'}</td>
+            <td>${m.doorOpen ? 'open' : 'closed'}</td><td>${m.refrigerationOn === false ? 'off' : 'on'}</td></tr>`;
+        }).join('');
+      } catch { /* transient */ }
+    }
+
+    function values() {
+      return {
+        truckId: currentTruck,
+        temperatureC: Number(document.getElementById('temperatureC').value),
+        humidityPct: Number(document.getElementById('humidityPct').value),
+        speedKmh: Number(document.getElementById('speedKmh').value),
+        gForce: Number(document.getElementById('gForce').value),
+        doorOpen: document.getElementById('doorOpen').checked,
+        refrigerationOn: document.getElementById('refrigerationOn').checked,
+      };
+    }
+
+    document.getElementById('apply').onclick = async () => {
+      try { await j('/api/simulation/manual', { method:'POST', headers:{'content-type':'application/json'}, body: JSON.stringify(values()) });
+            setStatus('Manual applied to ' + currentTruck); loadOverrides(); }
+      catch (e) { setStatus('Failed: ' + e.message, true); }
+    };
+    document.getElementById('stop').onclick = async () => {
+      try { await j('/api/simulation/manual/' + currentTruck, { method:'DELETE' });
+            setStatus('Manual stopped for ' + currentTruck); loadOverrides(); }
+      catch (e) { setStatus('Failed: ' + e.message, true); }
+    };
+    document.getElementById('set-scenario').onclick = async () => {
+      try { await j('/api/simulation/scenario', { method:'POST', headers:{'content-type':'application/json'},
+              body: JSON.stringify({ truckId: currentTruck, scenario: document.getElementById('scenario').value }) });
+            setStatus('Scenario set for ' + currentTruck); }
+      catch (e) { setStatus('Failed: ' + e.message, true); }
+    };
+    document.getElementById('reset').onclick = async () => {
+      try { await j('/api/simulation/reset', { method:'POST', headers:{'content-type':'application/json'},
+              body: JSON.stringify({ truckId: currentTruck }) });
+            setStatus('Reset ' + currentTruck); loadOverrides(); }
+      catch (e) { setStatus('Failed: ' + e.message, true); }
+    };
+
+    async function health() {
+      try { const h = await j('/healthz');
+            document.getElementById('health').textContent = `API ok · ${h.trucks} trucks · db ${h.database} · mqtt ${h.mqtt}`; }
+      catch { document.getElementById('health').textContent = 'API offline'; }
+    }
+
+    (async function init() {
+      await health(); await loadTrucks(); await loadOverrides();
+      setInterval(refreshCurrent, 2000);
+      setInterval(loadOverrides, 5000);
+      setInterval(health, 10000);
+    })();
+  </script>
+</body>
+</html>

@@ -177,7 +177,9 @@ class Pipeline:
             "riskLevel": risk["riskLevel"],
         })
 
-        # Person 4 engine runs off the hot path, throttled by its worker.
+        # A new reading invalidates the cached computed snapshot, then the
+        # Person 4 engine is queued off the hot path.
+        intelligence_engine.clear_snapshots(truck_id)
         intelligence_engine.mark_dirty(truck_id)
 
     # --------------------------------------------------------------- storage

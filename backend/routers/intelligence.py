@@ -172,11 +172,13 @@ def optimization_evaluate(body: OptimizeIn) -> dict:
         context = build_context(session, truck_id)
         if context is None:
             raise HTTPException(status_code=404, detail=f"unknown truck '{truck_id}'")
-        batch = context.get("batch")
 
-    feat = features_mod.compute(context.get("recentTelemetry") or [], batch)
-    sp = spoilage.predict(feat, batch)
-    return optimization.evaluate(context, feat, sp)
+    # Read the canonical snapshot so the evaluated candidates are identical to
+    # the Optimization screen and the command center.
+    snap = engine.snapshot(truck_id)
+    if snap is None:
+        raise HTTPException(status_code=404, detail=f"no data for truck '{truck_id}'")
+    return snap[1].get("optimization") or {}
 
 
 @router.get("/optimization/{batch_id}")
@@ -438,11 +440,10 @@ def ai_explain(body: ExplainIn) -> dict:
     facts = body.facts
     if facts is None:
         if body.truckId:
-            with session_scope() as session:
-                context = build_context(session, body.truckId, 60)
-            if context is None:
+            snap = engine.snapshot(body.truckId)
+            if snap is None:
                 raise HTTPException(status_code=404, detail=f"unknown truck '{body.truckId}'")
-            facts = engine.evaluate_context(context, use_llm=False)
+            context, facts = snap[0], dict(snap[1])
             facts.setdefault("product", (context.get("batch") or {}).get("product"))
         elif body.batchId:
             facts = _resolve(body.batchId, refresh=False)

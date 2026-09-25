@@ -69,4 +69,7 @@ def live(client):
     # The System-1 endpoint has a short TTL cache; clear it so tests are isolated.
     from backend.routers import intelligence as _intel_router
     _intel_router._system1_cache.clear()
+    # And the canonical snapshot cache.
+    from backend.intelligence import engine as _engine
+    _engine.clear_snapshots()
     yield

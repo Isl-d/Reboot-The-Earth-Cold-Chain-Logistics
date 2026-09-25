@@ -19,15 +19,19 @@ router = APIRouter(prefix="/api/model", tags=["model"])
 
 
 def _evaluate(truck_id: str) -> dict:
-    """Run the model chain for truck_id. Returns None → 404."""
+    """Run the model chain for truck_id. Returns None → 404.
+
+    Reads the canonical snapshot, so the model cards show exactly the same
+    computed values as risk, optimization and the command center.
+    """
     with session_scope() as session:
         truck = session.get(Truck, truck_id)
     if truck is None:
         raise HTTPException(status_code=404, detail=f"unknown truck '{truck_id}'")
-    result = engine.evaluate_truck(truck_id, use_llm=False, include_system1=False, persist=False)
-    if result is None:
+    snap = engine.snapshot(truck_id)
+    if snap is None:
         raise HTTPException(status_code=404, detail=f"no data for truck '{truck_id}'")
-    return result
+    return snap[1]
 
 
 @router.get("/{truck_id}/thermal-exposure")

@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import datetime as dt
 import logging
+import time
 import uuid
 
 from ..cache import cache
@@ -38,6 +39,36 @@ def clear_rationale(truck_id: str | None = None) -> None:
         _last_rationale.clear()
     else:
         _last_rationale.pop(truck_id, None)
+
+
+# One canonical computed state per truck. Every endpoint that shows derived
+# values (model chain, risk, optimization, recommendation, System 1) reads this,
+# so all pages agree and every number is a deterministic function of the same
+# telemetry snapshot — not an independent recompute or a random value.
+_SNAPSHOT_TTL_S = 2.0
+_snapshots: dict[str, tuple[float, dict, dict]] = {}
+
+
+def snapshot(truck_id: str, ttl: float | None = None) -> tuple[dict, dict] | None:
+    """Return ``(context, result)`` for a truck, cached briefly. Deterministic."""
+    now = time.monotonic()
+    cached = _snapshots.get(truck_id)
+    if cached and (now - cached[0]) < (ttl or _SNAPSHOT_TTL_S):
+        return cached[1], cached[2]
+    with session_scope() as session:
+        context = build_context(session, truck_id, settings.intelligence_telemetry_window)
+    if context is None:
+        return None
+    result = evaluate_context(context, use_llm=False, include_system1=False)
+    _snapshots[truck_id] = (now, context, result)
+    return context, result
+
+
+def clear_snapshots(truck_id: str | None = None) -> None:
+    if truck_id is None:
+        _snapshots.clear()
+    else:
+        _snapshots.pop(truck_id, None)
 
 
 def _route_delay_minutes(context: dict, derived: dict) -> float:
@@ -209,13 +240,25 @@ def _persist(result: dict) -> None:
     })
 
 
-def evaluate_truck(truck_id: str, use_llm: bool = True, include_system1: bool = True,
+def evaluate_truck(truck_id: str, use_llm: bool = False, include_system1: bool = True,
                    persist: bool = True, client=None) -> dict | None:
-    with session_scope() as session:
-        context = build_context(session, truck_id, settings.intelligence_telemetry_window)
-    if context is None:
+    """Evaluate one truck from the canonical snapshot.
+
+    ``use_llm`` is accepted for compatibility but **ignored**: the displayed
+    numbers are always deterministic. The LLM never changes a stored value; it
+    only writes prose at ``POST /api/ai/explain``.
+    """
+    snap = snapshot(truck_id)
+    if snap is None:
         return None
-    result = evaluate_context(context, use_llm=use_llm, include_system1=include_system1, client=client)
+    context, base = snap
+    result = base
+    if include_system1:
+        sys1 = laya_mod.evaluate(context, base)
+        if sys1 is not None:
+            result = dict(base)
+            result["system1"] = sys1
+            result["provenance"] = {**base.get("provenance", {}), "system1": "PREDICTED"}
     if persist:
         _persist(result)
     return result

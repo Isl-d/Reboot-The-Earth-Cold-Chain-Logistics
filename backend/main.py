@@ -8,9 +8,11 @@ from __future__ import annotations
 import asyncio
 import contextlib
 import logging
+from pathlib import Path
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 
 from .cache import cache
 from .config import settings
@@ -111,6 +113,12 @@ def healthz() -> dict:
         "mqtt": pipeline.client is not None,
         "trucks": len(pipeline.truck_info),
     }
+
+
+@app.get("/control", include_in_schema=False)
+def control_panel() -> FileResponse:
+    """A standalone manual-control panel, deliberately separate from the app."""
+    return FileResponse(Path(__file__).resolve().parents[1] / "control" / "index.html")
 
 
 @app.websocket("/ws/live")

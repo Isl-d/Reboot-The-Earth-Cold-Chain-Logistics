@@ -60,6 +60,15 @@ make dev-web        # frontend on the host   (needs the backend on :8000)
 make test           # full pytest suite (SQLite, no network)
 ```
 
+## Manual control (outside the app)
+
+**http://localhost:8000/control** — a standalone panel to drive any truck by
+hand. Pick a truck and set its temperature, humidity, speed, g-force, door and
+refrigeration; press **Apply manual**. Manual mode pauses the simulator for that
+truck and feeds your exact values through the *same* pipeline, so every derived
+number stays a deterministic function of the reading. `GET/POST/DELETE
+/api/simulation/manual` is the API behind it. (`make control` prints the URL.)
+
 ## Architecture
 
 ```

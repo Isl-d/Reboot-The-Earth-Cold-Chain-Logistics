@@ -47,6 +47,13 @@ export default function ModelScreen() {
   const system1 = useSystem1(truckId, running)
   const explain = useExplain()
 
+  // Changing the truck must clear the previous truck's AI explanation, or the
+  // panel would show one truck's prose while another is selected.
+  useEffect(() => {
+    explain.reset()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [truckId])
+
   const samples = telemetry.data ?? []
   const safeTemperatureC = thermalExposure.data?.safeTemperatureC
   const excursionBands = useMemo(

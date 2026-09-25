@@ -45,6 +45,9 @@ laya-logs: ## follow the Laya (System 1) service log
 build-legacy: ## build all images with the legacy builder (use if BuildKit hangs)
 	DOCKER_BUILDKIT=0 $(COMPOSE) build
 
+control: ## print the standalone manual-control panel (drive any truck by hand)
+	@echo "Manual control panel: http://localhost:8000/control"
+
 watch:  ## watch raw telemetry on MQTT
 	mosquitto_sub -h localhost -t 'coldchain/#' -v
 
@@ -87,4 +90,4 @@ dev-landing:  ## run the static landing page on :5174 (no backend needed)
 build-landing: ## build the landing page into landing/dist
 	cd landing && npm install && npm run build
 
-.PHONY: help demo stop nuke status clean logs sim-logs laya-pull laya-logs build-legacy watch reset scenario predict test dev-backend dev-sim dev-sim-dry dev-web dev-nobroker dev-landing build-landing
+.PHONY: help demo stop nuke status clean logs sim-logs laya-pull laya-logs build-legacy control watch reset scenario predict test dev-backend dev-sim dev-sim-dry dev-web dev-nobroker dev-landing build-landing

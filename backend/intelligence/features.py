@@ -133,6 +133,7 @@ def compute(telemetry: list[dict], batch: dict | None) -> dict:
         "windowDistanceKm": round(distance_km, 3),
         "avgSpeedKmh": round(avg_speed, 2),
         "latestTemperatureC": round(temperatures[-1], 2) if temperatures else None,
+        "currentDeviationC": round(max(0.0, temperatures[-1] - safe_max), 2) if temperatures else 0.0,
         "minTemperatureC": round(min(temperatures), 2) if temperatures else None,
         "maxTemperatureC": round(max(temperatures), 2) if temperatures else None,
         "readings": len(telemetry),
