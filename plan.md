@@ -79,7 +79,7 @@ Not taken: any map, clustered markers, pie charts, °F (we use °C).
 
 - [x] Segment 0 — Project scaffold
 - [x] Segment 1 — Design system foundation
-- [ ] Segment 2 — Data layer, API contracts, mock backend
+- [x] Segment 2 — Data layer, API contracts, mock backend
 - [ ] Segment 3 — Minimal shell
 - [ ] Segment 4 — Simulation screen
 - [ ] Segment 5 — Mathematical Model screen
