@@ -7,9 +7,10 @@ PYTHON ?= $(shell [ -x .venv/bin/python ] && echo .venv/bin/python || echo pytho
 help:   ## show this help
 	@grep -hE '^[a-z-]+:.*?## ' $(MAKEFILE_LIST) | awk -F':.*?## ' '{printf "  \033[1m%-16s\033[0m %s\n", $$1, $$2}'
 
-demo:   ## start the whole pipeline (broker, db, redis, backend, simulator, frontend)
+demo:   ## start the whole pipeline (broker, db, redis, laya, backend, simulator, frontend, landing)
 	$(COMPOSE) up -d --build
-	@echo "Frontend   http://localhost:5173"
+	@echo "App        http://localhost:5173"
+	@echo "Landing    http://localhost:5174"
 	@echo "API        http://localhost:8000/api/trucks"
 	@echo "WebSocket  ws://localhost:8000/ws/live"
 	@echo "Docs       http://localhost:8000/docs"

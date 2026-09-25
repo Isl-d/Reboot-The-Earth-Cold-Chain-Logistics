@@ -869,5 +869,9 @@ in the router):
 - `POST /api/ai/triage` `{message}` → `{ triage: { intent, intentConfidence, urgency, needsHuman } | null }`
 - `POST /api/ai/moderate` `{text}` → `{ moderation: { flagged, unsafeInstruction, toxic } | null }`
 - `GET /api/ai/grounding?q=&k=` → `{ query, count, sources:[{id,title,source,licence,url}], prompt }`
+- `POST /api/actions/execute` `{truckId?,batchId?,action,destinationId?,source?}` → the executed action `{ id, truckId, batchId, action, destinationId, status, source, detail, createdAt }`
+- `POST /api/actions/auto/{truckId}` → `{ executed: bool, reason, action, result? }` (bounded auto-pilot: only when risk is HIGH/CRITICAL)
+- `GET /api/actions?truckId=&limit=` → `{ actions: [ … ] }`
+- `GET /api/stores` → `{ stores: [ { id, name, latitude, longitude, capacityKg } ] }`
 - `GET /api/system1/{truckId}` → `{ truckId, batchId, available, system1, deterministicDecision, generatedAt }` (see 4.9; `system1` is `null` when Laya is off)
 - `GET /docs` — OpenAPI UI

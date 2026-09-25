@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import datetime as dt
 import json
+import time
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -119,9 +120,20 @@ def get_recommendation(batch_id: str, refresh: bool = Query(default=False)) -> d
 
 
 # --------------------------------------------------------------- system 1 (Laya)
+# A short TTL cache so the UI can poll cheaply: Laya on CPU costs seconds per
+# call, and one fresh result per TTL is plenty for a dashboard.
+_SYSTEM1_TTL_S = 10.0
+_system1_cache: dict[str, tuple[float, dict]] = {}
+
+
 @router.get("/system1/{truck_id}")
 def get_system1(truck_id: str) -> dict:
     """The local Laya System-1 read for a truck, next to the deterministic decision."""
+    now = time.monotonic()
+    cached = _system1_cache.get(truck_id)
+    if cached and (now - cached[0]) < _SYSTEM1_TTL_S:
+        return cached[1]
+
     with session_scope() as session:
         if session.get(Truck, truck_id) is None:
             raise HTTPException(status_code=404, detail=f"unknown truck '{truck_id}'")
@@ -129,7 +141,7 @@ def get_system1(truck_id: str) -> dict:
     if result is None:
         raise HTTPException(status_code=404, detail=f"no data for truck '{truck_id}'")
     system1 = result.get("system1")
-    return {
+    payload = {
         "truckId": truck_id,
         "batchId": result.get("batchId"),
         "available": system1 is not None,
@@ -137,6 +149,8 @@ def get_system1(truck_id: str) -> dict:
         "deterministicDecision": result.get("decision"),
         "generatedAt": result.get("generatedAt"),
     }
+    _system1_cache[truck_id] = (now, payload)
+    return payload
 
 
 # ----------------------------------------------------------------- optimization

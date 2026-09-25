@@ -50,6 +50,7 @@ def live(client):
     from backend import cache as cache_mod
     from backend.db import session_scope
     from backend.models import (
+        Action,
         DeviceEvent,
         Incident,
         IngestReject,
@@ -60,9 +61,12 @@ def live(client):
     from backend.processing import tracker
 
     with session_scope() as session:
-        for model in (SensorReading, DeviceEvent, Incident, IngestReject, Prediction, SimulationRun):
+        for model in (Action, SensorReading, DeviceEvent, Incident, IngestReject, Prediction, SimulationRun):
             session.execute(delete(model))
 
     tracker.reset()
     cache_mod.cache.clear()
+    # The System-1 endpoint has a short TTL cache; clear it so tests are isolated.
+    from backend.routers import intelligence as _intel_router
+    _intel_router._system1_cache.clear()
     yield

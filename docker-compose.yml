@@ -97,9 +97,18 @@ services:
     ports: ["8100:8000"]
     volumes:
       - laya_models:/models
+    environment:
+      # Cap inference threads: many concurrent CPU forward passes oversubscribe
+      # the machine (we measured 835% CPU and request timeouts without this).
+      LAYA_THREADS: "${LAYA_THREADS:-4}"
+      # English-only halves memory and build cost; multilingual stays available
+      # by overriding LAYA_MODELS=english,multilingual.
+      LAYA_MODELS: "${LAYA_MODELS:-english}"
+      LAYA_PRELOAD: "1"
+      LAYA_DEVICE: "cpu"
     healthcheck:
-      # Probe the real endpoint with empty questions (no forward pass).
-      test: ["CMD", "python", "-c", "import json,urllib.request,sys; req=urllib.request.Request('http://localhost:8000/v1/systemone', data=json.dumps({'state':'','questions':{}}).encode(), headers={'Content-Type':'application/json'}); sys.exit(0 if urllib.request.urlopen(req, timeout=5).status==200 else 1)"]
+      # Cheap liveness probe; needs no model forward pass.
+      test: ["CMD", "python", "-c", "import urllib.request,sys; sys.exit(0 if urllib.request.urlopen('http://localhost:8000/openapi.json', timeout=5).status==200 else 1)"]
       interval: 15s
       timeout: 8s
       retries: 40
@@ -114,6 +123,16 @@ services:
       # Inside the compose network the backend is reachable by service name.
       VITE_API_PROXY: "http://backend:8000"
       VITE_USE_MOCKS: "false"
+    depends_on:
+      backend: {condition: service_started}
+
+  landing:
+    build:
+      context: ./landing
+      dockerfile: Dockerfile
+    ports: ["5174:5174"]
+    environment:
+      VITE_API_PROXY: "http://backend:8000"
     depends_on:
       backend: {condition: service_started}
 

@@ -41,16 +41,12 @@ class IntelligenceWorker(threading.Thread):
                 try:
                     now = time.monotonic()
                     # Deterministic chain every cycle (fast, no network).
-                    # System 1 is throttled: on CPU each Laya call costs seconds,
-                    # and the on-demand /api/system1 endpoint is always fresh.
-                    include_system1 = (
-                        (now - self._last_system1.get(truck_id, 0.0)) >= settings.laya_min_interval_s
-                    )
+                    # System 1 is NOT run in the background: on CPU each Laya
+                    # call costs seconds, so the on-demand /api/system1 endpoint
+                    # is the only caller. That keeps the worker and Laya idle.
                     result = engine.evaluate_truck(
-                        truck_id, use_llm=False, include_system1=include_system1
+                        truck_id, use_llm=False, include_system1=False
                     )
-                    if include_system1:
-                        self._last_system1[truck_id] = now
 
                     level = (result or {}).get("riskLevel")
 

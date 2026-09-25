@@ -18,7 +18,7 @@ from .db import health as db_health
 from .db import init_db
 from .ingest.consumer import pipeline
 from .intelligence.worker import worker as intelligence_worker
-from .routers import events, incidents, intelligence, internal, inventory, model, opendata, routes, simulation, telemetry, trucks, warehouses
+from .routers import actions, events, incidents, intelligence, internal, inventory, model, opendata, routes, simulation, stores, telemetry, trucks, warehouses
 from .routers.trucks import fleet_snapshot
 from .seed import seed
 from .ws import manager
@@ -64,9 +64,11 @@ app.add_middleware(
 app.include_router(trucks.router)
 app.include_router(telemetry.router)
 app.include_router(warehouses.router)
+app.include_router(stores.router)
 app.include_router(inventory.router)
 app.include_router(incidents.router)
 app.include_router(events.router)
+app.include_router(actions.router)
 app.include_router(opendata.router)
 app.include_router(routes.router)
 app.include_router(simulation.router)

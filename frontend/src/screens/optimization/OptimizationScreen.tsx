@@ -1,8 +1,11 @@
 import { useEffect, useState } from 'react'
 import { useLocation } from 'react-router-dom'
 import {
+  useActions,
+  useAutoPilot,
   useDeterioration,
   useEvaluateOptimization,
+  useExecuteAction,
   useOptimizationCandidates,
   useSimTruckOptions,
   useSimulationState,
@@ -54,6 +57,11 @@ export default function OptimizationScreen() {
 
   const optimization = useOptimizationCandidates(truckId, batchId)
   const evaluate = useEvaluateOptimization()
+
+  // Actions: turn the recommendation into a recorded, auditable operation.
+  const actionsQuery = useActions(truckId, Boolean(truckId))
+  const executeAction = useExecuteAction()
+  const autoPilot = useAutoPilot()
 
   const selected = optimization.data?.selectedCandidate
   const remainingSafeMinutes = deterioration.data ? deterioration.data.remainingShelfLifeHours * 60 : undefined
@@ -244,6 +252,89 @@ export default function OptimizationScreen() {
               despite failing: <span className="text-status-critical-fg">{unmetLabels.join(', ')}</span>
               {metLabels.length > 0 && <> (it does meet: {metLabels.join(', ')})</>}.
             </p>
+          )}
+        </Card>
+      )}
+
+      {/* Execution — where intelligence acts, not just advises */}
+      {selected && (
+        <Card className="col-span-4 tablet:col-span-8 desktop:col-span-12 p-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-headline-sm text-navy">Execution</h2>
+            <ProvenanceBadge kind="recommended" />
+          </div>
+          <p className="mt-1 text-body-sm text-muted">
+            The optimizer&apos;s recommendation becomes an action: dispatched, recorded and auditable.
+            Auto-pilot executes the engine&apos;s own recommendation when risk is HIGH or CRITICAL.
+          </p>
+          <div className="mt-3 flex flex-wrap items-center gap-3">
+            <Button
+              disabled={!truckId || !allFeasible || executeAction.isPending}
+              onClick={() =>
+                executeAction.mutate({
+                  truckId,
+                  batchId,
+                  action: 'DIVERT',
+                  destinationId: selected.warehouseId,
+                  source: 'operator',
+                })
+              }
+            >
+              {executeAction.isPending ? 'Executing…' : `Execute DIVERT → ${selected.warehouseId}`}
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={!truckId || executeAction.isPending}
+              onClick={() => executeAction.mutate({ truckId, action: 'ACKNOWLEDGE', source: 'operator' })}
+            >
+              Acknowledge incidents
+            </Button>
+            <Button
+              variant="secondary"
+              disabled={!truckId || autoPilot.isPending}
+              onClick={() => autoPilot.mutate(truckId)}
+            >
+              {autoPilot.isPending ? 'Running…' : 'Auto-pilot: execute recommendation'}
+            </Button>
+          </div>
+
+          {executeAction.data && (
+            <p className="mt-3 text-body-sm text-navy">
+              Executed <span className="font-mono">{executeAction.data.action}</span>
+              {executeAction.data.destinationId ? ` → ${executeAction.data.destinationId}` : ''} ({executeAction.data.id})
+            </p>
+          )}
+          {autoPilot.data && (
+            <p className="mt-3 text-body-sm text-muted">
+              Auto-pilot:{' '}
+              {autoPilot.data.executed
+                ? `executed ${autoPilot.data.action}`
+                : autoPilot.data.reason}
+            </p>
+          )}
+
+          {actionsQuery.data && actionsQuery.data.length > 0 && (
+            <>
+              <h3 className="mt-4 text-label-ui uppercase text-muted">Recent actions</h3>
+              <ul className="mt-2 space-y-1">
+                {actionsQuery.data.slice(0, 5).map((a) => (
+                  <li
+                    key={a.id}
+                    className="flex items-center justify-between gap-3 border-b border-line py-1.5 text-body-sm last:border-b-0"
+                  >
+                    <span className="text-navy">
+                      {a.action}
+                      {a.destinationId ? ` → ${a.destinationId}` : ''}
+                    </span>
+                    <span className="flex items-center gap-2 text-muted">
+                      <ActionChip action={a.action} />
+                      <span>{a.source}</span>
+                      <span className="font-mono">{a.createdAt ?? ''}</span>
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </Card>
       )}

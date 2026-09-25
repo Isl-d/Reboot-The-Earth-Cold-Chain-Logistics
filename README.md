@@ -88,6 +88,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full map and
 | `backend/` | FastAPI app: ingestion, REST, WebSocket, intelligence (Persons 3 + 4) |
 | `sensor-simulator/` | Truck physics + scenario engine, reads `data/*.csv` |
 | `frontend/` | The one React app: command center **and** intelligence screens |
+| `landing/` | Marketing/landing page (React + three.js) that reads the same live backend |
 | `laya/` | Container for the local System-1 decision engine (`laya-serve`) |
 | `data/` | Reference CSVs (trucks, products, batches, warehouses, routes, inventory) + `opendata/` catalogue |
 | `tests/` | pytest suite, including the end-to-end demo test |
@@ -178,6 +179,9 @@ On connect the first frame is `HELLO` with the current fleet, then:
 | POST | `/api/ai/triage` | `{"message"}` — System-1 operator triage |
 | POST | `/api/ai/moderate` | `{"text"}` — System-1 output moderation |
 | GET | `/api/ai/grounding` | `?q=` — retrieved, cited passages (no vector DB) |
+| POST | `/api/actions/execute` | execute an action (`DIVERT`, `ACKNOWLEDGE`, `PRIORITIZE_SALE`, …) |
+| POST | `/api/actions/auto/{truckId}` | auto-pilot: execute the engine's own recommendation |
+| GET | `/api/actions` | recent executed actions (audit trail) |
 | GET | `/api/recommendations/{batchId}` | action + destination + reasoning |
 
 **Person 3 ↔ Person 4 seam**
@@ -254,6 +258,15 @@ Explanations can cite a small, curated, openly-licensed corpus
 embeddings, no vector store. Laya decides whether grounding is needed; the
 retrieved passages are injected as numbered sources and returned to the client
 with their licence. Inspect any query at `GET /api/ai/grounding?q=...`.
+
+### Actions — where the AI acts, not just explains
+
+A recommendation is advice; an **action** is the recorded, auditable fact that it
+was carried out. `POST /api/actions/execute` dispatches a diversion, acknowledges
+incidents, or prioritises stock for sale; `POST /api/actions/auto/{truckId}` is a
+bounded auto-pilot that executes the engine's own recommendation when risk is
+HIGH/CRITICAL. Every action is stored and broadcast as `ACTION_EXECUTED`, and the
+Optimization screen exposes Execute / Acknowledge / Auto-pilot controls.
 
 ### Provenance
 

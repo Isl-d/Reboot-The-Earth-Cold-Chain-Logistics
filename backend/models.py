@@ -246,3 +246,25 @@ class Prediction(Base):
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
 
     __table_args__ = (Index("ix_predictions_truck_created", "truck_id", "created_at"),)
+
+
+class Action(Base):
+    """An executed operational action — the point where intelligence acts.
+
+    The recommendation is advice; an Action is the recorded, auditable fact that
+    someone (or the auto-pilot) acted on it: a diversion dispatched, stock
+    prioritised for sale, an incident acknowledged.
+    """
+    __tablename__ = "actions"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True)
+    truck_id: Mapped[str | None] = mapped_column(String)
+    batch_id: Mapped[str | None] = mapped_column(String)
+    action: Mapped[str] = mapped_column(String, nullable=False)
+    destination_id: Mapped[str | None] = mapped_column(String)
+    status: Mapped[str] = mapped_column(String, nullable=False, default="EXECUTED")
+    source: Mapped[str] = mapped_column(String, nullable=False, default="operator")  # operator | auto
+    detail: Mapped[dict | None] = mapped_column(JSONType)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+    __table_args__ = (Index("ix_actions_truck_created", "truck_id", "created_at"),)
