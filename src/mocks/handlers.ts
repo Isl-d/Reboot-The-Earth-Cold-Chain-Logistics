@@ -238,14 +238,18 @@ export async function getInventory(): Promise<InventoryBatchDto[]> {
 
 export async function getTruckTelemetry(truckId: string): Promise<TelemetrySampleDto[]> {
   const state = mockSimulationStore.get(truckId)
-  const scenario: ScenarioId = state?.scenario ?? 'NORMAL'
+  // No state means the truck was never started, or was just reset — there is
+  // no history to show, not even a fabricated baseline point.
+  if (!state) return []
+
+  const scenario = state.scenario
   const simMinutes = mockSimulationStore.elapsedSimMinutes(truckId)
   // Sample density is tied to REAL elapsed seconds, not sim-minutes — at a
   // high speedMultiplier, 1 sim-minute passes in well under a second, which
   // would otherwise starve the chart of new points between 2s polls.
-  const realSecondsElapsed = state ? (simMinutes * 60) / state.speedMultiplier : 0
+  const realSecondsElapsed = (simMinutes * 60) / state.speedMultiplier
   const points = Math.min(60, Math.max(1, Math.ceil(realSecondsElapsed)))
-  const startedAtMs = state?.startedAtMs ?? Date.now()
+  const startedAtMs = state.startedAtMs
   return Array.from({ length: points }, (_, i) => {
     const t = (simMinutes / points) * (i + 1)
     return {
