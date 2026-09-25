@@ -15,14 +15,16 @@ re-run the engine (and the LLM) on demand.
 from __future__ import annotations
 
 import datetime as dt
+import json
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
 from sqlalchemy import select
 
+from ..config import settings
 from ..context import build_context
 from ..db import session_scope
-from ..intelligence import engine, features as features_mod, forecasting, inventory_opt, llm as llm_mod, optimization, spoilage
+from ..intelligence import engine, features as features_mod, forecasting, inventory_opt, knowledge, laya as laya_mod, llm as llm_mod, optimization, spoilage
 from ..models import Inventory, Prediction, Product, ProductBatch, Truck
 
 router = APIRouter(prefix="/api", tags=["intelligence"])
@@ -427,32 +429,184 @@ def ai_explain(body: ExplainIn) -> dict:
             if context is None:
                 raise HTTPException(status_code=404, detail=f"unknown truck '{body.truckId}'")
             facts = engine.evaluate_context(context, use_llm=False)
+            facts.setdefault("product", (context.get("batch") or {}).get("product"))
         elif body.batchId:
             facts = _resolve(body.batchId, refresh=False)
         else:
             raise HTTPException(status_code=422, detail="provide facts, truckId or batchId")
 
-    # Only structured facts are ever given to the model.
-    client = llm_mod.get_client()
-    if client.available:
-        system = (
-            "You are the cold-chain explainer. Explain the situation using ONLY the supplied "
-            "facts and recommend an action. Never invent numbers. Reply as JSON: "
-            '{"explanation": "<plain language>", "action": "<CONTINUE|MONITOR|'
-            'PREPARE_INTERVENTION|DIVERT|TRANSFER|DISCOUNT|PRIORITIZE_SALE|REDISTRIBUTE>"}.'
-        )
-        reply = client.complete_json(system, str(facts))
-        if reply:
-            return {"source": "explainer", "modelVersion": client.model,
-                    "explanation": reply.get("explanation"), "action": reply.get("action"),
-                    "facts": facts}
+    state = _explain_state(facts)
 
-    explanation = _template_explanation(facts)
-    return {"source": "template", "modelVersion": "template-1",
-            "explanation": explanation,
-            "action": (facts.get("recommendation") or {}).get("action")
-            or (facts.get("decision") or {}).get("action"),
-            "facts": facts}
+    # 1. System-1 prompt guardrail on any free-text input, before the model sees it.
+    guardrails = laya_mod.guard(body.question) if body.question else None
+    if guardrails and guardrails.get("flagged"):
+        return {
+            "source": "guardrail", "modelVersion": "laya-guardrails", "blocked": True,
+            "explanation": "Request blocked by the local prompt guardrail.",
+            "action": None, "grounded": False, "sources": [],
+            "routing": None, "grounding": None, "guardrails": guardrails,
+            "moderation": None, "facts": facts,
+        }
+
+    # 2 + 3. For an incident (HIGH/CRITICAL) we already know we want the frontier
+    # model and grounding, so skip a System-1 policy call and save ~6 s on CPU.
+    # Otherwise Laya decides whether a frontier call is even warranted.
+    is_incident = facts.get("riskLevel") in {"HIGH", "CRITICAL"}
+    policy = None if is_incident else laya_mod.explain_policy(state)
+    routing = (policy or {}).get("routing")
+    grounding = (policy or {}).get("grounding")
+    wants_sources = grounding is None or grounding.get("needsGrounding", True)
+    passages = knowledge.retrieve(_grounding_query(facts)) if wants_sources else []
+
+    # 4. Generate. A HIGH/CRITICAL incident always gets the frontier model.
+    use_frontier = (
+        routing is None
+        or routing.get("useFrontier", True)
+        or is_incident
+    )
+    client = llm_mod.get_client()
+    action = (facts.get("recommendation") or {}).get("action") or (facts.get("decision") or {}).get("action")
+    explanation = None
+    source = "template"
+    model_version = "template-1"
+
+    if use_frontier and client.available:
+        system = _explainer_system(bool(passages))
+        compact = json.dumps(_compact_facts(facts), ensure_ascii=False)
+        user = compact
+        if passages:
+            user = "SOURCES:\n" + knowledge.as_prompt(passages) + "\n\nFACTS:\n" + compact
+        if body.question:
+            user += f"\n\nQUESTION: {body.question}"
+        reply = client.complete_json(system, user)
+        if reply:
+            explanation = reply.get("explanation")
+            action = reply.get("action") or action
+            source = "explainer"
+            model_version = client.model
+
+    if not explanation:
+        explanation = _template_explanation(facts)
+
+    # 5. Output moderation is available on demand at POST /api/ai/moderate, but
+    #    is kept off the explain hot path: the base checkpoint is uncalibrated
+    #    and a second CPU round-trip would double the response time.
+    moderation = None
+
+    return {
+        "source": source, "modelVersion": model_version, "blocked": False,
+        "explanation": explanation, "action": action,
+        "grounded": bool(passages), "sources": knowledge.sources(passages),
+        "routing": routing, "grounding": grounding,
+        "guardrails": guardrails, "moderation": moderation,
+        "facts": facts,
+    }
+
+
+def _explain_state(facts: dict) -> dict:
+    """The compact state Laya reasons over for routing/grounding decisions."""
+    system1 = facts.get("system1") or {}
+    return {
+        "riskLevel": facts.get("riskLevel"),
+        "condition": system1.get("condition"),
+        "anomalyType": facts.get("anomalyType"),
+        "spoilageProbability": facts.get("spoilageProbability"),
+        "thermalExposure": facts.get("thermalExposure"),
+        "action": (facts.get("recommendation") or {}).get("action"),
+    }
+
+
+def _grounding_query(facts: dict) -> str:
+    system1 = facts.get("system1") or {}
+    parts = [
+        str(facts.get("product") or ""),
+        str(facts.get("anomalyType") or ""),
+        str(system1.get("condition") or ""),
+        str(system1.get("cause") or ""),
+        str(facts.get("riskLevel") or ""),
+        "cold chain food safety temperature",
+    ]
+    return " ".join(p for p in parts if p)
+
+
+def _compact_facts(facts: dict) -> dict:
+    """Only what the explainer needs, so the prompt stays small and fast."""
+    system1 = facts.get("system1") or {}
+    rec = facts.get("recommendation") or {}
+    decision = facts.get("decision") or {}
+    opt = facts.get("optimization") or {}
+    return {
+        "batchId": facts.get("batchId"),
+        "truckId": facts.get("truckId"),
+        "product": facts.get("product"),
+        "temperatureC": facts.get("temperatureC"),
+        "thermalExposure": facts.get("thermalExposure"),
+        "exposureMinutes": facts.get("exposureMinutes"),
+        "deteriorationFraction": facts.get("deteriorationFraction"),
+        "remainingShelfLifeHours": facts.get("remainingShelfLifeHours"),
+        "spoilageProbability": facts.get("spoilageProbability"),
+        "riskScore": facts.get("riskScore"),
+        "riskLevel": facts.get("riskLevel"),
+        "anomaly": facts.get("anomaly"),
+        "anomalyType": facts.get("anomalyType"),
+        "routeDelayMinutes": facts.get("routeDelayMinutes"),
+        "selectedWarehouseId": opt.get("selectedWarehouseId"),
+        "decision": decision.get("action"),
+        "recommendation": {
+            "action": rec.get("action"),
+            "destinationId": rec.get("destinationId"),
+            "etaMinutes": rec.get("etaMinutes"),
+            "expectedLossPercent": rec.get("expectedLossPercent"),
+            "foodSavedKg": rec.get("foodSavedKg"),
+        },
+        "system1": {
+            "condition": system1.get("condition"),
+            "cause": system1.get("cause"),
+            "action": system1.get("action"),
+        } if system1 else None,
+    }
+
+
+def _explainer_system(with_sources: bool) -> str:
+    return (
+        "You are the cold-chain explainer. Explain the situation using ONLY the supplied "
+        "facts and recommend an action. Never invent numbers. "
+        + ("Cite supporting sources inline as [n] when you use them. " if with_sources else "")
+        + 'Reply as JSON: {"explanation": "<plain language>", "action": "<CONTINUE|MONITOR|'
+        'PREPARE_INTERVENTION|DIVERT|TRANSFER|DISCOUNT|PRIORITIZE_SALE|REDISTRIBUTE>"}.'
+    )
+
+
+class TriageIn(BaseModel):
+    message: str
+
+
+@router.post("/ai/triage")
+def ai_triage(body: TriageIn) -> dict:
+    """System-1 triage of an operator message (intent, urgency, human hand-off)."""
+    return {"triage": laya_mod.triage(body.message)}
+
+
+class ModerateIn(BaseModel):
+    text: str
+
+
+@router.post("/ai/moderate")
+def ai_moderate(body: ModerateIn) -> dict:
+    """System-1 output moderation, on demand (kept off the explain hot path)."""
+    return {"moderation": laya_mod.moderate(body.text)}
+
+
+@router.get("/ai/grounding")
+def ai_grounding(q: str = Query(default=""), k: int = Query(default=3, ge=1, le=10)) -> dict:
+    """Show exactly which curated, cited passages a query retrieves. No vector DB."""
+    passages = knowledge.retrieve(q, k) if q else []
+    return {
+        "query": q,
+        "count": len(passages),
+        "sources": knowledge.sources(passages),
+        "prompt": knowledge.as_prompt(passages) if passages else "",
+    }
 
 
 def _template_explanation(facts: dict) -> str:

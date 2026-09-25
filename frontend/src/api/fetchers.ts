@@ -8,6 +8,7 @@
 
 import {
   adaptDeterioration,
+  adaptExplain,
   adaptFoodLossAnalytics,
   adaptFoodLossSeries,
   adaptInventoryBatch,
@@ -23,6 +24,7 @@ import {
 import { apiClient, USE_MOCKS } from './client'
 import type {
   DeteriorationDto,
+  ExplainDto,
   FoodLossAnalyticsDto,
   FoodLossSeriesDto,
   InventoryBatchDto,
@@ -42,6 +44,7 @@ import { endpoints } from './endpoints'
 import * as mock from '../mocks/handlers'
 import type {
   Deterioration,
+  ExplainResult,
   FoodLossAnalytics,
   FoodLossSeries,
   InventoryBatch,
@@ -121,6 +124,12 @@ export async function fetchSpoilagePrediction(truckId: string): Promise<Spoilage
 export async function fetchSystem1(truckId: string): Promise<System1Decision> {
   const dto = await apiClient.get<System1Dto>(endpoints.system1(truckId)).then((r) => r.data)
   return adaptSystem1(dto)
+}
+
+// ---- Grounded explanation (System 1 routing/guardrails + System 2 prose) -----
+export async function fetchExplain(truckId: string, question?: string): Promise<ExplainResult> {
+  const dto = (await apiClient.post<ExplainDto>(endpoints.explain, { truckId, question })).data
+  return adaptExplain(dto)
 }
 
 // ---- Optimization -----------------------------------------------------------

@@ -41,6 +41,9 @@ laya-pull: ## download the Laya checkpoints once (~1.4 GB), before the demo
 laya-logs: ## follow the Laya (System 1) service log
 	$(COMPOSE) logs -f laya
 
+build-legacy: ## build all images with the legacy builder (use if BuildKit hangs)
+	DOCKER_BUILDKIT=0 $(COMPOSE) build
+
 watch:  ## watch raw telemetry on MQTT
 	mosquitto_sub -h localhost -t 'coldchain/#' -v
 
@@ -77,4 +80,4 @@ dev-web:      ## run the frontend dev server on the host (needs the backend on :
 dev-nobroker: ## the whole pipeline on one host, no broker/db/docker
 	$(PYTHON) scripts/dev_no_broker.py
 
-.PHONY: help demo stop nuke status clean logs sim-logs laya-pull laya-logs watch reset scenario predict test dev-backend dev-sim dev-sim-dry dev-web dev-nobroker
+.PHONY: help demo stop nuke status clean logs sim-logs laya-pull laya-logs build-legacy watch reset scenario predict test dev-backend dev-sim dev-sim-dry dev-web dev-nobroker

@@ -1,5 +1,5 @@
 export { adaptSimulationState } from './simulation'
-export { adaptThermalExposure, adaptDeterioration, adaptSpoilagePrediction, adaptSystem1 } from './model'
+export { adaptThermalExposure, adaptDeterioration, adaptSpoilagePrediction, adaptSystem1, adaptExplain } from './model'
 export { adaptOptimizationResult } from './optimization'
 export { adaptFoodLossAnalytics, adaptFoodLossSeries } from './analytics'
 export { adaptInventoryBatch } from './inventory'

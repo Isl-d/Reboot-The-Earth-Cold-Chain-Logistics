@@ -1,5 +1,5 @@
-import { useQuery } from '@tanstack/react-query'
-import { fetchDeterioration, fetchSpoilagePrediction, fetchSystem1, fetchThermalExposure } from '../fetchers'
+import { useMutation, useQuery } from '@tanstack/react-query'
+import { fetchDeterioration, fetchExplain, fetchSpoilagePrediction, fetchSystem1, fetchThermalExposure } from '../fetchers'
 
 // The chain (Sensor data → thermal exposure → deterioration → spoilage → risk)
 // only needs to keep polling while a simulation is actually running.
@@ -41,5 +41,14 @@ export function useSystem1(truckId: string, running: boolean) {
     enabled: Boolean(truckId),
     refetchInterval: running ? POLL_MS : false,
     retry: false,
+  })
+}
+
+// On demand only: the grounded explanation costs a frontier-model call, so it
+// runs when the operator asks, not on a poll.
+export function useExplain() {
+  return useMutation({
+    mutationFn: ({ truckId, question }: { truckId: string; question?: string }) =>
+      fetchExplain(truckId, question),
   })
 }

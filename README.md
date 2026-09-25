@@ -172,7 +172,10 @@ On connect the first frame is `HELLO` with the current fleet, then:
 | GET | `/api/analytics/food-loss` · `/series` | predicted / avoided loss and value |
 | GET | `/api/analytics/scenario-comparison/{scenario}` | without vs with intervention |
 | GET | `/api/analytics/inventory` | forecast, excess, recommended action |
-| POST | `/api/ai/explain` | `{"facts"}` or `{"truckId"}` or `{"batchId"}` |
+| POST | `/api/ai/explain` | `{"facts"}` or `{"truckId"}` or `{"batchId"}` — routed, guarded, grounded, cited |
+| POST | `/api/ai/triage` | `{"message"}` — System-1 operator triage |
+| POST | `/api/ai/moderate` | `{"text"}` — System-1 output moderation |
+| GET | `/api/ai/grounding` | `?q=` — retrieved, cited passages (no vector DB) |
 | GET | `/api/recommendations/{batchId}` | action + destination + reasoning |
 
 **Person 3 ↔ Person 4 seam**
@@ -229,6 +232,26 @@ make laya-pull      # ~1.4 GB, cached in the laya_models volume
 If the service is not running, the system is unchanged — the System-1 block is
 simply absent. Base checkpoints ship over-confident, so the UI labels its
 confidence **uncalibrated**.
+
+**More ways Laya is used** (each fail-safe, each optional):
+
+- **Model routing** — decides whether a request needs the frontier model at all
+  (incidents always do; routine cases stay local). Surfaced on every explain.
+- **Prompt guardrails** — screens free text before it reaches DeepSeek; an
+  injection attempt is blocked and reported.
+- **Output moderation** — on demand at `POST /api/ai/moderate`.
+- **Operator triage** — intent, urgency and human hand-off at `POST /api/ai/triage`.
+- **Root-cause typing** — Laya classifies the likely cause alongside the condition.
+- **Grounding decision** — decides when an explanation should cite food-science
+  sources.
+
+### Grounding without a vector database
+
+Explanations can cite a small, curated, openly-licensed corpus
+(`data/knowledge/cold_chain.json`) retrieved by **pure-Python BM25** — no
+embeddings, no vector store. Laya decides whether grounding is needed; the
+retrieved passages are injected as numbered sources and returned to the client
+with their licence. Inspect any query at `GET /api/ai/grounding?q=...`.
 
 ### Provenance
 

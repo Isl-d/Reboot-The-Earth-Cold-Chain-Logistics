@@ -1,0 +1,122 @@
+[
+  {
+    "id": "product_chicken",
+    "title": "Fresh chicken storage",
+    "source": "Transcribed storage guidance (reference, verified=no)",
+    "licence": "Reference value — not certified",
+    "url": "data/opendata/product_reference.csv",
+    "text": "Fresh poultry is held chilled near 0–4 °C. Time spent above 4 °C accelerates microbial growth, and the effect compounds the longer the product stays warm. A short excursion is recoverable; a sustained one is not."
+  },
+  {
+    "id": "product_milk",
+    "title": "Fresh milk storage",
+    "source": "Transcribed storage guidance (reference, verified=no)",
+    "licence": "Reference value — not certified",
+    "url": "data/opendata/product_reference.csv",
+    "text": "Fresh milk is typically held at 2–6 °C. It tolerates a wider band than poultry but is more sensitive to time than to a brief temperature rise, so cumulative exposure matters more than any single reading."
+  },
+  {
+    "id": "product_lettuce",
+    "title": "Leafy greens storage",
+    "source": "Transcribed storage guidance (reference, verified=no)",
+    "licence": "Reference value — not certified",
+    "url": "data/opendata/product_reference.csv",
+    "text": "Leafy greens are held near 0–4 °C with high humidity. They are sensitive to water loss and to condensation; wet packaging can spoil faster than the air temperature alone would suggest."
+  },
+  {
+    "id": "thermal_exposure",
+    "title": "Thermal exposure",
+    "source": "Standard cold-chain principle",
+    "licence": "Concept (no proprietary data)",
+    "url": "",
+    "text": "Thermal exposure is the integral of the degrees above the safe maximum over time, in °C·min. It captures both how hot and for how long, which a single temperature reading cannot."
+  },
+  {
+    "id": "arrhenius",
+    "title": "Temperature-dependent deterioration",
+    "source": "Arrhenius kinetics (published model)",
+    "licence": "Published scientific model",
+    "url": "",
+    "text": "Deterioration rates rise with temperature roughly according to the Arrhenius relation. That is why a per-product activation energy is used, rather than one universal threshold."
+  },
+  {
+    "id": "shelf_life",
+    "title": "Remaining shelf life",
+    "source": "Shelf-life model",
+    "licence": "Concept (no proprietary data)",
+    "url": "",
+    "text": "Remaining shelf life is the initial shelf life reduced by the fraction already consumed by deterioration. It answers the operational question: will this still be acceptable when it arrives?"
+  },
+  {
+    "id": "humidity_condensation",
+    "title": "Humidity and condensation",
+    "source": "Psychrometric reference table",
+    "licence": "Computed from published formulae",
+    "url": "data/opendata/psychrometrics.csv",
+    "text": "When a door is open, warm humid ambient air meets a chilled pallet. If the incoming air's dew point is above the product's safe maximum, condensation forms on the cartons; wet cardboard can grow mould before temperature alone would spoil the load."
+  },
+  {
+    "id": "door_openings",
+    "title": "Door openings",
+    "source": "Operational principle",
+    "licence": "Concept (no proprietary data)",
+    "url": "",
+    "text": "A door opening raises the air temperature sharply but the cargo temperature only slowly, because of the thermal mass of the load. Alerting on every door event would be noise; the cargo condition is what matters."
+  },
+  {
+    "id": "cold_store_temperature",
+    "title": "Cold-store compatibility",
+    "source": "Warehouse reference data",
+    "licence": "Reference value — not certified",
+    "url": "data/warehouses.csv",
+    "text": "A diversion is only valid if the destination's temperature envelope contains the product's required range and it has enough spare capacity. Both are hard constraints before any cost is considered."
+  },
+  {
+    "id": "gulf_climate",
+    "title": "Hot-climate operation",
+    "source": "Region context",
+    "licence": "Context (no proprietary data)",
+    "url": "",
+    "text": "In the Gulf, summer ambient temperatures routinely exceed 45 °C. A refrigeration failure at midday drives a refrigerated box toward ambient quickly, so the safe window after a failure is short and the value of an early diversion is high."
+  },
+  {
+    "id": "food_loss_scale",
+    "title": "Scale of food loss and waste",
+    "source": "FAO / UNEP (2024), as cited in the project brief",
+    "licence": "Open citation",
+    "url": "https://www.fao.org/",
+    "text": "About 13% of food is lost between harvest and retail and a further 19% is wasted after that. Food loss and waste are associated with roughly 8–10% of global emissions."
+  },
+  {
+    "id": "emissions",
+    "title": "Emissions of avoided loss",
+    "source": "Published convention",
+    "licence": "Open convention",
+    "url": "",
+    "text": "Food that is not lost avoids the emissions embedded in producing, cooling and transporting it. Reporting avoided loss in kilograms of CO₂-equivalent links the food outcome to the climate outcome."
+  },
+  {
+    "id": "transport_delay",
+    "title": "Transport delay",
+    "source": "Operational principle",
+    "licence": "Concept (no proprietary data)",
+    "url": "",
+    "text": "A delay is only material if it worsens the condition — for example when the cooling is already failing. Delay cost and remaining safe time both feed the decision, not the delay alone."
+  },
+  {
+    "id": "cold_chain",
+    "title": "What a cold chain is",
+    "source": "Definitional",
+    "licence": "Concept (no proprietary data)",
+    "url": "",
+    "text": "A cold chain keeps perishable goods within a required temperature range from production through transport and storage to the point of sale. Its failure is usually discovered late, at the destination, after the food is already unsellable."
+  },
+  {
+    "id": "provenance_note",
+    "title": "How to read these values",
+    "source": "Project provenance policy",
+    "licence": "Open",
+    "url": "data/opendata/SOURCES.md",
+    "text": "Values marked as reference are transcribed literature figures, not measurements and not certified thresholds. They are provided so the platform runs offline, and must not be presented to anyone as sourced food-safety limits."
+  }
+]

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import {
   useDeterioration,
+  useExplain,
   useSimTruckOptions,
   useSimulationState,
   useSpoilagePrediction,
@@ -44,6 +45,7 @@ export default function ModelScreen() {
   const deterioration = useDeterioration(truckId, running)
   const spoilage = useSpoilagePrediction(truckId, running)
   const system1 = useSystem1(truckId, running)
+  const explain = useExplain()
 
   const samples = telemetry.data ?? []
   const safeTemperatureC = thermalExposure.data?.safeTemperatureC
@@ -223,8 +225,9 @@ export default function ModelScreen() {
           </div>
         ) : (
           <>
-            <div className="mt-3 grid grid-cols-1 gap-3 tablet:grid-cols-4">
+            <div className="mt-3 grid grid-cols-1 gap-3 tablet:grid-cols-3 desktop:grid-cols-5">
               <KpiCard label="Condition" value={system1.data.condition ?? '—'} provenance="predicted" compactProvenance />
+              <KpiCard label="Cause" value={system1.data.cause ?? '—'} provenance="predicted" compactProvenance />
               <KpiCard label="Action" value={system1.data.action ?? '—'} provenance="predicted" compactProvenance />
               <KpiCard
                 label="Urgency"
@@ -253,6 +256,60 @@ export default function ModelScreen() {
               </span>
             </div>
           </>
+        )}
+      </Card>
+
+      {/* Grounded explanation — System 1 routing/guardrails + System 2 prose */}
+      <Card className="col-span-4 tablet:col-span-8 desktop:col-span-12 p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-headline-sm text-navy">AI Explanation</h2>
+          <ProvenanceBadge kind="predicted" />
+        </div>
+        <p className="mt-1 text-body-sm text-muted">
+          A frontier model writes the explanation from the computed facts, citing passages retrieved
+          from the open-data corpus. Laya routes the request and screen the text; deterministic code
+          still owns every number.
+        </p>
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          <button
+            className="rounded-sm bg-primary px-3 py-2 text-label-ui uppercase text-base disabled:opacity-50"
+            disabled={!truckId || explain.isPending}
+            onClick={() => truckId && explain.mutate({ truckId })}
+          >
+            {explain.isPending ? 'Explaining…' : 'Explain with AI'}
+          </button>
+          {explain.data && (
+            <>
+              <StatusChip
+                tier={explain.data.usedFrontier ? 'warning' : 'safe'}
+                label={explain.data.usedFrontier ? 'Frontier model' : 'Local answer'}
+              />
+              {explain.data.grounded && (
+                <StatusChip tier="safe" label={`Grounded · ${explain.data.sources.length} sources`} />
+              )}
+              {explain.data.guardrailsFlagged && <StatusChip tier="critical" label="Guardrail tripped" />}
+              {explain.data.moderationFlagged && (
+                <span className="text-body-sm text-muted">Moderation note (uncalibrated)</span>
+              )}
+            </>
+          )}
+        </div>
+        {explain.isError && (
+          <div className="mt-3 text-body-sm text-risk-critical">Explanation failed — try again.</div>
+        )}
+        {explain.data && (
+          <div className="mt-3 space-y-3">
+            <p className="text-body-md text-navy">{explain.data.explanation}</p>
+            {explain.data.sources.length > 0 && (
+              <ol className="list-decimal pl-5 text-body-sm text-muted">
+                {explain.data.sources.map((s, i) => (
+                  <li key={i}>
+                    {s.title} — {s.source} <span className="italic">({s.licence})</span>
+                  </li>
+                ))}
+              </ol>
+            )}
+          </div>
         )}
       </Card>
     </>

@@ -60,8 +60,8 @@ class Settings(BaseSettings):
     # --- LLM (System 2) explainer --------------------------------------------
     llm_model: str = "openrouter/free"
     llm_base_url: str = "https://openrouter.ai/api/v1"
-    llm_timeout_s: float = 20.0
-    llm_max_tokens: int = 512
+    llm_timeout_s: float = 30.0
+    llm_max_tokens: int = 320
     # The model may only move a deterministic estimate by this much.
     llm_probability_band: float = 0.35
     # The background worker calls the LLM at most once this often per truck, so
@@ -104,8 +104,20 @@ class Settings(BaseSettings):
     # to override the deterministic decision engine; any failure is ignored.
     laya_enabled: bool = True
     laya_url: str = "http://localhost:8100"
-    laya_model: str = "router"  # router | english | multilingual
-    laya_timeout_s: float = 8.0
+    laya_model: str = "router"  # router | english | multilingual | typed-decisions
+    laya_timeout_s: float = 20.0
+    # Individual System-1 tasks (each fail-safe when Laya is unavailable).
+    laya_routing_enabled: bool = True       # local vs frontier model choice
+    laya_guardrails_enabled: bool = True    # prompt-injection / scope screening
+    laya_moderation_enabled: bool = True    # output safety screening
+    laya_triage_enabled: bool = True        # operator-message triage
+    # The worker asks Laya (System 1) at most once this often per truck, since on
+    # CPU each call costs seconds; on-demand endpoints are always fresh.
+    laya_min_interval_s: float = 30.0
+
+    # --- simple grounding (lexical retrieval, no vector database) ---------
+    grounding_enabled: bool = True
+    grounding_top_k: int = 3
 
 
 settings = Settings()

@@ -1,5 +1,5 @@
-import type { DeteriorationDto, SpoilagePredictionDto, System1Dto, ThermalExposureDto } from '../dto'
-import type { Deterioration, SpoilagePrediction, System1Decision, ThermalExposure } from '../types'
+import type { DeteriorationDto, ExplainDto, SpoilagePredictionDto, System1Dto, ThermalExposureDto } from '../dto'
+import type { Deterioration, ExplainResult, SpoilagePrediction, System1Decision, ThermalExposure } from '../types'
 import { expectNumber, expectString } from '../validation'
 
 export function adaptThermalExposure(dto: ThermalExposureDto): ThermalExposure {
@@ -40,6 +40,7 @@ export function adaptSystem1(dto: System1Dto): System1Decision {
   return {
     available: Boolean(dto.available && s),
     condition: s?.condition ?? null,
+    cause: s?.cause ?? null,
     action: s?.action ?? null,
     actionConfidence: s?.actionConfidence ?? null,
     agreesWithDecision: Boolean(s?.agreesWithDecision),
@@ -49,5 +50,25 @@ export function adaptSystem1(dto: System1Dto): System1Decision {
     latencyMs: s?.latencyMs ?? null,
     model: s?.model ?? null,
     calibrated: Boolean(s?.calibrated),
+  }
+}
+
+export function adaptExplain(dto: ExplainDto): ExplainResult {
+  return {
+    source: dto.source ?? 'template',
+    blocked: Boolean(dto.blocked),
+    explanation: dto.explanation ?? '',
+    action: dto.action ?? null,
+    grounded: Boolean(dto.grounded),
+    sources: (dto.sources ?? []).map((s) => ({
+      title: s.title ?? null,
+      source: s.source ?? null,
+      licence: s.licence ?? null,
+      url: s.url ?? null,
+    })),
+    routing: dto.routing?.decision ?? null,
+    usedFrontier: Boolean(dto.routing?.useFrontier),
+    guardrailsFlagged: Boolean(dto.guardrails?.flagged),
+    moderationFlagged: Boolean(dto.moderation?.flagged),
   }
 }

@@ -24,7 +24,7 @@ def _evaluate(truck_id: str) -> dict:
         truck = session.get(Truck, truck_id)
     if truck is None:
         raise HTTPException(status_code=404, detail=f"unknown truck '{truck_id}'")
-    result = engine.evaluate_truck(truck_id, use_llm=False, persist=False)
+    result = engine.evaluate_truck(truck_id, use_llm=False, include_system1=False, persist=False)
     if result is None:
         raise HTTPException(status_code=404, detail=f"no data for truck '{truck_id}'")
     return result

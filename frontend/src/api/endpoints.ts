@@ -13,6 +13,8 @@ export const endpoints = {
   deterioration: (truckId: string) => `/api/model/${truckId}/deterioration`,
   spoilagePrediction: (truckId: string) => `/api/model/${truckId}/spoilage`,
   system1: (truckId: string) => `/api/system1/${truckId}`,
+  explain: '/api/ai/explain',
+  grounding: '/api/ai/grounding',
   optimizationCandidates: (batchId: string) => `/api/optimization/${batchId}`,
   optimizationEvaluate: '/api/optimization/evaluate',
   foodLossAnalytics: '/api/analytics/food-loss',

@@ -1,5 +1,5 @@
 export { useSimulationState, useStartSimulation, useStopSimulation, useResetSimulation } from './useSimulation'
-export { useThermalExposure, useDeterioration, useSpoilagePrediction, useSystem1 } from './useModel'
+export { useThermalExposure, useDeterioration, useSpoilagePrediction, useSystem1, useExplain } from './useModel'
 export { useOptimizationCandidates, useEvaluateOptimization } from './useOptimization'
 export { useFoodLossAnalytics, useFoodLossSeries } from './useAnalytics'
 export { useInventory } from './useInventory'

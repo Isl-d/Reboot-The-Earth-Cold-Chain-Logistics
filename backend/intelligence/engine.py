@@ -49,7 +49,8 @@ def _route_delay_minutes(context: dict, derived: dict) -> float:
     return max(0.0, float(eta) - ideal)
 
 
-def evaluate_context(context: dict, use_llm: bool = True, client=None) -> dict:
+def evaluate_context(context: dict, use_llm: bool = True, include_system1: bool = True,
+                     client=None) -> dict:
     """Run the whole model chain over one context bundle (pure, no DB writes)."""
     batch = context.get("batch")
     telemetry = context.get("recentTelemetry") or []
@@ -125,7 +126,7 @@ def evaluate_context(context: dict, use_llm: bool = True, client=None) -> dict:
     # System 1 (Laya): local, non-autoregressive, typed decision. It corroborates
     # the deterministic decision above; it never replaces it. Any failure means
     # the key is simply absent.
-    sys1 = laya_mod.evaluate(context, result)
+    sys1 = laya_mod.evaluate(context, result) if include_system1 else None
     if sys1 is not None:
         result["system1"] = sys1
         result["provenance"]["system1"] = "PREDICTED"
@@ -208,13 +209,13 @@ def _persist(result: dict) -> None:
     })
 
 
-def evaluate_truck(truck_id: str, use_llm: bool = True, persist: bool = True,
-                   client=None) -> dict | None:
+def evaluate_truck(truck_id: str, use_llm: bool = True, include_system1: bool = True,
+                   persist: bool = True, client=None) -> dict | None:
     with session_scope() as session:
         context = build_context(session, truck_id, settings.intelligence_telemetry_window)
     if context is None:
         return None
-    result = evaluate_context(context, use_llm=use_llm, client=client)
+    result = evaluate_context(context, use_llm=use_llm, include_system1=include_system1, client=client)
     if persist:
         _persist(result)
     return result

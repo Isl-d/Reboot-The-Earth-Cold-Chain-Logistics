@@ -70,6 +70,8 @@ export interface System1Dto {
     model?: string | null
     condition?: string | null
     conditionConfidence?: number | null
+    cause?: string | null
+    causeConfidence?: number | null
     action?: string | null
     actionConfidence?: number | null
     agreesWithDecision?: boolean
@@ -84,6 +86,29 @@ export interface System1Dto {
   } | null
   deterministicDecision?: { action?: string; destinationId?: string | null } | null
   generatedAt?: string
+}
+
+/** POST /api/ai/explain — grounded explanation with citations and AI-layer metadata. */
+export interface ExplainSourceDto {
+  id?: string | null
+  title?: string | null
+  source?: string | null
+  licence?: string | null
+  url?: string | null
+}
+
+export interface ExplainDto {
+  source: string
+  modelVersion?: string
+  blocked?: boolean
+  explanation?: string | null
+  action?: string | null
+  grounded?: boolean
+  sources?: ExplainSourceDto[]
+  routing?: { decision?: string; useFrontier?: boolean; confidence?: number | null } | null
+  grounding?: { needsGrounding?: boolean; domain?: string } | null
+  guardrails?: { flagged?: boolean; promptInjection?: number | null } | null
+  moderation?: { flagged?: boolean } | null
 }
 
 // ---- Optimization (§3) ---------------------------------------------------

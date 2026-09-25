@@ -865,5 +865,9 @@ in the router):
 - `GET /api/trucks/{truckId}/events?limit=100` → `{ truckId, count, events: [ … ] }`, oldest first (see 4.8)
 - `GET /api/device-events?limit=100` → `{ count, events: [ … ] }` (see 4.8)
 - `GET /api/opendata` → `{ available, generatedAt, count, sources: [ { key, name, category, licence, url, access, output, fetched, status, rows } ], sourcesDoc, disclaimer }` — the licence/provenance catalogue for `data/opendata/`
+- `POST /api/ai/explain` → routed + guarded + grounded explanation: `{ source: "explainer"|"template"|"guardrail", blocked, explanation, action, grounded, sources:[{id,title,source,licence,url}], routing:{decision,useFrontier,confidence}|null, grounding:{needsGrounding,domain}|null, guardrails:{flagged,...}|null, moderation:null, facts }`
+- `POST /api/ai/triage` `{message}` → `{ triage: { intent, intentConfidence, urgency, needsHuman } | null }`
+- `POST /api/ai/moderate` `{text}` → `{ moderation: { flagged, unsafeInstruction, toxic } | null }`
+- `GET /api/ai/grounding?q=&k=` → `{ query, count, sources:[{id,title,source,licence,url}], prompt }`
 - `GET /api/system1/{truckId}` → `{ truckId, batchId, available, system1, deterministicDecision, generatedAt }` (see 4.9; `system1` is `null` when Laya is off)
 - `GET /docs` — OpenAPI UI

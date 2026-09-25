@@ -46,6 +46,7 @@ export interface SpoilagePrediction {
 export interface System1Decision {
   available: boolean
   condition: string | null
+  cause: string | null
   action: string | null
   actionConfidence: number | null
   agreesWithDecision: boolean
@@ -56,6 +57,27 @@ export interface System1Decision {
   model: string | null
   /** Base checkpoints ship over-confident; false until calibrated on our data. */
   calibrated: boolean
+}
+
+export interface ExplainSource {
+  title: string | null
+  source: string | null
+  licence: string | null
+  url: string | null
+}
+
+/** A grounded, cited explanation plus which AI layers were involved. */
+export interface ExplainResult {
+  source: string
+  blocked: boolean
+  explanation: string
+  action: string | null
+  grounded: boolean
+  sources: ExplainSource[]
+  routing: string | null
+  usedFrontier: boolean
+  guardrailsFlagged: boolean
+  moderationFlagged: boolean
 }
 
 export interface OptimizationCandidate {
