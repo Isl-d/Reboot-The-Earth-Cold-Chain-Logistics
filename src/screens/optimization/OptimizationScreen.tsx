@@ -73,18 +73,13 @@ export default function OptimizationScreen() {
       ]
     : []
 
-  const whyFeasible = selected
-    ? [
-        selected.temperatureCompatible ? 'is temperature-compatible' : null,
-        quantityKg !== undefined ? `has enough capacity (${selected.capacityKg} kg ≥ ${quantityKg} kg)` : null,
-        remainingSafeMinutes !== undefined
-          ? `can be reached within the remaining safe time (${selected.etaMinutes} min ≤ ${remainingSafeMinutes.toFixed(0)} min)`
-          : null,
-        selected.feasible ? 'the route is feasible' : null,
-      ]
-        .filter(Boolean)
-        .join(', ')
-    : ''
+  // Built from the same `constraints` checks above (not re-derived) so this
+  // text can never claim something the checklist itself shows as unmet —
+  // the mock/backend can select an infeasible candidate when NONE of them
+  // are feasible, and that case must read honestly, not as a success story.
+  const metLabels = constraints.filter((c) => c.ok === true).map((c) => c.label)
+  const unmetLabels = constraints.filter((c) => c.ok === false).map((c) => c.label)
+  const allFeasible = constraints.length > 0 && constraints.every((c) => c.ok !== false)
 
   return (
     <>
@@ -134,7 +129,7 @@ export default function OptimizationScreen() {
               </Thead>
               <tbody>
                 {optimization.data.candidates.map((c) => (
-                  <Tr key={c.warehouseId} statusTier={c.selected ? 'safe' : c.feasible ? undefined : 'offline'}>
+                  <Tr key={c.warehouseId} statusTier={!c.feasible ? 'critical' : c.selected ? 'safe' : undefined}>
                     <Td>
                       <span className="flex items-center gap-2">
                         {c.warehouseId}
@@ -200,10 +195,20 @@ export default function OptimizationScreen() {
             ))}
           </ul>
 
-          <h3 className="mt-4 text-label-ui uppercase text-muted">Why {selected.warehouseId} is feasible</h3>
-          <p className="mt-1 text-body-sm text-navy">
-            {selected.warehouseId} was selected because it {whyFeasible || 'meets the optimizer\'s constraints'}.
-          </p>
+          <h3 className="mt-4 text-label-ui uppercase text-muted">
+            {allFeasible ? `Why ${selected.warehouseId} is feasible` : `Why ${selected.warehouseId} was selected anyway`}
+          </h3>
+          {allFeasible ? (
+            <p className="mt-1 text-body-sm text-navy">
+              {selected.warehouseId} meets every constraint: {metLabels.join(', ')}.
+            </p>
+          ) : (
+            <p className="mt-1 text-body-sm text-navy">
+              No candidate met every constraint. {selected.warehouseId} was still the optimizer's best-scoring option,
+              despite failing: <span className="text-status-critical-fg">{unmetLabels.join(', ')}</span>
+              {metLabels.length > 0 && <> (it does meet: {metLabels.join(', ')})</>}.
+            </p>
+          )}
         </Card>
       )}
     </>
