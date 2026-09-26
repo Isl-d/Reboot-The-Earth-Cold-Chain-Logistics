@@ -107,55 +107,53 @@ body {
   --fly-s: 0.9;
 }
 
+/* Every entrance below animates only opacity and transform, which the GPU
+   composites for free. No filter/blur transitions: over playing video they
+   force a repaint of the whole stack on every frame. */
+
 /* Reveal: elements start offset and transparent, then settle in on scroll. */
 .reveal {
   opacity: 0;
   transform: translate(var(--fly-x), var(--fly-y)) scale(var(--fly-s));
-  filter: blur(4px);
   transition:
-    opacity 0.7s ease-out,
-    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
-    filter 0.7s ease-out;
+    opacity 0.55s ease-out,
+    transform 0.65s cubic-bezier(0.2, 0.7, 0.2, 1);
 }
 .reveal.is-visible {
   opacity: 1;
   transform: none;
-  filter: none;
 }
 
 /* Split words: each word flies in from the parent's edge, one after another.
-   Leaving is instant-ish so the next chapter's words are not fighting it. */
+   Leaving is quick so the next chapter's words are not fighting it. */
 .split-word {
   display: inline-block;
   opacity: 0;
   transform: translate(calc(var(--fly-x) * 0.6), var(--fly-y)) scale(var(--fly-s));
-  filter: blur(8px);
   transition:
-    opacity 0.3s ease,
-    transform 0.3s ease,
-    filter 0.3s ease;
+    opacity 0.2s ease,
+    transform 0.2s ease;
 }
 .split.is-visible .split-word {
   opacity: 1;
   transform: none;
-  filter: none;
   transition:
-    opacity 0.7s ease-out var(--d),
-    transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d),
-    filter 0.7s ease-out var(--d);
+    opacity 0.45s ease-out var(--d),
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d);
 }
 
 /* Journey: the words and documents of the active chapter fly in; the others
-   drop out quickly. */
+   drop out quickly and then leave the render tree (visibility), so hidden
+   chapters cost nothing while the video plays. */
 .fly,
 .doc-card {
   opacity: 0;
+  visibility: hidden;
   transform: translate(var(--fly-x), var(--fly-y)) scale(var(--fly-s));
-  filter: blur(6px);
   transition:
-    opacity 0.3s ease,
-    transform 0.3s ease,
-    filter 0.3s ease;
+    opacity 0.2s ease,
+    transform 0.2s ease,
+    visibility 0s linear 0.2s;
 }
 .doc-card {
   transform: translate(calc(var(--fly-x) * 1.4), calc(var(--fly-y) * 1.4)) scale(calc(var(--fly-s) * 0.94));
@@ -163,12 +161,12 @@ body {
 .is-active .fly,
 .is-active .doc-card {
   opacity: 1;
+  visibility: visible;
   transform: none;
-  filter: none;
   transition:
-    opacity 0.7s ease-out var(--d),
-    transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d),
-    filter 0.7s ease-out var(--d);
+    opacity 0.45s ease-out var(--d),
+    transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d),
+    visibility 0s linear 0s;
 }
 /* Lines of a document "typing" in, and a chart's bars growing. */
 .type-line {
@@ -179,8 +177,8 @@ body {
   opacity: 1;
   transform: none;
   transition:
-    opacity 0.35s ease var(--d),
-    transform 0.35s ease var(--d);
+    opacity 0.25s ease var(--d),
+    transform 0.25s ease var(--d);
 }
 .bar-grow {
   transform: scaleY(0);
@@ -188,51 +186,51 @@ body {
 }
 .is-active .bar-grow {
   transform: scaleY(1);
-  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d);
+  transition: transform 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d);
 }
 
-/* Journey stage: scenes cross-fade; the active clip eases in from a push. */
+/* Journey stage: scenes cross-fade; the active clip eases in from a push.
+   A scene that has faded out is hidden, so only one or two videos are ever
+   composited. The colour grade is baked into the clips (see the media
+   README), not applied here as a CSS filter. */
 .journey-scene {
   opacity: 0;
-  transition: opacity 1s ease;
+  visibility: hidden;
+  transition:
+    opacity 0.5s ease,
+    visibility 0s linear 0.5s;
+  will-change: opacity;
 }
 .journey-scene.is-active {
   opacity: 1;
+  visibility: visible;
+  transition:
+    opacity 0.5s ease,
+    visibility 0s linear 0s;
 }
 .journey-video {
-  filter: saturate(0.7) contrast(1.08) brightness(0.7);
-  transform: scale(1.12);
-  transition:
-    transform 1.2s ease,
-    opacity 1s ease;
+  transform: scale(1.1);
+  transition: transform 0.6s ease;
+  will-change: transform;
 }
 .journey-scene.is-active .journey-video {
   transform: scale(1.02);
-  transition:
-    transform 9s cubic-bezier(0.2, 0.6, 0.3, 1),
-    opacity 1s ease;
+  transition: transform 7s cubic-bezier(0.2, 0.6, 0.3, 1);
 }
 .rail-fill {
   transform-origin: left;
   transform: scaleX(clamp(0, calc(var(--p, 0) * var(--n) - var(--i)), 1));
 }
 
-/* Digital overlay: grade the footage into the brand, then add a display. */
-.footage-grade {
-  filter: saturate(0.8) contrast(1.05) brightness(0.85);
-}
-.digital-tint {
-  background: linear-gradient(160deg, #0c1825 0%, #0a3a4a 100%);
-  mix-blend-mode: color;
-  opacity: 0.55;
-}
+/* Digital overlay: static scanlines and one composited scan beam. */
 .scanlines {
   background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
-  opacity: 0.35;
+  opacity: 0.3;
 }
 .scan-beam {
   background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-primary) 5%, transparent) 80%, color-mix(in srgb, var(--color-primary) 22%, transparent) 99.5%, transparent);
   animation: scan-beam 8s linear infinite;
+  will-change: transform;
 }
 @keyframes scan-beam {
   from {
@@ -251,34 +249,30 @@ body {
 
 /* Hero entrance: each block rises in on load, staggered by inline delay. */
 .rise {
-  animation: rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 @keyframes rise {
   from {
     opacity: 0;
     transform: translateY(24px);
-    filter: blur(6px);
   }
   to {
     opacity: 1;
     transform: none;
-    filter: none;
   }
 }
 
 .rise-right {
-  animation: rise-right 1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: rise-right 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 @keyframes rise-right {
   from {
     opacity: 0;
     transform: translateX(64px);
-    filter: blur(6px);
   }
   to {
     opacity: 1;
     transform: none;
-    filter: none;
   }
 }
 

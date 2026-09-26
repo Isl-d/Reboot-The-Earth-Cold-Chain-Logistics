@@ -30,7 +30,7 @@ export default function ProvenanceTag({ tag, className = '' }: { tag: Tag; class
   const { dot, fg } = palette[tag]
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-sm border border-border/70 bg-base/60 px-1.5 py-0.5 font-mono text-[10px] font-medium tracking-[0.06em] backdrop-blur-sm ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-sm border border-border/70 bg-base/80 px-1.5 py-0.5 font-mono text-[10px] font-medium tracking-[0.06em] ${className}`}
       style={{ color: fg }}
     >
       <span aria-hidden className="size-1.5 rounded-full" style={{ background: dot }} />

@@ -19,6 +19,10 @@ import { decision, temperatureTrace, truck, warehouses } from '@/content/demo'
 const chapters = journey.chapters
 const N = chapters.length
 const safeMax = truck.safeBandC[1]
+// Scroll distance per chapter, in viewport heights; lower moves faster.
+const CHAPTER_SVH = 60
+// Clips fetched ahead of the one on screen, so a fast scroll never waits.
+const AHEAD = 2
 
 function DocCard({
   title,
@@ -38,7 +42,7 @@ function DocCard({
   return (
     <div
       data-from={from}
-      className={`doc-card w-full max-w-sm rounded-md border border-border/80 bg-base/75 p-4 shadow-[0_24px_60px_-28px_rgba(0,200,224,0.55)] backdrop-blur-md ${className}`}
+      className={`doc-card w-full max-w-sm rounded-md border border-border/80 bg-base/90 p-4 shadow-[0_24px_60px_-28px_rgba(0,200,224,0.55)] ${className}`}
       style={{ '--d': `${delay}ms` } as CSSProperties}
     >
       <div className="mb-3 flex items-center justify-between gap-3 border-b border-border/60 pb-2.5">
@@ -67,13 +71,13 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
   switch (id) {
     case 'port':
       return [
-        <DocCard key="m" title="Load manifest" tag="SIMULATED" from="right" delay={450}>
+        <DocCard key="m" title="Load manifest" tag="SIMULATED" from="right" delay={220}>
           <Row k="Truck" v={truck.id} />
           <Row k="Cargo" v={truck.cargo} />
           <Row k="Mass" v={`${truck.massKg} kg`} />
           <Row k="Safe band" v={`${truck.safeBandC[0]}–${safeMax} °C`} accent="var(--color-risk-low)" />
         </DocCard>,
-        <DocCard key="h" title="Hand-offs ahead" from="below" delay={700}>
+        <DocCard key="h" title="Hand-offs ahead" from="below" delay={400}>
           <ol className="flex flex-wrap items-center gap-x-1.5 gap-y-2 font-mono text-xs text-text-primary">
             {chapters.slice(1).map((c, i) => (
               <li key={c.id} className="flex items-center gap-1.5">
@@ -86,7 +90,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
       ]
     case 'lift':
       return [
-        <DocCard key="t" title={`coldchain/trucks/${truck.id}/telemetry`} tag="SIMULATED" from="left" delay={450}>
+        <DocCard key="t" title={`coldchain/trucks/${truck.id}/telemetry`} tag="SIMULATED" from="left" delay={220}>
           <pre className="font-mono text-[13px] leading-6 text-text-primary">
             {[
               ['{', ''],
@@ -96,14 +100,14 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
               ['  "refrigerationOn": ', 'true'],
               ['}', ''],
             ].map(([k, v], i) => (
-              <span key={i} className="type-line block" style={{ '--d': `${650 + i * 120}ms` } as CSSProperties}>
+              <span key={i} className="type-line block" style={{ '--d': `${320 + i * 70}ms` } as CSSProperties}>
                 {k}
                 <span className="text-primary">{v}</span>
               </span>
             ))}
           </pre>
         </DocCard>,
-        <DocCard key="f" title="Ingest path" from="above" delay={900}>
+        <DocCard key="f" title="Ingest path" from="above" delay={480}>
           <p className="font-mono text-xs text-text-primary">
             MQTT <span className="text-primary">→</span> FastAPI <span className="text-primary">→</span> Postgres + Redis
           </p>
@@ -111,13 +115,13 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
       ]
     case 'handover':
       return [
-        <DocCard key="e" title="Thermal exposure" tag="CALCULATED" from="right" delay={450}>
+        <DocCard key="e" title="Thermal exposure" tag="CALCULATED" from="right" delay={220}>
           <p className="font-mono text-lg text-white">
             E = ∫ max(0, T − T<sub className="text-xs">limit</sub>) dt
           </p>
           <p className="mt-2 text-xs text-text-secondary">°C·min above the limit · deterministic Python, never a model</p>
         </DocCard>,
-        <DocCard key="d" title={`Event · ${truck.id}`} tag="SIMULATED" from="below" delay={750}>
+        <DocCard key="d" title={`Event · ${truck.id}`} tag="SIMULATED" from="below" delay={420}>
           <p className="flex items-center gap-2 font-mono text-sm text-risk-medium">
             <span aria-hidden className="pulse-dot size-1.5 rounded-full bg-risk-medium" />
             DOOR_OPENED
@@ -126,7 +130,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
       ]
     case 'road':
       return [
-        <DocCard key="r" title={`Cargo temperature · ${truck.id}`} tag="SIMULATED" from="left" delay={450}>
+        <DocCard key="r" title={`Cargo temperature · ${truck.id}`} tag="SIMULATED" from="left" delay={220}>
           <div className="flex items-end justify-between gap-3">
             <p className="font-mono text-4xl font-medium text-risk-critical">
               {peak.toFixed(1)}
@@ -145,14 +149,14 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
                   {
                     height: `${(c / peak) * 100}%`,
                     background: c > safeMax ? 'var(--color-risk-critical)' : 'var(--color-risk-low)',
-                    '--d': `${700 + i * 90}ms`,
+                    '--d': `${360 + i * 60}ms`,
                   } as CSSProperties
                 }
               />
             ))}
           </div>
         </DocCard>,
-        <DocCard key="i" title="Incident opened" tag="SIMULATED" from="right" delay={950}>
+        <DocCard key="i" title="Incident opened" tag="SIMULATED" from="right" delay={500}>
           <p className="flex items-center gap-2 font-mono text-sm text-risk-high">
             <span aria-hidden className="pulse-dot size-1.5 rounded-full bg-risk-critical" />
             {truck.id} · risk HIGH · refrigeration off
@@ -164,7 +168,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
       ]
     case 'store':
       return [
-        <DocCard key="s" title="Cold stores in range" tag="SIMULATED" from="right" delay={450}>
+        <DocCard key="s" title="Cold stores in range" tag="SIMULATED" from="right" delay={220}>
           <ul className="space-y-1.5">
             {warehouses.map((w) => (
               <li
@@ -179,7 +183,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
             ))}
           </ul>
         </DocCard>,
-        <DocCard key="d" title="Decision" tag="SIMULATED" from="below" delay={800}>
+        <DocCard key="d" title="Decision" tag="SIMULATED" from="below" delay={440}>
           <p className="font-mono text-xl text-primary">
             {decision.action} → {decision.target}
           </p>
@@ -191,30 +195,34 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
 
 export default function Journey() {
   const sectionRef = useRef<HTMLElement>(null)
-  const stageRef = useRef<HTMLDivElement>(null)
+  const railRef = useRef<HTMLOListElement>(null)
   const [active, setActive] = useState(0)
   const [onScreen, setOnScreen] = useState(false)
-  // Clips are fetched only once the section is close, and only the current and
-  // next chapter; a fetched clip stays mounted.
+  // Clips are fetched only once the section is close: the current chapter and
+  // the next AHEAD. A fetched clip stays mounted.
   const [loaded, setLoaded] = useState<boolean[]>(() => chapters.map(() => false))
 
   useEffect(() => {
     const section = sectionRef.current
-    const stage = stageRef.current
-    if (!section || !stage) return
+    const rail = railRef.current
+    if (!section || !rail) return
     let raf = 0
     const measure = () => {
       raf = 0
       const rect = section.getBoundingClientRect()
       const vh = window.innerHeight
       const p = Math.min(1, Math.max(0, -rect.top / Math.max(1, rect.height - vh)))
-      // Written straight to CSS so scrolling does not re-render the stage.
-      stage.style.setProperty('--p', String(p))
+      // Written straight to the rail (not the stage) so scrolling restyles a
+      // few bars, not every layer over the video, and never re-renders React.
+      rail.style.setProperty('--p', String(p))
       const i = Math.min(N - 1, Math.floor(p * N))
       setActive(i)
       setOnScreen(rect.top < vh && rect.bottom > 0)
       if (rect.top < vh * 2 && rect.bottom > -vh) {
-        setLoaded((prev) => (prev[i] && (i === N - 1 || prev[i + 1]) ? prev : prev.map((v, j) => v || j === i || j === i + 1)))
+        setLoaded((prev) => {
+          const next = prev.map((v, j) => v || (j >= i && j <= i + AHEAD))
+          return next.every((v, j) => v === prev[j]) ? prev : next
+        })
       }
     }
     const onScroll = () => {
@@ -245,9 +253,9 @@ export default function Journey() {
       ref={sectionRef}
       aria-label={journey.eyebrow}
       className="relative"
-      style={{ height: `${(N + 1) * 100}svh` }}
+      style={{ height: `${100 + N * CHAPTER_SVH}svh` }}
     >
-      <div ref={stageRef} className="sticky top-0 h-[100svh] overflow-hidden bg-base">
+      <div className="sticky top-0 h-[100svh] overflow-hidden bg-base [contain:paint]">
         {/* Footage: every scene stays mounted; only the active one plays. */}
         {chapters.map((c, i) => (
           <div key={c.id} aria-hidden className={`journey-scene absolute inset-0 ${i === active ? 'is-active' : ''}`}>
@@ -301,12 +309,12 @@ export default function Journey() {
                     {String(i + 1).padStart(2, '0')} · {c.label}
                   </p>
                   <h2 className="mt-3 text-3xl leading-[1.08] font-bold tracking-[-0.025em] text-balance text-white sm:text-5xl xl:text-6xl">
-                    <SplitWords text={c.title} show={on} from={c.from} delay={120} />
+                    <SplitWords text={c.title} show={on} from={c.from} delay={60} step={40} />
                   </h2>
                   <p
                     className="fly mt-5 max-w-xl text-base leading-relaxed text-pretty text-text-primary sm:text-lg"
                     data-from={c.from}
-                    style={{ '--d': '420ms' } as CSSProperties}
+                    style={{ '--d': '240ms' } as CSSProperties}
                   >
                     {c.body}
                   </p>
@@ -314,7 +322,7 @@ export default function Journey() {
                     <a
                       href="#demo"
                       data-from="below"
-                      style={{ '--d': '650ms' } as CSSProperties}
+                      style={{ '--d': '380ms' } as CSSProperties}
                       className="fly btn-shine mt-7 inline-block rounded-sm bg-primary px-5 py-3 text-sm font-semibold text-on-accent transition-colors hover:bg-primary-dim"
                     >
                       {journey.cta}
@@ -340,7 +348,7 @@ export default function Journey() {
 
         {/* Progress rail: one segment per chapter; click to jump. */}
         <div className="absolute inset-x-0 bottom-6 z-10 mx-auto max-w-[1400px] px-5 sm:bottom-8 sm:px-8">
-          <ol className="grid gap-2" style={{ gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))` }}>
+          <ol ref={railRef} className="grid gap-2" style={{ gridTemplateColumns: `repeat(${N}, minmax(0, 1fr))` }}>
             {chapters.map((c, i) => (
               <li key={c.id}>
                 <button

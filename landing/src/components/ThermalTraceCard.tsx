@@ -49,6 +49,17 @@ export default function ThermalTraceCard() {
   const areaRef = useRef<SVGRectElement>(null)
   const dotRef = useRef<SVGGElement>(null)
   const drawnLive = useRef(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  // The scripted loop runs every frame, so it only runs while the card is on
+  // screen; scrolled away, it would keep the main thread busy under the video.
+  const [onScreen, setOnScreen] = useState(true)
+  useEffect(() => {
+    const el = rootRef.current
+    if (!el) return
+    const io = new IntersectionObserver(([entry]) => setOnScreen(entry.isIntersecting))
+    io.observe(el)
+    return () => io.disconnect()
+  }, [])
   const [index, setIndex] = useState(0)
   const [done, setDone] = useState(false)
 
@@ -91,11 +102,12 @@ export default function ThermalTraceCard() {
       }
       raf = requestAnimationFrame(tick)
     }
+    if (!onScreen) return
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
     // `path` captures every input that changes the drawing.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [path, live])
+  }, [path, live, onScreen])
 
   const reading = live ? (focus.latestC ?? series.at(-1)!) : series[index]
   const breached = reading > safeMax
@@ -106,7 +118,7 @@ export default function ThermalTraceCard() {
   const cargo = live ? focus.product : truck.cargo
 
   return (
-    <div className="float-slow relative w-full rounded-lg border border-border/70 bg-surface/70 p-5 shadow-[0_30px_80px_-30px_rgba(0,200,224,0.35)] backdrop-blur-md sm:p-6">
+    <div ref={rootRef} className="float-slow relative w-full rounded-lg border border-border/70 bg-surface/90 p-5 shadow-[0_30px_80px_-30px_rgba(0,200,224,0.35)] sm:p-6">
       <div className="flex items-start justify-between gap-3">
         <div>
           <p className="flex items-center gap-2 font-mono text-xs tracking-[0.1em] text-text-secondary uppercase">

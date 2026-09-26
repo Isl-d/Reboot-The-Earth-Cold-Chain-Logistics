@@ -17,12 +17,18 @@ export default function Hero() {
 
   return (
     <section id="top" className="hero-fallback relative isolate flex min-h-[100svh] items-center overflow-hidden">
-      <div aria-hidden className="grid-lines grid-pan absolute inset-0 -z-10" />
-      <div aria-hidden className="aurora absolute inset-0 -z-10">
-        <span className="aurora-blob aurora-a" />
-        <span className="aurora-blob aurora-b" />
-      </div>
-      <BackgroundVideo name="hero" className="footage-grade -z-10" />
+      {/* The animated ground is only drawn when there is no footage to cover
+          it; hidden behind a video it would still repaint every frame. */}
+      {!video && (
+        <>
+          <div aria-hidden className="grid-lines grid-pan absolute inset-0 -z-10" />
+          <div aria-hidden className="aurora absolute inset-0 -z-10">
+            <span className="aurora-blob aurora-a" />
+            <span className="aurora-blob aurora-b" />
+          </div>
+        </>
+      )}
+      <BackgroundVideo name="hero" className="-z-10" />
       {video && <DigitalOverlay className="-z-10" />}
       {/* Keeps the copy readable over any footage. */}
       <div
@@ -59,7 +65,7 @@ export default function Hero() {
             </a>
             <a
               href={APP_URL}
-              className="rounded-sm border border-border bg-surface/60 px-5 py-3 text-sm font-semibold text-primary backdrop-blur-sm transition-colors hover:border-primary"
+              className="rounded-sm border border-border bg-surface/85 px-5 py-3 text-sm font-semibold text-primary transition-colors hover:border-primary"
             >
               {hero.secondaryCta}
             </a>
