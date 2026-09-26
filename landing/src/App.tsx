@@ -4,6 +4,7 @@ import Architecture from '@/sections/Architecture'
 import CallToAction from '@/sections/CallToAction'
 import Footer from '@/sections/Footer'
 import Hero from '@/sections/Hero'
+import Journey from '@/sections/Journey'
 import LiveStats from '@/sections/LiveStats'
 import Network from '@/sections/Network'
 import Pipeline from '@/sections/Pipeline'
@@ -19,6 +20,7 @@ export default function App() {
         <Hero />
         <LiveStats />
         <Problem />
+        <Journey />
         <Pipeline />
         <Scenario />
         <Network />

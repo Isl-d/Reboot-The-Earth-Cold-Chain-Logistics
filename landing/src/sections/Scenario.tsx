@@ -61,11 +61,12 @@ export default function Scenario() {
         title={scenario.title}
         body={scenario.body}
         aside={<ProvenanceTag tag="SIMULATED" />}
+        from="left"
       />
 
       <div className="mt-14 grid gap-6 lg:grid-cols-[1fr_1.4fr]">
         {/* Timeline */}
-        <Reveal>
+        <Reveal from="left">
           <ol className="relative space-y-6 border-l border-border pl-6">
             {timeline.map((step, i) => (
               <li key={step.t} className="pop relative" style={{ transitionDelay: `${150 + i * 140}ms` }}>
@@ -83,7 +84,7 @@ export default function Scenario() {
         </Reveal>
 
         {/* Truck card */}
-        <Reveal delay={120}>
+        <Reveal delay={120} from="right">
           <div className="lift rounded-md border border-border/70 bg-surface p-6">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="flex items-center gap-3 font-mono text-2xl font-medium text-white">

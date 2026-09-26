@@ -30,7 +30,7 @@ export default function Network() {
     <section className="border-y border-border/50 bg-[#0a1520]">
       <div className="mx-auto grid max-w-[1400px] items-center gap-10 px-5 py-24 sm:px-8 sm:py-32 lg:grid-cols-[0.9fr_1.1fr]">
         <div>
-          <SectionHeader eyebrow={network.eyebrow} title={network.title} body={network.body} />
+          <SectionHeader eyebrow={network.eyebrow} title={network.title} body={network.body} from="left" />
           <Reveal className="mt-8 flex flex-wrap gap-5">
             {legend.map((l) => (
               <span key={l.label} className="flex items-center gap-2 text-sm text-text-secondary">

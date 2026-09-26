@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { APP_URL, brand, nav } from '@/content/copy'
+import Logo from '@/components/Logo'
 
 export default function Nav() {
   const [scrolled, setScrolled] = useState(false)
@@ -18,9 +19,8 @@ export default function Nav() {
       }`}
     >
       <nav className="mx-auto flex h-16 max-w-[1400px] items-center justify-between gap-4 px-5 sm:px-8">
-        <a href="#top" className="flex items-center gap-2.5 font-semibold tracking-tight text-white">
-          <img src="/favicon.svg" alt="" className="size-7" />
-          <span>{brand.name}</span>
+        <a href="#top" aria-label={`${brand.name}, back to top`} className="text-white">
+          <Logo size={28} />
         </a>
         <ul className="hidden items-center gap-7 text-sm text-text-secondary md:flex">
           {nav.map((item) => (

@@ -10,6 +10,7 @@ export const brand = {
 }
 
 export const nav = [
+  { href: '#journey', label: 'Journey' },
   { href: '#how', label: 'How it works' },
   { href: '#demo', label: 'Demo' },
   { href: '#trust', label: 'Trust' },
@@ -39,6 +40,62 @@ export const problem = {
   target:
     "Qatar's National Food Security Strategy 2030 targets −50% food waste and −30% food loss.",
 }
+
+// The pinned, scroll-driven film. `video` names a clip in src/assets/media/;
+// `side` is where the words sit (the documents take the other side); `from` is
+// the edge the words fly in from.
+export const journey = {
+  eyebrow: 'The journey',
+  footage: 'Footage is AI-generated and illustrative. Readings are the scripted T102 demo.',
+  cta: 'Walk through the full demo',
+  chapters: [
+    {
+      id: 'port',
+      video: 'port',
+      label: 'Arrival',
+      side: 'left',
+      from: 'left',
+      title: 'Fresh food lands at the quay.',
+      body: 'Qatar imports most of its fresh food. It arrives cold, in reefer containers, and from here on every hand-off is a chance for the cold to break.',
+    },
+    {
+      id: 'lift',
+      video: 'lift',
+      label: 'Telemetry',
+      side: 'right',
+      from: 'right',
+      title: 'Every load starts to report.',
+      body: 'Temperature, humidity, door state and position stream over MQTT from the moment it moves. Nothing is inferred from paperwork.',
+    },
+    {
+      id: 'handover',
+      video: 'handover',
+      label: 'Handover',
+      side: 'left',
+      from: 'below',
+      title: 'Hand-offs are where the cold breaks.',
+      body: 'Doors open, reefers unplug, loads wait in the sun. Exposure integrates every degree above the limit over time, so a short door opening counts for exactly what it cost.',
+    },
+    {
+      id: 'road',
+      video: 'hero',
+      label: 'Failure',
+      side: 'right',
+      from: 'above',
+      title: '45 °C outside. The fridge fails.',
+      body: 'T102 loses refrigeration in transit. The cargo climbs past its 4 °C limit, and an incident opens the moment the reading leaves the safe band and stays there.',
+    },
+    {
+      id: 'store',
+      video: 'store',
+      label: 'Decision',
+      side: 'left',
+      from: 'zoom',
+      title: 'Divert to the store that loses the least.',
+      body: 'The optimizer compares every cold store in range on transport, food loss and delay, and sends T102 to the one that saves the most food.',
+    },
+  ],
+} as const
 
 export const pipeline = {
   eyebrow: 'How it works',

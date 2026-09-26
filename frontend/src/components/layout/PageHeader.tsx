@@ -22,7 +22,13 @@ export function PageHeader({
       <div className="flex min-w-0 items-center gap-3">
         {leading}
         {leading && <span className="h-3.5 w-px bg-border" aria-hidden="true" />}
-        <h1 className="m-0 truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-text-primary">{title}</h1>
+        {/* Brand prefix on every page, so the product name reads the same
+            everywhere (docs/brand/README.md). */}
+        <h1 className="m-0 truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-text-primary">
+          <span className="text-text-secondary">Thermal Trace</span>
+          <span className="px-2 text-text-secondary" aria-hidden="true">/</span>
+          {title}
+        </h1>
         {meta && <span className="h-3.5 w-px bg-border" aria-hidden="true" />}
         {meta}
       </div>

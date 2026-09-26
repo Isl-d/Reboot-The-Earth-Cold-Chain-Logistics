@@ -7,7 +7,7 @@ export default function Architecture() {
   return (
     <section id="architecture" className="border-y border-border/50 bg-[#0a1520]">
       <div className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 sm:py-32">
-        <SectionHeader eyebrow={architecture.eyebrow} title={architecture.title} body={architecture.body} />
+        <SectionHeader eyebrow={architecture.eyebrow} title={architecture.title} body={architecture.body} from="right" />
 
         <Reveal className="mt-14">
           {/* A reading "travels" left to right: each node lights in turn. */}

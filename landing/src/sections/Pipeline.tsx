@@ -7,7 +7,7 @@ export default function Pipeline() {
   return (
     <section id="how" className="border-y border-border/50 bg-[#0a1520]">
       <div className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 sm:py-32">
-        <SectionHeader eyebrow={pipeline.eyebrow} title={pipeline.title} />
+        <SectionHeader eyebrow={pipeline.eyebrow} title={pipeline.title} from="right" />
 
         <ol className="mt-14 grid gap-px overflow-hidden rounded-md border border-border/70 bg-border/70 sm:grid-cols-2 lg:grid-cols-3">
           {pipeline.steps.map((step, i) => (
@@ -18,7 +18,7 @@ export default function Pipeline() {
                 className="stage-bar absolute inset-x-0 top-0 h-0.5 bg-primary shadow-[0_0_12px_var(--color-primary)]"
                 style={{ '--i': i } as CSSProperties}
               />
-              <Reveal delay={i * 80} className="h-full p-6 sm:p-7">
+              <Reveal delay={i * 80} from={(['left', 'below', 'right'] as const)[i % 3]} className="h-full p-6 sm:p-7">
                 <p className="font-mono text-xs text-primary">{String(i + 1).padStart(2, '0')}</p>
                 <h3 className="mt-3 text-lg font-semibold text-white transition-transform duration-300 group-hover:translate-x-1">
                   {step.name} <span className="font-normal text-text-secondary">{step.verb}</span>

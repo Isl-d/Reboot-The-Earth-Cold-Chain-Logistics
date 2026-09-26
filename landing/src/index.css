@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 
 /* Tokens copied from frontend/src/index.css (source of truth: DESIGN.md) so the
@@ -72,15 +72,181 @@ body {
   mask-image: radial-gradient(ellipse at center, black 30%, transparent 75%);
 }
 
-/* Reveal: elements start slightly low and transparent, then settle in. */
+/* Directions shared by every entrance: data-from names the edge an element
+   flies in from. --fly-x / --fly-y / --fly-s are its starting offset; they do
+   not inherit, so a word flying in from the left inside a card rising from
+   below still travels only left to right. */
+@property --fly-x {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --fly-y {
+  syntax: "<length>";
+  inherits: false;
+  initial-value: 0px;
+}
+@property --fly-s {
+  syntax: "<number>";
+  inherits: false;
+  initial-value: 1;
+}
+[data-from="below"] {
+  --fly-y: 28px;
+}
+[data-from="above"] {
+  --fly-y: -28px;
+}
+[data-from="left"] {
+  --fly-x: -56px;
+}
+[data-from="right"] {
+  --fly-x: 56px;
+}
+[data-from="zoom"] {
+  --fly-s: 0.9;
+}
+
+/* Reveal: elements start offset and transparent, then settle in on scroll. */
 .reveal {
   opacity: 0;
-  transform: translateY(16px);
-  transition: opacity 0.6s ease-out, transform 0.6s ease-out;
+  transform: translate(var(--fly-x), var(--fly-y)) scale(var(--fly-s));
+  filter: blur(4px);
+  transition:
+    opacity 0.7s ease-out,
+    transform 0.8s cubic-bezier(0.2, 0.7, 0.2, 1),
+    filter 0.7s ease-out;
 }
 .reveal.is-visible {
   opacity: 1;
   transform: none;
+  filter: none;
+}
+
+/* Split words: each word flies in from the parent's edge, one after another.
+   Leaving is instant-ish so the next chapter's words are not fighting it. */
+.split-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translate(calc(var(--fly-x) * 0.6), var(--fly-y)) scale(var(--fly-s));
+  filter: blur(8px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    filter 0.3s ease;
+}
+.split.is-visible .split-word {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition:
+    opacity 0.7s ease-out var(--d),
+    transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d),
+    filter 0.7s ease-out var(--d);
+}
+
+/* Journey: the words and documents of the active chapter fly in; the others
+   drop out quickly. */
+.fly,
+.doc-card {
+  opacity: 0;
+  transform: translate(var(--fly-x), var(--fly-y)) scale(var(--fly-s));
+  filter: blur(6px);
+  transition:
+    opacity 0.3s ease,
+    transform 0.3s ease,
+    filter 0.3s ease;
+}
+.doc-card {
+  transform: translate(calc(var(--fly-x) * 1.4), calc(var(--fly-y) * 1.4)) scale(calc(var(--fly-s) * 0.94));
+}
+.is-active .fly,
+.is-active .doc-card {
+  opacity: 1;
+  transform: none;
+  filter: none;
+  transition:
+    opacity 0.7s ease-out var(--d),
+    transform 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d),
+    filter 0.7s ease-out var(--d);
+}
+/* Lines of a document "typing" in, and a chart's bars growing. */
+.type-line {
+  opacity: 0;
+  transform: translateX(-8px);
+}
+.is-active .type-line {
+  opacity: 1;
+  transform: none;
+  transition:
+    opacity 0.35s ease var(--d),
+    transform 0.35s ease var(--d);
+}
+.bar-grow {
+  transform: scaleY(0);
+  transform-origin: bottom;
+}
+.is-active .bar-grow {
+  transform: scaleY(1);
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) var(--d);
+}
+
+/* Journey stage: scenes cross-fade; the active clip eases in from a push. */
+.journey-scene {
+  opacity: 0;
+  transition: opacity 1s ease;
+}
+.journey-scene.is-active {
+  opacity: 1;
+}
+.journey-video {
+  filter: saturate(0.7) contrast(1.08) brightness(0.7);
+  transform: scale(1.12);
+  transition:
+    transform 1.2s ease,
+    opacity 1s ease;
+}
+.journey-scene.is-active .journey-video {
+  transform: scale(1.02);
+  transition:
+    transform 9s cubic-bezier(0.2, 0.6, 0.3, 1),
+    opacity 1s ease;
+}
+.rail-fill {
+  transform-origin: left;
+  transform: scaleX(clamp(0, calc(var(--p, 0) * var(--n) - var(--i)), 1));
+}
+
+/* Digital overlay: grade the footage into the brand, then add a display. */
+.footage-grade {
+  filter: saturate(0.8) contrast(1.05) brightness(0.85);
+}
+.digital-tint {
+  background: linear-gradient(160deg, #0c1825 0%, #0a3a4a 100%);
+  mix-blend-mode: color;
+  opacity: 0.55;
+}
+.scanlines {
+  background: repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.22) 0 1px, transparent 1px 3px);
+  opacity: 0.35;
+}
+.scan-beam {
+  background: linear-gradient(180deg, transparent, color-mix(in srgb, var(--color-primary) 5%, transparent) 80%, color-mix(in srgb, var(--color-primary) 22%, transparent) 99.5%, transparent);
+  animation: scan-beam 8s linear infinite;
+}
+@keyframes scan-beam {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(100vh);
+  }
+}
+.hud-corner {
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  border-color: color-mix(in srgb, var(--color-primary) 70%, transparent);
 }
 
 /* Hero entrance: each block rises in on load, staggered by inline delay. */
@@ -91,6 +257,22 @@ body {
   from {
     opacity: 0;
     transform: translateY(24px);
+    filter: blur(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.rise-right {
+  animation: rise-right 1s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes rise-right {
+  from {
+    opacity: 0;
+    transform: translateX(64px);
     filter: blur(6px);
   }
   to {
@@ -353,12 +535,33 @@ body {
   }
   .reveal,
   .grow-y,
-  .pop {
+  .pop,
+  .split-word,
+  .fly,
+  .doc-card,
+  .type-line,
+  .bar-grow {
     opacity: 1;
+    transform: none;
+    filter: none;
+    transition: none;
+  }
+  /* Inactive journey chapters still hide; they just switch without motion. */
+  .split:not(.is-visible) .split-word,
+  article:not(.is-active) .fly,
+  article:not(.is-active) .doc-card {
+    opacity: 0;
+  }
+  .journey-scene,
+  .journey-scene .journey-video {
     transform: none;
     transition: none;
   }
+  .scan-beam {
+    display: none;
+  }
   .rise,
+  .rise-right,
   .grid-pan,
   .aurora-blob,
   .float-slow,

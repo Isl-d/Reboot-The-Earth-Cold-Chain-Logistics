@@ -1,6 +1,17 @@
+<p>
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/brand/lockup-dark.png" />
+    <img alt="Thermal Trace" src="docs/brand/lockup-light.png" width="360" />
+  </picture>
+</p>
+
 # Thermal Trace
 
 AI cold-chain management & food-loss prevention.
+
+**Pitch deck:** [docs/deck/index.html](docs/deck/index.html) (open in a browser; PDF at
+[docs/deck/thermal-trace-pitch.pdf](docs/deck/thermal-trace-pitch.pdf)). Brand rules and logo files:
+[docs/brand/](docs/brand/README.md).
 
 A condition-aware cold-chain decision system. Simulated refrigerated trucks
 publish live telemetry; the platform validates and stores it; deterministic

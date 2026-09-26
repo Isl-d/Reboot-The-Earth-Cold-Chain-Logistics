@@ -7,11 +7,11 @@ import { problem } from '@/content/copy'
 export default function Problem() {
   return (
     <section className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 sm:py-32">
-      <SectionHeader eyebrow={problem.eyebrow} title={problem.title} body={problem.body} />
+      <SectionHeader eyebrow={problem.eyebrow} title={problem.title} body={problem.body} from="left" />
 
       <div className="mt-14 grid gap-4 sm:grid-cols-3">
         {problem.stats.map((s, i) => (
-          <Reveal key={s.label} delay={i * 100}>
+          <Reveal key={s.label} delay={i * 100} from={(['left', 'below', 'right'] as const)[i % 3]}>
             <div className="lift h-full rounded-md border border-border/70 bg-surface p-6">
               <div className="flex items-start justify-between gap-3">
                 <p className="font-mono text-4xl font-medium tracking-tight text-white sm:text-5xl">

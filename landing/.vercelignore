@@ -1,0 +1,5 @@
+# Raw footage exports (~22 MB); the encoded clips in src/assets/media/ ship.
+media-src/
+node_modules/
+dist/
+.env*

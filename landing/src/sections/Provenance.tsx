@@ -6,7 +6,7 @@ import { trust } from '@/content/copy'
 export default function Provenance() {
   return (
     <section id="trust" className="mx-auto max-w-[1400px] px-5 py-24 sm:px-8 sm:py-32">
-      <SectionHeader eyebrow={trust.eyebrow} title={trust.title} body={trust.body} />
+      <SectionHeader eyebrow={trust.eyebrow} title={trust.title} body={trust.body} from="zoom" />
 
       <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {trust.tags.map((t, i) => (

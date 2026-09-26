@@ -1,0 +1,944 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Thermal Trace — Pitch</title>
+<meta name="description" content="Thermal Trace pitch deck: a condition-aware cold-chain decision system that measures how much safe life a failure has cost and chooses the action that loses the least of it." />
+<meta name="theme-color" content="#0c1825" />
+<link rel="icon" type="image/svg+xml" href="../brand/mark-dark.svg" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet" />
+<!--
+  Thermal Trace pitch deck. One file, no build step: open it in a browser.
+  Source of the words: pitch/DECK.md (edit there first, then mirror here).
+  Brand rules: docs/brand/README.md. Keys: ← → Space, F fullscreen,
+  N speaker notes, O overview, P print / save as PDF.
+-->
+<style>
+:root {
+  --base: #0c1825;
+  --surface: #162338;
+  --elevated: #1e3048;
+  --border: #2d4160;
+  --border-strong: #3d5476;
+  --primary: #00c8e0;
+  --primary-dim: #0090a8;
+  --text: #c9d6e8;
+  --text-2: #8fa8c8;
+  --low: #22d4b0;
+  --medium: #fbbf24;
+  --high: #fb923c;
+  --critical: #f87171;
+  --on-accent: #0c1825;
+  /* Provenance hues: the dashboard's validated categorical slots. */
+  --p-measured: #3987e5;   --p-measured-fg: #8fb8f2;
+  --p-calculated: #d55181; --p-calculated-fg: #eb9dbb;
+  --p-predicted: #9085e9;  --p-predicted-fg: #bdb5f5;
+  --p-optimized: #2fa84f;  --p-optimized-fg: #7cd494;
+  --p-neutral: #8fa8c8;    --p-neutral-fg: #c9d6e8;
+  --sans: "IBM Plex Sans", "Helvetica Neue", Arial, system-ui, sans-serif;
+  --mono: "IBM Plex Mono", Menlo, Consolas, ui-monospace, monospace;
+  --ease: cubic-bezier(.16, .84, .3, 1);
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+body {
+  background: #070f18;
+  color: var(--text);
+  font-family: var(--sans);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+}
+
+/* ── Stage: a fixed 1920×1080 canvas scaled to the window ───────────── */
+.stage {
+  position: fixed; left: 50%; top: 50%;
+  width: 1920px; height: 1080px;
+  transform-origin: center;
+  background: var(--base);
+  overflow: hidden;
+}
+.stage::before { /* measurement grid: the command-room floor */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--border) 38%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--border) 38%, transparent) 1px, transparent 1px);
+  background-size: 80px 80px;
+  mask-image: radial-gradient(ellipse at 70% 40%, #000 0%, transparent 75%);
+  opacity: .55;
+}
+.progress { position: absolute; left: 0; top: 0; height: 4px; background: var(--primary); transition: width .6s var(--ease); z-index: 5; }
+
+.slide {
+  position: absolute; inset: 0;
+  padding: 120px 128px 140px;
+  display: flex; flex-direction: column;
+  opacity: 0; visibility: hidden;
+  transform: translateX(40px);
+  transition: opacity .55s var(--ease), transform .7s var(--ease), visibility 0s linear .7s;
+}
+.slide.past { transform: translateX(-40px); }
+.slide.active { opacity: 1; visibility: visible; transform: none; transition: opacity .55s var(--ease), transform .7s var(--ease); }
+
+/* ── Chrome injected on every slide ────────────────────────────────── */
+.chrome {
+  position: absolute; left: 128px; right: 128px; bottom: 52px;
+  display: flex; align-items: center; justify-content: space-between;
+  font: 500 18px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-2);
+}
+.chrome .brand { display: flex; align-items: center; gap: 14px; color: var(--text); letter-spacing: .14em; }
+.chrome .brand svg { width: 30px; height: 30px; }
+.chrome .num b { color: var(--text); font-weight: 500; }
+
+/* ── Type ──────────────────────────────────────────────────────────── */
+.eyebrow {
+  display: flex; align-items: center; gap: 18px;
+  font: 500 22px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--text-2);
+  margin-bottom: 36px;
+}
+.eyebrow .n { color: var(--primary); }
+.eyebrow .rule { width: 56px; height: 2px; background: var(--border-strong); }
+h1, h2 { margin: 0; font-weight: 600; letter-spacing: -0.02em; color: #e6eef8; }
+h2 { font-size: 80px; line-height: 1.04; max-width: 1500px; }
+h2 em { font-style: normal; color: var(--primary); }
+.lead { font-size: 34px; line-height: 1.42; color: var(--text-2); max-width: 1320px; margin: 36px 0 0; }
+.lead strong { color: var(--text); font-weight: 500; }
+.mono { font-family: var(--mono); }
+.small { font-size: 24px; line-height: 1.45; color: var(--text-2); }
+
+/* ── Provenance / source tags ──────────────────────────────────────── */
+.tag {
+  display: inline-flex; align-items: center; gap: 12px;
+  padding: 9px 16px; border-radius: 2px;
+  background: var(--elevated);
+  border: 1px solid color-mix(in srgb, var(--c, var(--p-neutral)) 55%, transparent);
+  color: var(--cf, var(--p-neutral-fg));
+  font: 500 18px/1 var(--mono); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap;
+}
+.tag::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--p-neutral)); }
+.tag.dashed { border-style: dashed; }
+.tag.dashed::before { background: transparent; border: 2px solid var(--c, var(--p-neutral)); width: 7px; height: 7px; }
+.t-measured   { --c: var(--p-measured);   --cf: var(--p-measured-fg); }
+.t-calculated { --c: var(--p-calculated); --cf: var(--p-calculated-fg); }
+.t-predicted  { --c: var(--p-predicted);  --cf: var(--p-predicted-fg); }
+.t-optimized  { --c: var(--p-optimized);  --cf: var(--p-optimized-fg); }
+.t-explained  { --c: var(--text);         --cf: var(--text); }
+.t-synthetic, .t-simulated, .t-illustrative { --c: var(--p-neutral); --cf: var(--p-neutral-fg); }
+.t-cited      { --c: var(--p-neutral); --cf: var(--text); }
+.source { position: absolute; right: 128px; top: 112px; display: flex; gap: 12px; }
+
+/* ── Entrance animations (replayed every time a slide opens) ───────── */
+[data-a] { opacity: 0; }
+svg [data-a] { transform-box: fill-box; transform-origin: center; }
+.slide.active [data-a] {
+  animation: var(--a, up) .9s var(--ease) both;
+  animation-delay: calc(var(--d, 0) * 1ms);
+}
+[data-a="fade"]  { --a: fade; }
+[data-a="left"]  { --a: left; }
+[data-a="right"] { --a: right; }
+[data-a="zoom"]  { --a: zoom; }
+@keyframes up    { from { opacity: 0; transform: translateY(32px); } to { opacity: 1; transform: none; } }
+@keyframes fade  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes left  { from { opacity: 0; transform: translateX(-48px); } to { opacity: 1; transform: none; } }
+@keyframes right { from { opacity: 0; transform: translateX(48px); } to { opacity: 1; transform: none; } }
+@keyframes zoom  { from { opacity: 0; transform: scale(.94); } to { opacity: 1; transform: none; } }
+
+.draw { stroke-dasharray: var(--len, 2000); stroke-dashoffset: var(--len, 2000); }
+.slide.active .draw { animation: draw var(--dur, 1.6s) var(--ease) forwards; animation-delay: calc(var(--d, 0) * 1ms); }
+@keyframes draw { to { stroke-dashoffset: 0; } }
+
+.grow  { transform: scaleX(0); transform-origin: left center; }
+.slide.active .grow  { animation: growx 1.4s var(--ease) forwards; animation-delay: calc(var(--d, 0) * 1ms); }
+@keyframes growx { to { transform: scaleX(var(--to, 1)); } }
+.shrink { transform-origin: left center; }
+.slide.active .shrink { animation: shrinkx 1.6s var(--ease) forwards; animation-delay: calc(var(--d, 0) * 1ms); }
+@keyframes shrinkx { from { transform: scaleX(1); } to { transform: scaleX(var(--to, 1)); } }
+.rise { transform: scaleY(0); transform-origin: center bottom; transform-box: fill-box; }
+.slide.active .rise { animation: risey 2s var(--ease) forwards; animation-delay: calc(var(--d, 0) * 1ms); }
+@keyframes risey { to { transform: scaleY(var(--to, 1)); } }
+.wipe { clip-path: inset(0 100% 0 0); }
+.slide.active .wipe { animation: wipe 1.8s var(--ease) forwards; animation-delay: calc(var(--d, 0) * 1ms); }
+@keyframes wipe { to { clip-path: inset(0 0 0 0); } }
+
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+@keyframes ring { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(2.4); opacity: 0; } }
+@keyframes blink-outline { 0%, 100% { outline-color: color-mix(in srgb, var(--critical) 90%, transparent); } 50% { outline-color: color-mix(in srgb, var(--critical) 25%, transparent); } }
+
+/* ── 01 Title ──────────────────────────────────────────────────────── */
+.s-title { justify-content: center; padding-bottom: 180px; }
+.s-title .lockup { display: flex; align-items: center; gap: 40px; margin-bottom: 64px; }
+.s-title .lockup svg.mark { width: 150px; height: 150px; flex: none; }
+.s-title .word { font-size: 116px; font-weight: 600; letter-spacing: -0.03em; line-height: 1; color: #e6eef8; }
+.s-title .desc { margin-top: 18px; font: 500 24px/1 var(--mono); letter-spacing: .22em; color: var(--text-2); text-transform: uppercase; }
+.s-title h1 { font-size: 64px; line-height: 1.12; max-width: 1400px; font-weight: 500; color: var(--text); letter-spacing: -0.015em; }
+.s-title .sub { font-size: 30px; line-height: 1.45; color: var(--text-2); max-width: 1180px; margin-top: 28px; }
+.trace-bg { position: absolute; left: 0; right: 0; bottom: 0; height: 420px; pointer-events: none; }
+
+/* ── 02 Problem ────────────────────────────────────────────────────── */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 48px; margin-top: auto; }
+.stat .v { font: 600 150px/1 var(--mono); letter-spacing: -0.04em; color: #e6eef8; }
+.stat .v small { font-size: 76px; color: var(--text-2); }
+.stat .bar { height: 10px; background: var(--elevated); border-radius: 2px; margin: 34px 0 26px; overflow: hidden; }
+.stat .bar i { display: block; height: 100%; background: var(--c); border-radius: 2px; }
+.stat p { margin: 0; font-size: 30px; line-height: 1.35; color: var(--text-2); max-width: 470px; }
+
+/* ── 03 Why here ───────────────────────────────────────────────────── */
+.why { display: grid; grid-template-columns: 420px 1fr; gap: 110px; margin-top: 56px; align-items: center; flex: 1; }
+.thermo { display: flex; align-items: flex-end; gap: 36px; }
+.thermo .read { font: 600 120px/1 var(--mono); color: var(--high); letter-spacing: -0.04em; }
+.thermo .read small { font-size: 56px; }
+.thermo .cap { font-size: 24px; color: var(--text-2); margin-top: 14px; }
+.targets h3 { margin: 0 0 30px; font: 500 22px/1 var(--mono); letter-spacing: .14em; color: var(--text-2); text-transform: uppercase; }
+.target { margin-bottom: 44px; }
+.target .row { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 16px; font-size: 32px; }
+.target .row b { font: 600 56px/1 var(--mono); color: var(--low); }
+.target .track { position: relative; height: 26px; background: var(--elevated); border-radius: 2px; overflow: hidden; }
+.target .track i { position: absolute; inset: 0; background: color-mix(in srgb, var(--text-2) 55%, transparent); border-radius: 2px; }
+.target .track .ghost { position: absolute; inset: 0; border: 1px dashed var(--border-strong); background: none; }
+
+/* ── 04 What goes wrong ───────────────────────────────────────────── */
+.tl { position: relative; margin-top: auto; height: 420px; }
+.tl svg { width: 100%; height: 100%; overflow: visible; }
+.truck { animation: none; }
+.slide.active .truck { animation: drive 5.2s cubic-bezier(.45, .05, .35, 1) .6s forwards; }
+@keyframes drive { from { transform: translateX(0); } to { transform: translateX(1410px); } }
+
+/* ── 05 Pipeline ───────────────────────────────────────────────────── */
+.pipe { position: relative; display: grid; grid-template-columns: repeat(6, 1fr); gap: 20px; margin-top: auto; }
+.step { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 34px 28px 36px; min-height: 330px; }
+.step .k { font: 500 20px/1 var(--mono); color: var(--primary); letter-spacing: .1em; }
+.step h3 { margin: 26px 0 14px; font-size: 38px; font-weight: 600; color: #e6eef8; letter-spacing: -0.01em; }
+.step .verb { font-size: 26px; line-height: 1.35; color: var(--text-2); }
+.step .tag { position: absolute; left: 28px; bottom: 30px; font-size: 15px; padding: 7px 12px; }
+.wire { position: absolute; left: 0; right: 0; top: -44px; height: 2px; background: var(--border); }
+.wire i { position: absolute; top: -5px; width: 12px; height: 12px; border-radius: 50%; background: var(--primary); opacity: 0; }
+.slide.active .wire i { animation: travel 3.2s linear infinite; animation-delay: calc(1400ms + var(--d, 0) * 1ms); }
+@keyframes travel { 0% { left: 0; opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { left: calc(100% - 12px); opacity: 0; } }
+
+/* ── 06 Detect ─────────────────────────────────────────────────────── */
+.split { display: grid; grid-template-columns: 560px 1fr; gap: 72px; flex: 1; align-items: center; }
+.split h2 { font-size: 72px; }
+.shot { position: relative; border: 1px solid var(--border-strong); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.shot .bar { height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid var(--border); background: var(--base); }
+.shot .bar i { width: 12px; height: 12px; border-radius: 50%; background: var(--elevated); }
+.shot .bar span { margin-left: 14px; font: 400 16px/1 var(--mono); color: var(--text-2); }
+.shot img { display: block; width: 100%; height: auto; }
+.shot .hl { position: absolute; border-radius: 4px; outline: 3px solid var(--critical); outline-offset: 2px; }
+.shot .hl { opacity: 0; }
+.slide.active .shot .hl { animation: fade .6s var(--ease) 1.3s both, blink-outline 1.6s ease-in-out 1.9s infinite; }
+.callout { display: flex; gap: 18px; align-items: flex-start; margin-top: 40px; font-size: 26px; line-height: 1.4; color: var(--text-2); }
+.callout .dot { position: relative; flex: none; width: 16px; height: 16px; margin-top: 8px; border-radius: 50%; background: var(--critical); }
+.callout .dot::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--critical); animation: ring 1.8s ease-out infinite; }
+
+/* ── 07 Physics ───────────────────────────────────────────────────── */
+.phys { display: grid; grid-template-columns: 1fr 720px; gap: 80px; margin-top: 48px; align-items: start; }
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; }
+.panel .ph { display: flex; justify-content: space-between; align-items: center; padding: 20px 28px; border-bottom: 1px solid var(--border); font: 500 18px/1 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-2); }
+.chart { padding: 20px 28px 16px; }
+.chart svg { width: 100%; height: auto; overflow: visible; }
+.eqs { display: flex; flex-direction: column; gap: 22px; }
+.eq { background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--p-calculated); border-radius: 4px; padding: 24px 30px; }
+.eq .l { font: 500 17px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); margin-bottom: 16px; }
+.eq .f { font: 500 30px/1.3 var(--mono); color: #e6eef8; white-space: nowrap; }
+.eq .f sub, .eq .f sup { font-size: .62em; }
+.eq .f .u { color: var(--text-2); font-size: .7em; }
+
+/* ── 08 AI layers ─────────────────────────────────────────────────── */
+.ai { display: grid; grid-template-columns: 1fr 1fr; gap: 36px; margin-top: 56px; }
+.card { position: relative; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 40px 44px; }
+.card .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 26px; }
+.card .sys { font: 500 20px/1 var(--mono); letter-spacing: .14em; color: var(--text-2); text-transform: uppercase; }
+.card h3 { margin: 0 0 18px; font-size: 48px; font-weight: 600; letter-spacing: -0.015em; color: #e6eef8; }
+.card p { margin: 0; font-size: 27px; line-height: 1.45; color: var(--text-2); }
+.card .guard { display: flex; align-items: center; gap: 16px; margin-top: 30px; padding-top: 26px; border-top: 1px solid var(--border); font-size: 25px; color: var(--text); }
+.card .guard svg { width: 28px; height: 28px; flex: none; }
+.models { display: flex; gap: 16px; margin-top: 36px; align-items: center; flex-wrap: wrap; }
+.models .lbl { font: 500 20px/1 var(--mono); letter-spacing: .14em; color: var(--text-2); text-transform: uppercase; margin-right: 10px; }
+.chip { font-size: 24px; padding: 12px 20px; border-radius: 2px; background: var(--elevated); color: var(--text); border: 1px solid var(--border); }
+
+/* ── 09 Optimization ──────────────────────────────────────────────── */
+.opt { display: grid; grid-template-columns: 760px 1fr; gap: 72px; margin-top: 56px; flex: 1; }
+.objective { white-space: nowrap; font: 500 34px/1.3 var(--mono); color: #e6eef8; padding: 34px 38px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--p-optimized); border-radius: 4px; }
+.objective .min { color: var(--p-optimized-fg); }
+.st { margin-top: 34px; }
+.st .h { font: 500 20px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--text-2); margin-bottom: 20px; }
+.st li { list-style: none; display: flex; gap: 18px; align-items: center; font-size: 29px; padding: 16px 0; border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent); }
+.st ul { margin: 0; padding: 0; }
+.st li .m { font-family: var(--mono); color: var(--text-2); font-size: 24px; margin-left: auto; }
+.cands { display: flex; flex-direction: column; }
+.cand-h, .cand { display: grid; grid-template-columns: 1.7fr .8fr 1fr 150px; gap: 18px; align-items: center; }
+.cand-h { padding: 0 26px 16px; font: 500 18px/1 var(--mono); letter-spacing: .12em; color: var(--text-2); text-transform: uppercase; }
+.cand { position: relative; padding: 26px; margin-bottom: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font-size: 28px; }
+.cand .id { font: 600 30px/1 var(--mono); color: #e6eef8; }
+.cand .nm { display: block; margin-top: 8px; font: 400 21px/1.2 var(--sans); color: var(--text-2); }
+.cand .v { font-family: var(--mono); }
+.cand .ok { display: inline-flex; gap: 6px; font: 500 22px/1 var(--mono); color: var(--p-optimized-fg); }
+.cand.sel { border-color: var(--p-optimized); }
+.slide.active .cand.sel { animation: right .9s var(--ease) .7s both, selectrow .8s var(--ease) 2.4s forwards; }
+@keyframes selectrow { from { background: var(--surface); } to { background: color-mix(in srgb, var(--p-optimized) 12%, var(--surface)); } }
+.decision { display: flex; align-items: center; gap: 22px; margin-top: 22px; padding: 26px 30px; border: 1px solid var(--border-strong); border-radius: 4px; background: var(--elevated); }
+.decision b { white-space: nowrap; font: 600 42px/1 var(--mono); color: #e6eef8; letter-spacing: .02em; }
+.decision span { font-size: 25px; color: var(--text-2); }
+
+/* ── Demo divider ─────────────────────────────────────────────────── */
+.s-demo { justify-content: center; align-items: flex-start; }
+.live { display: inline-flex; align-items: center; gap: 16px; font: 600 26px/1 var(--mono); letter-spacing: .2em; color: var(--low); margin-bottom: 40px; }
+.live i { position: relative; width: 18px; height: 18px; border-radius: 50%; background: var(--low); }
+.live i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--low); animation: ring 1.8s ease-out infinite; }
+.s-demo h2 { font-size: 132px; }
+.cmd { margin-top: 56px; display: inline-flex; align-items: center; gap: 22px; padding: 26px 34px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font: 500 30px/1 var(--mono); color: var(--text); }
+.cmd .p { color: var(--primary); }
+.beats { display: flex; gap: 14px; margin-top: 44px; flex-wrap: wrap; }
+.beats span { font: 500 22px/1 var(--mono); color: var(--text-2); padding: 12px 16px; border: 1px solid var(--border); border-radius: 2px; }
+
+/* ── 10 The number ────────────────────────────────────────────────── */
+.impact { display: grid; grid-template-columns: 1fr 780px; gap: 80px; margin-top: 48px; flex: 1; align-items: end; }
+.formula { font: 500 38px/1.5 var(--mono); color: #e6eef8; padding: 36px 40px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--p-calculated); border-radius: 4px; }
+.formula .k { color: var(--low); }
+.bars { display: grid; grid-template-columns: 1fr 1fr; gap: 56px; height: 460px; margin-bottom: 70px; padding-right: 150px !important; align-items: end; position: relative; padding: 0 20px; border-bottom: 2px solid var(--border-strong); }
+.bars .col { display: flex; flex-direction: column; align-items: center; justify-content: flex-end; height: 100%; }
+.bars .b { width: 100%; border-radius: 4px 4px 0 0; }
+.bars .lab { position: absolute; bottom: -52px; font: 500 20px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-2); text-align: center; width: 45%; }
+.saved { position: absolute; right: 0; display: flex; align-items: center; gap: 14px; font: 600 26px/1.2 var(--mono); color: var(--low); }
+
+/* ── 11 Provenance ────────────────────────────────────────────────── */
+.prov { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; margin-top: 56px; }
+.pv { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 34px 34px 38px; }
+.pv .tag { font-size: 20px; }
+.pv p { margin: 24px 0 0; font-size: 27px; line-height: 1.42; color: var(--text-2); }
+
+/* ── 12 The ask ───────────────────────────────────────────────────── */
+.s-ask { justify-content: center; }
+.s-ask .lead { max-width: 1000px; }
+.team { position: absolute; right: 128px; top: 180px; width: 560px; padding: 34px 36px 30px; background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--primary); border-radius: 4px; }
+.team .th { display: flex; align-items: center; gap: 18px; }
+.team .th svg { width: 56px; height: 56px; flex: none; }
+.team .th b { display: block; font: 600 44px/1 var(--mono); letter-spacing: -0.01em; color: #e6eef8; }
+.team .th span { display: block; margin-top: 10px; font: 500 18px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--text-2); }
+.team ol { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 10px; counter-reset: m; }
+.team li { counter-increment: m; display: flex; align-items: center; gap: 16px; padding: 12px 16px; border: 1px dashed var(--border-strong); border-radius: 2px; font-size: 25px; color: var(--text-2); }
+.team li::before { content: counter(m, decimal-leading-zero); font: 500 18px/1 var(--mono); color: var(--primary); }
+.s-ask h2 { font-size: 110px; line-height: 1.02; }
+.s-ask h2 span { display: block; }
+.close { margin-top: 64px; padding-top: 44px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto; gap: 80px; align-items: end; }
+.close blockquote { margin: 0; font-size: 30px; line-height: 1.5; color: var(--text-2); max-width: 1100px; }
+.close blockquote b { color: var(--text); font-weight: 500; }
+.close .meta { text-align: right; font: 400 22px/1.7 var(--mono); color: var(--text-2); }
+.close .meta b { color: var(--primary); font-weight: 500; }
+
+/* ── Backup slides ────────────────────────────────────────────────── */
+.backup .eyebrow .n { color: var(--text-2); }
+.flow { display: flex; align-items: stretch; gap: 0; margin-top: 90px; }
+.node { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 30px 12px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font-size: 25px; font-weight: 500; color: #e6eef8; }
+.node small { display: block; margin-top: 10px; font: 400 18px/1.2 var(--mono); color: var(--text-2); }
+.link { position: relative; align-self: center; width: 56px; height: 2px; background: var(--border-strong); flex: none; overflow: visible; }
+.link i { position: absolute; top: -4px; left: 0; width: 10px; height: 10px; border-radius: 50%; background: var(--primary); opacity: 0; }
+.slide.active .link i { animation: hop 1.2s linear infinite; animation-delay: calc(var(--d, 0) * 1ms); }
+@keyframes hop { 0% { left: 0; opacity: 0; } 20% { opacity: 1; } 80% { opacity: 1; } 100% { left: 46px; opacity: 0; } }
+.seam { margin-top: 70px; display: grid; grid-template-columns: auto 1fr; gap: 36px; align-items: center; padding: 34px 40px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--primary); border-radius: 4px; }
+.seam code { font: 500 30px/1 var(--mono); color: #e6eef8; }
+.seam p { margin: 0; font-size: 26px; line-height: 1.45; color: var(--text-2); }
+.sources { display: grid; grid-template-columns: repeat(4, 1fr); gap: 22px; margin-top: 56px; }
+.src { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 28px 30px; }
+.src .c { display: flex; justify-content: space-between; align-items: baseline; font: 500 19px/1 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); margin-bottom: 18px; }
+.src .c b { font: 600 34px/1 var(--mono); color: #e6eef8; letter-spacing: 0; }
+.src ul { margin: 0; padding: 0; list-style: none; }
+.src li { font-size: 22px; line-height: 1.35; color: var(--text); padding: 5px 0; }
+.facts { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; margin-top: 64px; }
+.fact { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 40px 40px 44px; }
+.fact .big { font: 600 64px/1 var(--mono); color: #e6eef8; letter-spacing: -0.02em; }
+.fact h3 { margin: 26px 0 14px; font-size: 32px; font-weight: 600; color: #e6eef8; }
+.fact p { margin: 0; font-size: 25px; line-height: 1.45; color: var(--text-2); }
+.fact code { font-family: var(--mono); font-size: .92em; color: var(--text); }
+
+/* ── Overlays: notes, overview, hint (outside the scaled stage) ───── */
+.notes {
+  position: fixed; left: 0; right: 0; bottom: 0; max-height: 34vh; overflow: auto;
+  padding: 18px 28px 22px; background: rgba(7, 15, 24, .96); border-top: 1px solid var(--border);
+  font-size: 17px; line-height: 1.55; color: var(--text); transform: translateY(100%); transition: transform .35s var(--ease); z-index: 20;
+}
+.notes.on { transform: none; }
+.notes h4 { margin: 0 0 8px; font: 500 12px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--text-2); display: flex; justify-content: space-between; }
+.notes p { margin: 0 0 8px; max-width: 1100px; }
+.overview { position: fixed; inset: 0; background: rgba(7, 15, 24, .97); z-index: 30; display: none; overflow: auto; padding: 48px; }
+.overview.on { display: block; }
+.overview h4 { margin: 0 0 24px; font: 500 13px/1 var(--mono); letter-spacing: .16em; text-transform: uppercase; color: var(--text-2); }
+.overview ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.overview button { width: 100%; text-align: left; padding: 16px 18px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; color: var(--text); font: 500 16px/1.35 var(--sans); cursor: pointer; }
+.overview button span { display: block; font: 500 12px/1 var(--mono); color: var(--text-2); letter-spacing: .1em; margin-bottom: 8px; }
+.overview button:hover, .overview button:focus-visible { border-color: var(--primary); outline: none; }
+.overview button.cur { border-color: var(--primary); }
+.hint { position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%); padding: 10px 16px; border-radius: 4px; background: rgba(22, 35, 56, .95); border: 1px solid var(--border); font: 500 13px/1 var(--mono); letter-spacing: .06em; color: var(--text-2); z-index: 25; transition: opacity .6s; }
+.hint.off { opacity: 0; pointer-events: none; }
+.hint b { color: var(--text); font-weight: 500; }
+
+/* ── Reduced motion: final states, no movement ────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .slide, .slide.past { transform: none; transition: opacity .2s; }
+  [data-a], .slide.active [data-a] { opacity: 1; animation: none; }
+  .draw, .slide.active .draw { stroke-dashoffset: 0; animation: none; }
+  .grow, .slide.active .grow, .shrink, .slide.active .shrink { transform: scaleX(var(--to, 1)); animation: none; }
+  .rise, .slide.active .rise { transform: scaleY(var(--to, 1)); animation: none; }
+  .wipe, .slide.active .wipe { clip-path: none; animation: none; }
+  .slide.active .truck { animation: none; transform: translateX(1410px); }
+  .wire i, .link i, .callout .dot::after, .live i::after { animation: none !important; opacity: 0; }
+}
+
+/* ── Print / Save as PDF: one slide per page, final states ────────── */
+@media print {
+  @page { size: 1920px 1080px; margin: 0; }
+  html, body { overflow: visible; height: auto; background: var(--base); }
+  body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .stage { position: static; transform: none !important; width: 1920px; height: auto; overflow: visible; }
+  .stage::before, .progress, .notes, .overview, .hint { display: none !important; }
+  .slide { position: relative; width: 1920px; height: 1080px; opacity: 1; visibility: visible; transform: none; transition: none; break-after: page; overflow: hidden;
+    background: var(--base); }
+  [data-a] { opacity: 1 !important; animation: none !important; }
+  .draw { stroke-dashoffset: 0 !important; animation: none !important; }
+  .grow, .shrink { transform: scaleX(var(--to, 1)) !important; animation: none !important; }
+  .rise { transform: scaleY(var(--to, 1)) !important; animation: none !important; }
+  .wipe { clip-path: none !important; animation: none !important; }
+  .truck { transform: translateX(1410px) !important; animation: none !important; }
+  .wire i, .link i { display: none; }
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="glyph" viewBox="0 0 32 32">
+    <path d="M16 5v22M6.5 10.5l19 11M6.5 21.5l19-11M13 7l3 3 3-3M13 25l3-3 3 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" />
+  </symbol>
+  <symbol id="lock" viewBox="0 0 24 24">
+    <rect x="4.5" y="10.5" width="15" height="10" rx="1.5" fill="none" stroke="currentColor" stroke-width="1.8" />
+    <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" />
+  </symbol>
+</svg>
+
+<div class="stage" id="stage">
+  <div class="progress" id="progress"></div>
+
+  <!-- ═════════ 01 · TITLE ═════════ -->
+  <section class="slide s-title" data-title="Thermal Trace" data-notes="Open on the product in one sentence. Pause after the headline. &lt;p&gt;A condition-aware cold-chain decision system: it watches food in transit, measures how much safe life a failure has cost, and chooses the action that loses the least of it.&lt;/p&gt;">
+    <svg class="trace-bg" viewBox="0 0 1920 420" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="tg" x1="0" x2="1" y1="0" y2="0">
+          <stop offset="0" stop-color="#00c8e0" stop-opacity="0" />
+          <stop offset=".14" stop-color="#00c8e0" stop-opacity=".9" />
+          <stop offset=".64" stop-color="#00c8e0" />
+          <stop offset=".74" stop-color="#fb923c" />
+          <stop offset="1" stop-color="#f87171" />
+        </linearGradient>
+        <linearGradient id="tf" x1="0" x2="0" y1="0" y2="1">
+          <stop offset="0" stop-color="#f87171" stop-opacity=".28" />
+          <stop offset="1" stop-color="#f87171" stop-opacity="0" />
+        </linearGradient>
+      </defs>
+      <line x1="0" x2="1920" y1="210" y2="210" stroke="#f87171" stroke-opacity=".55" stroke-width="2" stroke-dasharray="10 10" />
+      <text x="1900" y="196" text-anchor="end" fill="#f87171" fill-opacity=".75" font-family="IBM Plex Mono, monospace" font-size="18" letter-spacing="2">SAFE MAX 4 °C</text>
+      <path class="wipe" style="--d:2600" fill="url(#tf)" d="M1310 210 C 1400 200, 1480 170, 1560 140 S 1760 70, 1920 40 L1920 210 Z" />
+      <path class="draw" style="--d:900;--dur:3.4s" fill="none" stroke="url(#tg)" stroke-width="4" stroke-linecap="round"
+        d="M0 300 C 120 292, 200 310, 300 296 S 480 280, 580 292 S 760 306, 860 288 S 1020 272, 1120 280 S 1260 262, 1310 214 S 1480 170, 1560 140 S 1760 70, 1920 40" />
+    </svg>
+    <div class="lockup">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+        <rect x=".5" y=".5" width="31" height="31" rx="5.5" fill="#162338" stroke="#2d4160" data-a="zoom" />
+        <g fill="none" stroke="#00c8e0" stroke-width="2.4" stroke-linecap="round">
+          <path class="draw" style="--d:250;--dur:.9s" d="M16 5v22" />
+          <path class="draw" style="--d:420;--dur:.9s" d="M6.5 10.5l19 11" />
+          <path class="draw" style="--d:590;--dur:.9s" d="M6.5 21.5l19-11" />
+          <path class="draw" style="--d:900;--dur:.6s" d="M13 7l3 3 3-3" />
+          <path class="draw" style="--d:900;--dur:.6s" d="M13 25l3-3 3 3" />
+        </g>
+      </svg>
+      <div>
+        <div class="word" data-a="left" style="--d:300">Thermal Trace</div>
+        <div class="desc" data-a="fade" style="--d:700">AI cold-chain management · food-loss prevention</div>
+      </div>
+    </div>
+    <h1 data-a style="--d:900">Know what a failing fridge is costing <em style="font-style:normal;color:#fb923c">before the gate does.</em></h1>
+    <p class="sub" data-a style="--d:1150">It watches food in transit, measures how much safe life a failure has cost, and chooses the action that loses the least of it.</p>
+  </section>
+
+  <!-- ═════════ 02 · PROBLEM ═════════ -->
+  <section class="slide" data-title="The problem" data-notes="One idea: the loss happens before anyone sees it. Read the three numbers slowly. &lt;p&gt;13% of food is lost between harvest and retail; another 19% is wasted after. Food loss and waste cause 8–10% of global emissions (FAO / UNEP, 2024).&lt;/p&gt;">
+    <div class="source"><span class="tag t-cited" data-a="fade" style="--d:200">Cited · FAO / UNEP 2024</span></div>
+    <div class="eyebrow" data-a="fade"><span class="n">02</span><span class="rule"></span>The problem</div>
+    <h2 data-a style="--d:120">A third of our food never gets eaten.</h2>
+    <div class="stats">
+      <div class="stat" data-a style="--d:400">
+        <div class="v"><span data-count="13" data-delay="500">0</span><small>%</small></div>
+        <div class="bar"><i class="grow" style="--c:var(--critical);--to:.13;--d:500"></i></div>
+        <p>of food is <strong style="color:var(--text);font-weight:500">lost</strong> between harvest and retail.</p>
+      </div>
+      <div class="stat" data-a style="--d:650">
+        <div class="v"><span data-count="19" data-delay="750">0</span><small>%</small></div>
+        <div class="bar"><i class="grow" style="--c:var(--high);--to:.19;--d:750"></i></div>
+        <p>more is <strong style="color:var(--text);font-weight:500">wasted</strong> after it reaches retail and homes.</p>
+      </div>
+      <div class="stat" data-a style="--d:900">
+        <div class="v"><span data-count="8" data-delay="1000">0</span><small>–</small><span data-count="10" data-delay="1000">0</span><small>%</small></div>
+        <div class="bar"><i class="grow" style="--c:var(--medium);--to:.1;--d:1000"></i></div>
+        <p>of global greenhouse-gas emissions come from food loss and waste.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ 03 · WHY HERE ═════════ -->
+  <section class="slide" data-title="Why here" data-notes="Make it local. Qatar imports most of its fresh food across a summer that passes 45 °C. A truck fridge that fails at noon can spoil a load in hours. &lt;p&gt;The National Food Security Strategy 2030 targets −50% food waste and −30% food loss. We are a tool for those two numbers.&lt;/p&gt;">
+    <div class="source"><span class="tag t-cited" data-a="fade" style="--d:200">Cited · Qatar NFSS 2030</span></div>
+    <div class="eyebrow" data-a="fade"><span class="n">03</span><span class="rule"></span>Why here</div>
+    <h2 data-a style="--d:120">Qatar imports most of its fresh food across a summer that passes <em style="color:var(--high)">45&nbsp;°C</em>.</h2>
+    <div class="why">
+      <div class="thermo" data-a="left" style="--d:350">
+        <svg width="120" height="400" viewBox="0 0 120 400" aria-hidden="true">
+          <rect x="38" y="10" width="44" height="300" rx="22" fill="#1e3048" stroke="#3d5476" stroke-width="2" />
+          <rect class="rise" style="--d:600;--to:1" x="48" y="40" width="24" height="290" rx="12" fill="#fb923c" />
+          <circle cx="60" cy="340" r="46" fill="#fb923c" stroke="#0c1825" stroke-width="6" />
+          <g stroke="#3d5476" stroke-width="2"><line x1="88" x2="104" y1="60" y2="60" /><line x1="88" x2="100" y1="120" y2="120" /><line x1="88" x2="104" y1="180" y2="180" /><line x1="88" x2="100" y1="240" y2="240" /></g>
+        </svg>
+        <div>
+          <div class="read"><span data-count="45" data-delay="600" data-dur="2000">0</span><small> °C</small></div>
+          <div class="cap">A fridge that fails at noon can spoil a load in hours.</div>
+        </div>
+      </div>
+      <div class="targets" data-a style="--d:500">
+        <h3>National Food Security Strategy 2030</h3>
+        <div class="target">
+          <div class="row"><span>Food waste</span><b>−50%</b></div>
+          <div class="track"><span class="ghost"></span><i class="shrink" style="--to:.5;--d:900"></i></div>
+        </div>
+        <div class="target">
+          <div class="row"><span>Food loss</span><b>−30%</b></div>
+          <div class="track"><span class="ghost"></span><i class="shrink" style="--to:.7;--d:1100"></i></div>
+        </div>
+        <p class="small" style="margin:0">Targets set by the State of Qatar. Thermal Trace works on the loss in transit.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ 04 · WHAT GOES WRONG ═════════ -->
+  <section class="slide" data-title="What goes wrong" data-notes="Tell it as a story: the fridge fails at noon, the truck keeps driving, the cargo warms, and nobody knows until the load is rejected at the gate. &lt;p&gt;By then the food is gone, and so is any chance to send it somewhere it could still be sold. The times on the slide are illustrative.&lt;/p&gt;">
+    <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative timeline</span></div>
+    <div class="eyebrow" data-a="fade"><span class="n">04</span><span class="rule"></span>What actually goes wrong</div>
+    <h2 data-a style="--d:120">Nobody finds out until the load is <em style="color:var(--critical)">rejected at the gate</em>.</h2>
+    <div class="tl">
+      <svg viewBox="0 0 1664 420" aria-hidden="true">
+        <defs>
+          <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="14" stroke="#f87171" stroke-opacity=".35" stroke-width="5" />
+          </pattern>
+        </defs>
+        <!-- cargo temperature, rising after the failure -->
+        <line x1="0" x2="1664" y1="150" y2="150" stroke="#f87171" stroke-opacity=".5" stroke-width="2" stroke-dasharray="8 8" />
+        <text x="0" y="138" fill="#f87171" fill-opacity=".8" font-family="IBM Plex Mono, monospace" font-size="18" letter-spacing="2">SAFE MAX</text>
+        <path class="draw" style="--d:700;--dur:5s" fill="none" stroke="#fb923c" stroke-width="4" stroke-linecap="round"
+          d="M40 186 C 110 184, 150 188, 200 186 S 360 176, 470 150 S 760 98, 980 70 S 1360 34, 1624 22" />
+        <!-- the blind window -->
+        <rect class="wipe" style="--d:1000" x="200" y="236" width="1260" height="44" fill="url(#hatch)" stroke="#f87171" stroke-opacity=".5" />
+        <text data-a="fade" style="--d:2200" x="830" y="268" text-anchor="middle" fill="#f87171" font-family="IBM Plex Sans, sans-serif" font-size="24" font-weight="500" stroke="#0c1825" stroke-width="10" paint-order="stroke" stroke-linejoin="round">hours in which nobody knows</text>
+        <!-- road -->
+        <line x1="0" x2="1664" y1="330" y2="330" stroke="#3d5476" stroke-width="3" />
+        <g font-family="IBM Plex Mono, monospace" font-size="22" fill="#8fa8c8">
+          <circle cx="200" cy="330" r="9" fill="#fbbf24" /><text x="200" y="380" text-anchor="middle" fill="#fbbf24">12:00 · fridge fails</text>
+          <circle cx="830" cy="330" r="6" fill="#3d5476" /><text x="830" y="380" text-anchor="middle">cargo warming</text>
+          <circle cx="1460" cy="330" r="9" fill="#f87171" /><text x="1460" y="380" text-anchor="middle" fill="#f87171">16:00 · rejected</text>
+        </g>
+        <!-- truck -->
+        <g class="truck">
+          <g transform="translate(20 282)">
+            <rect x="0" y="0" width="74" height="38" rx="3" fill="#1e3048" stroke="#8fa8c8" stroke-width="2.5" />
+            <path d="M74 12 h20 l12 13 v13 h-32 z" fill="#1e3048" stroke="#8fa8c8" stroke-width="2.5" stroke-linejoin="round" />
+            <circle cx="20" cy="42" r="7" fill="#0c1825" stroke="#8fa8c8" stroke-width="2.5" />
+            <circle cx="88" cy="42" r="7" fill="#0c1825" stroke="#8fa8c8" stroke-width="2.5" />
+            <use href="#glyph" x="25" y="7" width="24" height="24" style="color:#00c8e0" />
+          </g>
+        </g>
+      </svg>
+    </div>
+    <p class="lead" data-a style="--d:1600;margin-top:24px">By then the food is gone, and so is any chance to send it somewhere it could still be sold.</p>
+  </section>
+
+  <!-- ═════════ 05 · PRODUCT ═════════ -->
+  <section class="slide" data-title="The product" data-notes="This is the spine of the talk; every later slide is one of these boxes. &lt;p&gt;Sensors tell us what is happening; mathematics tells us how much damage has occurred; AI predicts what happens next; optimization chooses the action; the decision engine turns it into an operation; and the food-loss engine proves what it saved.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">05</span><span class="rule"></span>The product in one line</div>
+    <h2 data-a style="--d:120">Physics first. <em>AI where it earns its place.</em></h2>
+    <p class="lead" data-a style="--d:250">Sensors say what is happening, the maths says how much damage is done, and the optimizer chooses the action that loses the least food.</p>
+    <div class="pipe">
+      <div class="wire" data-a="fade" style="--d:300"><i></i></div>
+      <div class="step" data-a style="--d:300"><div class="k">01</div><h3>Sensors</h3><div class="verb">say what is happening</div><span class="tag t-measured">Measured</span></div>
+      <div class="step" data-a style="--d:420"><div class="k">02</div><h3>Mathematics</h3><div class="verb">says how much damage has occurred</div><span class="tag t-calculated">Calculated</span></div>
+      <div class="step" data-a style="--d:540"><div class="k">03</div><h3>Prediction</h3><div class="verb">says what may happen next</div><span class="tag t-predicted">Predicted</span></div>
+      <div class="step" data-a style="--d:660"><div class="k">04</div><h3>Optimization</h3><div class="verb">chooses the action</div><span class="tag t-optimized">Optimized</span></div>
+      <div class="step" data-a style="--d:780"><div class="k">05</div><h3>Decision</h3><div class="verb">turns it into an operation</div><span class="tag t-optimized">Optimized</span></div>
+      <div class="step" data-a style="--d:900"><div class="k">06</div><h3>Food loss</h3><div class="verb">proves what it saved</div><span class="tag t-calculated">Calculated</span></div>
+    </div>
+  </section>
+
+  <!-- ═════════ 06 · DETECT ═════════ -->
+  <section class="slide" data-title="Detect" data-notes="A live map of every truck, with an incident the instant a temperature leaves the safe band and stays there. Not a dashboard of charts: a decision surface. &lt;p&gt;Point at the incident panel (outlined). The screen is the demo build with a simulated fleet.&lt;/p&gt;">
+    <div class="source"><span class="tag t-synthetic dashed" data-a="fade" style="--d:200">Synthetic · demo build, simulated fleet</span></div>
+    <div class="split">
+      <div>
+        <div class="eyebrow" data-a="fade"><span class="n">06</span><span class="rule"></span>Detect</div>
+        <h2 data-a style="--d:120">At the moment of failure, <em>not at the gate.</em></h2>
+        <p class="lead" data-a style="--d:300;font-size:30px">A live map of every truck, with an incident the instant a temperature leaves the safe band and stays there.</p>
+        <div class="callout" data-a style="--d:1500"><span class="dot"></span><span>A decision surface, not a dashboard of charts.</span></div>
+      </div>
+      <div class="shot" data-a="right" style="--d:350">
+        <div class="bar"><i></i><i></i><i></i><span>Thermal Trace · Command Center</span></div>
+        <div style="position:relative">
+          <img src="assets/command-center.jpg" alt="Thermal Trace Command Center: live Doha map of five trucks, stat cards, active incidents for T103 and T102, sensor monitoring and simulation controls" />
+          <span class="hl" style="left:63.4%;top:13.6%;width:35.6%;height:34.6%"></span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ 07 · PHYSICS ═════════ -->
+  <section class="slide" data-title="Physics before AI" data-notes="Thermal exposure is the sum of the degrees above the limit over time: the shaded area. Deterioration is an Arrhenius rate relative to the product's ideal temperature. Remaining shelf life follows from it. &lt;p&gt;Every one of those numbers is deterministic Python; no model touches them. These are prototype models, not certified food-safety science: say so if asked.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">07</span><span class="rule"></span>Physics before AI</div>
+    <h2 data-a style="--d:120">Damage is <em>measured</em>, not guessed.</h2>
+    <div class="phys">
+      <div class="panel" data-a style="--d:300">
+        <div class="ph"><span>T102 · cargo temperature</span><span class="tag t-simulated dashed" style="font-size:15px;padding:6px 11px">Simulated · scripted demo</span></div>
+        <div class="chart">
+          <svg viewBox="0 0 900 470" aria-label="Scripted T102 temperature climbing from 3.8 to 7.4 °C across the 4 °C safe limit; the area above the limit is the thermal exposure">
+            <defs>
+              <clipPath id="above"><rect x="60" y="0" width="840" height="286" /></clipPath>
+              <linearGradient id="ex" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d55181" stop-opacity=".55" /><stop offset="1" stop-color="#d55181" stop-opacity=".12" /></linearGradient>
+            </defs>
+            <g font-family="IBM Plex Mono, monospace" font-size="17" fill="#8fa8c8">
+              <g stroke="#2d4160" stroke-dasharray="3 6"><line x1="60" x2="880" y1="30" y2="30" /><line x1="60" x2="880" y1="158" y2="158" /><line x1="60" x2="880" y1="414" y2="414" /></g>
+              <text x="48" y="36" text-anchor="end">8°</text><text x="48" y="164" text-anchor="end">6°</text><text x="48" y="292" text-anchor="end">4°</text><text x="48" y="420" text-anchor="end">2°</text>
+            </g>
+            <!-- exposure area: the integral -->
+            <path class="wipe" style="--d:1900" clip-path="url(#above)" fill="url(#ex)"
+              d="M60 299 L 225 299 C 300 299, 330 264, 390 254 S 520 214, 555 208 S 680 154, 720 145 S 830 105, 880 94 L 880 286 L 60 286 Z" />
+            <line x1="60" x2="880" y1="286" y2="286" stroke="#f87171" stroke-width="2.5" stroke-dasharray="9 7" />
+            <text x="876" y="276" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="17" fill="#f87171">SAFE MAX 4 °C</text>
+            <path class="draw" style="--d:500;--dur:2s" fill="none" stroke="#00c8e0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+              d="M60 299 L 225 299 C 300 299, 330 264, 390 254 S 520 214, 555 208 S 680 154, 720 145 S 830 105, 880 94" />
+            <g data-a="fade" style="--d:1100">
+              <line x1="225" x2="225" y1="299" y2="440" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4 5" />
+              <text x="235" y="450" font-family="IBM Plex Mono, monospace" font-size="17" fill="#fbbf24">refrigeration fails</text>
+            </g>
+            <g font-family="IBM Plex Mono, monospace" font-size="20" font-weight="500">
+              <text data-a="fade" style="--d:600" x="60" y="330" fill="#c9d6e8">3.8°</text>
+              <text data-a="fade" style="--d:2300" x="872" y="80" text-anchor="end" fill="#fb923c">7.4°</text>
+            </g>
+            <text data-a="fade" style="--d:2600" x="640" y="250" font-family="IBM Plex Mono, monospace" font-size="21" fill="#eb9dbb">E<tspan font-size="14" dy="5">T</tspan><tspan dy="-5"> = exposure</tspan></text>
+          </svg>
+        </div>
+      </div>
+      <div class="eqs">
+        <div class="eq" data-a="right" style="--d:500"><div class="l">Thermal exposure · °C·min</div><div class="f">E<sub>T</sub> = Σ max(0, T<sub>i</sub> − T<sub>safe</sub>) · Δt</div></div>
+        <div class="eq" data-a="right" style="--d:700"><div class="l">Deterioration rate · Arrhenius</div><div class="f">k(T) = k<sub>ref</sub> · e<sup>(E<sub>a</sub>/R)(1/T<sub>ideal</sub> − 1/T)</sup></div></div>
+        <div class="eq" data-a="right" style="--d:900"><div class="l">Shelf life spent · remaining</div><div class="f">D = Σ k(T<sub>i</sub>)·Δt<sub>i</sub> <span class="u">→</span> L·(1 − D)</div></div>
+        <div data-a style="--d:1200;display:flex;gap:14px;align-items:center;margin-top:6px"><span class="tag t-calculated">Calculated</span><span class="small">Deterministic Python. No model touches these numbers.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ 08 · AI ═════════ -->
+  <section class="slide" data-title="AI where it earns its place" data-notes="Two AI layers, both on a leash. &lt;p&gt;Laya is System 1: a local, offline, Apache-2.0 decision model. It answers typed questions in a single forward pass (condition, action, urgency, needs human review) and cannot write text, so it cannot invent a number. It corroborates the deterministic decision and never overrides it.&lt;/p&gt;&lt;p&gt;System 2 is an OpenRouter language model, the explainer: it turns code-computed facts into plain language. It may only move the spoilage estimate within a fixed band and only rank options that are already feasible. With no API key the system still runs; only the prose is plainer.&lt;/p&gt;&lt;p&gt;The chips at the bottom are deterministic code, not AI.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">08</span><span class="rule"></span>AI where it earns its place</div>
+    <h2 data-a style="--d:120">Two AI layers. <em>Neither may invent a number.</em></h2>
+    <div class="ai">
+      <div class="card" data-a style="--d:320">
+        <div class="top"><span class="sys">System 1 · local · offline</span><span class="tag t-predicted">Predicted</span></div>
+        <h3>Laya</h3>
+        <p>Answers typed questions in a single pass: condition, recommended action, urgency, needs human review. Open source (Apache-2.0), runs on the laptop.</p>
+        <div class="guard"><svg style="color:var(--p-predicted-fg)"><use href="#lock" /></svg>Never generates text. Corroborates the decision, never overrides it.</div>
+      </div>
+      <div class="card" data-a style="--d:480">
+        <div class="top"><span class="sys">System 2 · explainer · cloud</span><span class="tag t-explained">AI-explained</span></div>
+        <h3>OpenRouter LLM</h3>
+        <p>Turns the calculated facts into plain language for the operator. May rank only feasible options, and move the spoilage estimate only within a fixed band.</p>
+        <div class="guard"><svg style="color:var(--text)"><use href="#lock" /></svg>Never invents a temperature, ETA, cost or quantity.</div>
+      </div>
+    </div>
+    <div class="models" data-a style="--d:750">
+      <span class="lbl">Plain code, not AI</span>
+      <span class="chip">Spoilage probability</span><span class="chip">Anomaly detection</span><span class="chip">Demand forecasting</span>
+    </div>
+  </section>
+
+  <!-- ═════════ 09 · OPTIMIZATION ═════════ -->
+  <section class="slide" data-title="Optimization" data-notes="Optimization, not vibes. Minimize transport plus food-loss plus delay, subject to hard constraints: the ETA must beat the remaining safe time, the store must have capacity, and it must hold the right temperature. &lt;p&gt;Three cold stores are in range; the optimizer picks WH01. The model did not choose this. The optimizer did; the model only explains it. ETAs are the scripted demo values.&lt;/p&gt;">
+    <div class="source"><span class="tag t-simulated dashed" data-a="fade" style="--d:200">ETAs · scripted demo</span></div>
+    <div class="eyebrow" data-a="fade"><span class="n">09</span><span class="rule"></span>Optimization</div>
+    <h2 data-a style="--d:120">Optimization, <em>not vibes.</em></h2>
+    <div class="opt">
+      <div>
+        <div class="objective" data-a style="--d:320"><span class="min">min</span>( C<sub style="font-size:.6em">transport</sub> + C<sub style="font-size:.6em">food&#8209;loss</sub> + C<sub style="font-size:.6em">delay</sub> )</div>
+        <div class="st">
+          <div class="h" data-a="fade" style="--d:500">Subject to</div>
+          <ul>
+            <li data-a="left" style="--d:600">ETA ≤ remaining safe time</li>
+            <li data-a="left" style="--d:720">Quantity ≤ available capacity</li>
+            <li data-a="left" style="--d:840">Storage temperature compatible</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cands">
+        <div class="cand-h" data-a="fade" style="--d:500"><span>Cold store</span><span>ETA</span><span>Free space</span><span>Feasible</span></div>
+        <div class="cand sel"><div><span class="id">WH01</span><span class="nm">Central Warehouse</span></div><span class="v">18 min</span><span class="v">1,200 kg</span><span class="ok" data-a="fade" style="--d:1500">✓ met</span></div>
+        <div class="cand" data-a="right" style="--d:850"><div><span class="id">WH02</span><span class="nm">North Cold Store</span></div><span class="v">27 min</span><span class="v">800 kg</span><span class="ok" data-a="fade" style="--d:1650">✓ met</span></div>
+        <div class="cand" data-a="right" style="--d:1000"><div><span class="id">WH03</span><span class="nm">South Distribution Hub</span></div><span class="v">46 min</span><span class="v">600 kg</span><span class="ok" data-a="fade" style="--d:1800">✓ met</span></div>
+        <div class="decision" data-a style="--d:2400"><span class="tag t-optimized">Optimized</span><b>DIVERT → WH01</b><span>The optimizer picks the store; the model only explains why.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ DEMO ═════════ -->
+  <section class="slide s-demo" data-title="Live demo" data-notes="Hand over to the live demo (pitch/DEMO_SCRIPT.md, about four minutes). &lt;p&gt;Before the talk: make demo, make reset, dashboard open on the Command Center with the LIVE pill green. Trigger: make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102. Walk: Command Center → T102 → Model → Optimization → Food Loss → Comparison. Finish with make reset, then come back to the next slide.&lt;/p&gt;">
+    <div class="live" data-a="fade"><i></i>LIVE DEMO</div>
+    <h2 data-a style="--d:150">One truck. One failure.<br />One decision.</h2>
+    <p class="lead" data-a style="--d:350">T102 is carrying <strong>500 kg of fresh chicken</strong>, safe between 0 and 4 °C. Its refrigeration is about to fail.</p>
+    <div class="cmd" data-a style="--d:600"><span class="p">$</span>make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102</div>
+    <div class="beats">
+      <span data-a style="--d:800">Command Center</span><span data-a style="--d:880">T102</span><span data-a style="--d:960">Model</span><span data-a style="--d:1040">Optimization</span><span data-a style="--d:1120">Food loss</span><span data-a style="--d:1200">Comparison</span>
+    </div>
+  </section>
+
+  <!-- ═════════ 10 · THE NUMBER ═════════ -->
+  <section class="slide" data-title="The number that matters" data-notes="The whole point in one subtraction: expected loss without the intervention minus expected loss with it, times the quantity. That is food saved in kilograms, and in QAR, loss prevented. &lt;p&gt;The bars are illustrative. The real figure is computed live by the food-loss engine: point back at what the audience just saw in the demo.&lt;/p&gt;">
+    <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative bars · live figure in the demo</span></div>
+    <div class="eyebrow" data-a="fade"><span class="n">10</span><span class="rule"></span>The number that matters</div>
+    <h2 data-a style="--d:120">Food saved. <em style="color:var(--low)">Money not thrown away.</em></h2>
+    <div class="impact">
+      <div>
+        <div class="formula" data-a style="--d:350">
+          <span class="k">food saved</span> =<br />(loss<sub style="font-size:.6em">without</sub> − loss<sub style="font-size:.6em">with</sub>) × quantity
+        </div>
+        <p class="small" data-a style="--d:600;margin-top:30px;max-width:760px">In kilograms, and in QAR as financial loss prevented. Computed by the food-loss engine for every intervention. <span class="tag t-calculated" style="font-size:15px;padding:6px 11px;vertical-align:middle">Calculated</span></p>
+      </div>
+      <div class="bars" data-a="fade" style="--d:300">
+        <div class="col"><div class="b rise" style="--d:600;height:92%;background:linear-gradient(180deg,var(--critical),color-mix(in srgb,var(--critical) 55%,var(--surface)))"></div><div class="lab" style="left:2%;width:38%">Without intervention</div></div>
+        <div class="col"><div class="b rise" style="--d:900;height:14%;background:linear-gradient(180deg,var(--low),color-mix(in srgb,var(--low) 55%,var(--surface)))"></div><div class="lab" style="left:46%;width:38%">With Thermal Trace</div></div>
+        <div class="saved" data-a="fade" style="--d:2200;top:8%;height:78%">
+          <svg width="26" height="100%" viewBox="0 0 26 400" preserveAspectRatio="none" style="height:100%"><path d="M4 2 H18 V398 H4" fill="none" stroke="#22d4b0" stroke-width="3" vector-effect="non-scaling-stroke" /></svg>
+          <span>food<br />saved</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ 11 · PROVENANCE ═════════ -->
+  <section class="slide" data-title="Provenance" data-notes="Every value on screen carries one of these marks. Synthetic demo data is never dressed up as a real measurement, and literature values are marked as unverified. &lt;p&gt;The language model explains the numbers. It is never allowed to invent one.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">11</span><span class="rule"></span>Trust</div>
+    <h2 data-a style="--d:120">Every value knows <em>where it came from.</em></h2>
+    <div class="prov">
+      <div class="pv" data-a style="--d:300"><span class="tag t-measured">Measured</span><p>Read from a sensor on the truck.</p></div>
+      <div class="pv" data-a style="--d:400"><span class="tag t-calculated">Calculated</span><p>Deterministic Python: exposure, deterioration, shelf life, food saved.</p></div>
+      <div class="pv" data-a style="--d:500"><span class="tag t-predicted">Predicted</span><p>A model estimate, shown with its probability.</p></div>
+      <div class="pv" data-a style="--d:600"><span class="tag t-optimized">Optimized</span><p>Chosen by the optimizer under hard constraints.</p></div>
+      <div class="pv" data-a style="--d:700"><span class="tag t-explained">AI-explained</span><p>Plain language about code-computed facts. No new numbers.</p></div>
+      <div class="pv" data-a style="--d:800"><span class="tag t-synthetic dashed">Synthetic</span><p>Simulated for the demo, and labelled as such. Never shown as measured.</p></div>
+    </div>
+    <p class="small" data-a style="--d:1000;margin-top:40px">Shown on screen, next to the number. Literature values are cited, not certified thresholds.</p>
+  </section>
+
+  <!-- ═════════ 12 · THE ASK ═════════ -->
+  <section class="slide s-ask" data-title="The ask · Team 2" data-notes="The ask: one cold-chain operator, one month, twenty pallets. On day one we can tell you how much of your loss is refrigeration and how much is scheduling. &lt;p&gt;Close with the sentence at the bottom, then: we are Team 2 at Reboot the Earth, CMUQ, and thank you. Stop talking.&lt;/p&gt;">
+    <!-- Team card. Replace "Member name" with the five names; keep the order you present in. -->
+    <aside class="team" data-a="right" style="--d:600">
+      <div class="th">
+        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x=".5" y=".5" width="31" height="31" rx="5.5" fill="#1e3048" stroke="#3d5476" /><g fill="none" stroke="#00c8e0" stroke-width="2.4" stroke-linecap="round"><path class="draw" style="--d:800;--dur:.9s" d="M16 5v22" /><path class="draw" style="--d:950;--dur:.9s" d="M6.5 10.5l19 11" /><path class="draw" style="--d:1100;--dur:.9s" d="M6.5 21.5l19-11" /><path class="draw" style="--d:1350;--dur:.6s" d="M13 7l3 3 3-3" /><path class="draw" style="--d:1350;--dur:.6s" d="M13 25l3-3 3 3" /></g></svg>
+        <div><b>Team 2</b><span>Reboot the Earth · CMUQ</span></div>
+      </div>
+      <ol>
+        <li data-a="fade" style="--d:900">Member name</li>
+        <li data-a="fade" style="--d:980">Member name</li>
+        <li data-a="fade" style="--d:1060">Member name</li>
+        <li data-a="fade" style="--d:1140">Member name</li>
+        <li data-a="fade" style="--d:1220">Member name</li>
+      </ol>
+    </aside>
+    <div class="eyebrow" data-a="fade"><span class="n">12</span><span class="rule"></span>The ask</div>
+    <h2><span data-a style="--d:150">One operator.</span><span data-a style="--d:450">One month.</span><span data-a style="--d:750"><em>Twenty pallets.</em></span></h2>
+    <p class="lead" data-a style="--d:1050">On day one we can tell you how much of your loss is <strong>refrigeration</strong> and how much is <strong>scheduling</strong>.</p>
+    <div class="close" data-a style="--d:1400">
+      <blockquote>Sensors say what is happening. Mathematics says how much damage has occurred. AI predicts what happens next. Optimization chooses the action. <b>The food-loss engine proves it saved real food.</b></blockquote>
+      <div class="meta"><b>make demo</b><br />github.com/Isl-d/Reboot-The-Earth-Cold-Chain-Logistics</div>
+    </div>
+  </section>
+
+  <!-- ═════════ BACKUP · ARCHITECTURE ═════════ -->
+  <section class="slide backup" data-title="Backup · Architecture" data-notes="Nothing that cannot run on a laptop in a warehouse office. The seam that makes it real: one internal endpoint is the single contract between the data platform and the intelligence engine, so they can never disagree about what a truck is experiencing.">
+    <div class="eyebrow" data-a="fade"><span class="n">B1</span><span class="rule"></span>Backup · Architecture</div>
+    <h2 data-a style="--d:120">Nothing that cannot run on a laptop <em>in a warehouse office.</em></h2>
+    <div class="flow">
+      <div class="node" data-a style="--d:250">Sensors<small>simulator</small></div><div class="link" style="--d:900"><i></i></div>
+      <div class="node" data-a style="--d:330">MQTT<small>Mosquitto</small></div><div class="link" style="--d:1100"><i></i></div>
+      <div class="node" data-a style="--d:410">Ingest<small>FastAPI</small></div><div class="link" style="--d:1300"><i></i></div>
+      <div class="node" data-a style="--d:490">Storage<small>Postgres · Redis</small></div><div class="link" style="--d:1500"><i></i></div>
+      <div class="node" data-a style="--d:570">Intelligence<small>pure Python</small></div><div class="link" style="--d:1700"><i></i></div>
+      <div class="node" data-a style="--d:650">API<small>REST · WebSocket</small></div><div class="link" style="--d:1900"><i></i></div>
+      <div class="node" data-a style="--d:730">Command center<small>React</small></div>
+    </div>
+    <div class="seam" data-a style="--d:1000">
+      <code>GET /api/internal/context/{truckId}</code>
+      <p>The one contract between the data platform and the intelligence engine, so the two can never disagree about what a truck is experiencing.</p>
+    </div>
+  </section>
+
+  <!-- ═════════ BACKUP · OPEN DATA ═════════ -->
+  <section class="slide backup" data-title="Backup · Open data" data-notes="17 openly licensed sources, catalogued with their licence and fetch status, and served live by the running system at /api/opendata.">
+    <div class="eyebrow" data-a="fade"><span class="n">B2</span><span class="rule"></span>Backup · Data provenance</div>
+    <h2 data-a style="--d:120"><span data-count="17" data-delay="300">0</span> openly licensed sources, <em>served live.</em></h2>
+    <div class="sources">
+      <div class="src" data-a style="--d:300"><div class="c">Geography<b>4</b></div><ul><li>GeoNames places</li><li>OSM cold-chain sites</li><li>OSM HGV restrictions</li><li>Natural Earth</li></ul></div>
+      <div class="src" data-a style="--d:400"><div class="c">Weather<b>3</b></div><ul><li>Open-Meteo forecast</li><li>Open-Meteo ERA5</li><li>NASA POWER</li></ul></div>
+      <div class="src" data-a style="--d:500"><div class="c">Food science<b>4</b></div><ul><li>Product storage table</li><li>USDA Handbook 66</li><li>Codex Alimentarius</li><li>UNECE ATP</li></ul></div>
+      <div class="src" data-a style="--d:600"><div class="c">Emissions<b>2</b></div><ul><li>UK DESNZ / DEFRA factors</li><li>EEA / EMEP road transport</li></ul></div>
+      <div class="src" data-a style="--d:700"><div class="c">Routing<b>1</b></div><ul><li>OSRM road routing</li></ul></div>
+      <div class="src" data-a style="--d:800"><div class="c">Impact<b>1</b></div><ul><li>FAO Food Loss &amp; Waste</li></ul></div>
+      <div class="src" data-a style="--d:900"><div class="c">Physics<b>1</b></div><ul><li>Psychrometrics (Magnus)</li></ul></div>
+      <div class="src" data-a style="--d:1000"><div class="c">Operational<b>1</b></div><ul><li>Public holidays</li></ul></div>
+    </div>
+    <p class="small" data-a style="--d:1200;margin-top:32px">Catalogue at <span class="mono" style="color:var(--text)">GET /api/opendata</span>. Literature values are cited, not certified thresholds.</p>
+  </section>
+
+  <!-- ═════════ BACKUP · REPRODUCIBLE ═════════ -->
+  <section class="slide backup" data-title="Backup · Offline and reproducible" data-notes="One command brings up the whole stack. With no API key the system still runs end to end; only the prose is plainer. The test suite replays the whole refrigeration failure headless. The condition engine is configured per product profile, so the same exposure to risk logic extends to pharmaceuticals and vaccines later.">
+    <div class="eyebrow" data-a="fade"><span class="n">B3</span><span class="rule"></span>Backup · Offline and reproducible</div>
+    <h2 data-a style="--d:120">Runs anywhere. <em>Proves itself.</em></h2>
+    <div class="facts">
+      <div class="fact" data-a style="--d:300"><div class="big mono">make demo</div><h3>One command</h3><p>Broker, database, cache, backend, simulator and dashboard. With no API key it still runs end to end; only the prose is plainer.</p></div>
+      <div class="fact" data-a style="--d:450"><div class="big"><span data-count="120" data-delay="600">0</span></div><h3>Tests, no network</h3><p><code>make test</code> runs the pytest suite on SQLite with the LLM mocked; <code>tests/test_demo.py</code> replays the whole failure.</p></div>
+      <div class="fact" data-a style="--d:600"><div class="big">Food&nbsp;→&nbsp;<span style="color:var(--p-predicted-fg)">Rx</span></div><h3>Beyond food, later</h3><p>Product profiles drive the condition engine, so the same exposure → integrity → risk logic extends to pharmaceuticals and vaccines.</p></div>
+    </div>
+  </section>
+
+</div>
+
+<aside class="notes" id="notes" aria-live="polite"><h4><span id="notes-title"></span><span>N to hide</span></h4><div id="notes-body"></div></aside>
+<div class="overview" id="overview" role="dialog" aria-label="Slide overview"><h4>Overview · Esc to close</h4><ol id="overview-list"></ol></div>
+<div class="hint" id="hint"><b>← →</b> navigate · <b>F</b> fullscreen · <b>N</b> notes · <b>O</b> overview · <b>P</b> PDF</div>
+
+<script>
+(() => {
+  const stage = document.getElementById('stage')
+  const slides = [...stage.querySelectorAll('.slide')]
+  const progress = document.getElementById('progress')
+  const notes = document.getElementById('notes')
+  const overview = document.getElementById('overview')
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const mainCount = slides.filter(s => !s.classList.contains('backup') && !s.classList.contains('s-demo')).length
+  let cur = 0
+
+  // Fit the 1920×1080 stage to the window.
+  const fit = () => {
+    const s = Math.min(innerWidth / 1920, innerHeight / 1080)
+    stage.style.transform = `translate(-50%, -50%) scale(${s})`
+  }
+  addEventListener('resize', fit); fit()
+
+  // Stroke lengths for the line-drawing animation.
+  stage.querySelectorAll('.draw').forEach(p => {
+    try { p.style.setProperty('--len', Math.ceil(p.getTotalLength()) + 2) } catch {}
+  })
+
+  // Shared chrome: brand, section and page number on every slide but the title.
+  let mainNo = 0
+  slides.forEach((s, i) => {
+    const backup = s.classList.contains('backup'), demo = s.classList.contains('s-demo')
+    if (!backup && !demo) mainNo++
+    s.dataset.label = backup ? 'Backup' : demo ? 'Demo' : String(mainNo).padStart(2, '0')
+    if (i === 0) return
+    const c = document.createElement('div')
+    c.className = 'chrome'
+    const num = backup || demo ? s.dataset.label : `<b>${s.dataset.label}</b> / ${String(mainCount).padStart(2, '0')}`
+    c.innerHTML = `<span class="brand"><svg viewBox="0 0 32 32" style="color:#00c8e0"><rect x=".5" y=".5" width="31" height="31" rx="5.5" fill="#162338" stroke="#2d4160"/><use href="#glyph"/></svg>Thermal Trace</span><span class="num">${num}</span>`
+    s.appendChild(c)
+  })
+
+  // Count-up numbers.
+  const countUp = s => s.querySelectorAll('[data-count]').forEach(el => {
+    const to = +el.dataset.count, dec = +(el.dataset.decimals || 0)
+    const dur = +(el.dataset.dur || 1400), delay = +(el.dataset.delay || 0)
+    if (reduce) { el.textContent = to.toFixed(dec); return }
+    el.textContent = (0).toFixed(dec)
+    const t0 = performance.now() + delay
+    const tick = now => {
+      const k = Math.min(1, Math.max(0, (now - t0) / dur))
+      el.textContent = (to * (1 - Math.pow(1 - k, 3))).toFixed(dec)
+      if (k < 1 && slides[cur] === s) requestAnimationFrame(tick)
+      else if (slides[cur] !== s) el.textContent = to.toFixed(dec)
+    }
+    requestAnimationFrame(tick)
+  })
+
+  const go = n => {
+    n = Math.max(0, Math.min(slides.length - 1, n))
+    slides.forEach((s, i) => {
+      s.classList.toggle('past', i < n)
+      if (i !== n) s.classList.remove('active')
+    })
+    const s = slides[n]
+    s.classList.remove('active'); void s.offsetWidth; s.classList.add('active')
+    cur = n
+    progress.style.width = `${((n + 1) / slides.length) * 100}%`
+    document.getElementById('notes-title').textContent = `${s.dataset.label} · ${s.dataset.title}`
+    // Notes are the deck's own authored markup (data-notes), not user input.
+    document.getElementById('notes-body').innerHTML = s.dataset.notes || ''
+    if (location.hash !== `#${n + 1}`) history.replaceState(null, '', `#${n + 1}`)
+    countUp(s)
+    renderOverview()
+  }
+
+  const renderOverview = () => {
+    const ol = document.getElementById('overview-list'); ol.innerHTML = ''
+    slides.forEach((s, i) => {
+      const li = document.createElement('li'), b = document.createElement('button')
+      b.innerHTML = `<span>${s.dataset.label}</span>${s.dataset.title}`
+      if (i === cur) b.className = 'cur'
+      b.onclick = () => { overview.classList.remove('on'); go(i) }
+      li.appendChild(b); ol.appendChild(li)
+    })
+  }
+
+  const fullscreen = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.()
+
+  addEventListener('keydown', e => {
+    if (e.metaKey || e.ctrlKey || e.altKey) return
+    const k = e.key
+    if (overview.classList.contains('on')) { if (k === 'Escape' || k === 'o' || k === 'O') overview.classList.remove('on'); return }
+    if (['ArrowRight', 'PageDown', ' ', 'Enter'].includes(k)) { e.preventDefault(); go(cur + 1) }
+    else if (['ArrowLeft', 'PageUp', 'Backspace'].includes(k)) { e.preventDefault(); go(cur - 1) }
+    else if (k === 'Home') go(0)
+    else if (k === 'End') go(slides.length - 1)
+    else if (k === 'f' || k === 'F') fullscreen()
+    else if (k === 'n' || k === 'N') notes.classList.toggle('on')
+    else if (k === 'o' || k === 'O') { renderOverview(); overview.classList.add('on'); overview.querySelector('.cur')?.focus() }
+    else if (k === 'p' || k === 'P') print()
+    hideHint()
+  })
+
+  // Click / tap: right two-thirds forward, left third back. Swipe on touch.
+  stage.addEventListener('click', e => { go(e.clientX > innerWidth / 3 ? cur + 1 : cur - 1); hideHint() })
+  let tx = null
+  addEventListener('touchstart', e => { tx = e.touches[0].clientX }, { passive: true })
+  addEventListener('touchend', e => {
+    if (tx === null) return
+    const dx = e.changedTouches[0].clientX - tx; tx = null
+    if (Math.abs(dx) > 50) go(dx < 0 ? cur + 1 : cur - 1)
+  })
+  addEventListener('hashchange', () => { const n = parseInt(location.hash.slice(1), 10) - 1; if (!isNaN(n) && n !== cur) go(n) })
+
+  const hint = document.getElementById('hint')
+  const hideHint = () => hint.classList.add('off')
+  setTimeout(hideHint, 5000)
+
+  const start = parseInt(location.hash.slice(1), 10) - 1
+  go(isNaN(start) ? 0 : start)
+})()
+</script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 48" width="232" height="48" role="img" aria-label="Thermal Trace">
+  <g transform="translate(4 4) scale(1.25)" fill="none" stroke="#007388" stroke-width="2.4" stroke-linecap="round">
+    <rect x="0.5" y="0.5" width="31" height="31" rx="5.5" fill="#ffffff" stroke="#c3cfdd" stroke-width="0.8"/>
+    <path d="M16 5v22M6.5 10.5l19 11M6.5 21.5l19-11M13 7l3 3 3-3M13 25l3-3 3 3"/>
+  </g>
+  <text x="56" y="25" fill="#0d1b2a" font-family="'IBM Plex Sans', 'Helvetica Neue', Arial, sans-serif" font-size="22" font-weight="600" letter-spacing="-0.2">Thermal Trace</text>
+  <text x="57" y="40" fill="#3d5a80" font-family="'IBM Plex Mono', Menlo, Consolas, monospace" font-size="8.6" font-weight="500" letter-spacing="1.3">COLD-CHAIN DECISION SYSTEM</text>
+</svg>

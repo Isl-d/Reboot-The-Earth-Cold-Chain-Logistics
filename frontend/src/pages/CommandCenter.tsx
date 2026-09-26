@@ -26,7 +26,7 @@ export function CommandCenter() {
 
       {/* ── Topbar ──────────────────────────────────────── */}
       <PageHeader
-        title="Thermal Trace · Command Center"
+        title="Command Center"
         meta={
           <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)' }}>
             {new Date().toLocaleString()}
