@@ -209,3 +209,16 @@ def test_websocket_receives_live_state(client, live):
     assert message["truckId"] == "T102"
     assert message["temperatureC"] == 3.5
     assert "riskScore" in message and "riskLevel" in message
+
+def test_a_failing_message_does_not_kill_the_feed(client, live, monkeypatch):
+    """paho re-raises callback errors and its thread dies; _on_message must not raise."""
+    import json
+    import types
+
+    def boom(_raw):
+        raise RuntimeError("database is locked")
+
+    monkeypatch.setattr(pipeline, "handle", boom)
+    msg = types.SimpleNamespace(topic="coldchain/trucks/T102/telemetry",
+                                payload=json.dumps(_wire()).encode())
+    pipeline._on_message(None, None, msg)  # must not raise

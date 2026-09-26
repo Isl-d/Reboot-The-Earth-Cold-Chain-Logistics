@@ -51,6 +51,12 @@ control: ## print the standalone manual-control panel (drive any truck by hand)
 watch:  ## watch raw telemetry on MQTT
 	mosquitto_sub -h localhost -t 'coldchain/#' -v
 
+present: ## run the on-stage story: preflight, reset, then four trucks on a timeline
+	$(PYTHON) scripts/present.py
+
+present-check: ## preflight only: is the live feed fresh and is there one simulator?
+	$(PYTHON) scripts/present.py --check
+
 reset:  ## reset every simulated truck to NORMAL
 	curl -fsS -X POST http://localhost:8000/api/simulation/reset && echo " reset"
 
@@ -90,4 +96,4 @@ dev-landing:  ## run the static landing page on :5174 (no backend needed)
 build-landing: ## build the landing page into landing/dist
 	cd landing && npm install && npm run build
 
-.PHONY: help demo stop nuke status clean logs sim-logs laya-pull laya-logs build-legacy control watch reset scenario predict test dev-backend dev-sim dev-sim-dry dev-web dev-nobroker dev-landing build-landing
+.PHONY: help demo stop nuke status clean logs sim-logs laya-pull laya-logs build-legacy control watch present present-check reset scenario predict test dev-backend dev-sim dev-sim-dry dev-web dev-nobroker dev-landing build-landing

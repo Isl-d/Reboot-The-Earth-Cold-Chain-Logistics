@@ -104,6 +104,8 @@ class Settings(BaseSettings):
     # 3.3 Gt CO2e over 1.3 Gt of food (FAO 2013, "Food Wastage Footprint").
     # Conservative for meat, whose own footprint per kg is several times higher.
     co2e_kg_per_kg_food: float = 2.5
+    # Days of history in GET /api/analytics/food-loss/series overTime.
+    food_loss_series_days: int = 14
 
     # --- Laya: local, non-autoregressive System 1 decision engine ----------
     # Optional. It runs as a separate service (laya-serve) and is never allowed

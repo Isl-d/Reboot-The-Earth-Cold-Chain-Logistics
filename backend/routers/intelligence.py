@@ -193,38 +193,45 @@ def optimization_for_batch(batch_id: str, refresh: bool = Query(default=False)) 
 
 # -------------------------------------------------------------------- analytics
 
-def _collect_food_loss_rows(session) -> tuple[list[dict], list[Prediction]]:
-    """Return (latest_per_truck_loss_records, all_prediction_rows_with_loss).
+def _newest_prediction(session, truck_id: str, before: dt.datetime | None = None,
+                       since: dt.datetime | None = None) -> Prediction | None:
+    query = select(Prediction).where(Prediction.truck_id == truck_id)
+    if before is not None:
+        query = query.where(Prediction.created_at < before)
+    if since is not None:
+        query = query.where(Prediction.created_at >= since)
+    return session.execute(query.order_by(Prediction.created_at.desc()).limit(1)).scalar_one_or_none()
 
-    First return value is the de-duplicated latest-per-truck list used for
-    aggregate totals. Second is the raw per-row list (may have dupes) used by
-    the series endpoint for time-series grouping.
+
+def _latest_predictions(session) -> list[Prediction]:
+    """The newest prediction for each truck.
+
+    The engine writes a Prediction on every tick, and each row's foodLoss is the
+    batch's whole projected loss at that moment, not an increment: a truck's rows
+    supersede each other and must never be summed. One indexed lookup per truck
+    (ix_predictions_truck_created) keeps this cost independent of how long the
+    stack has been running.
     """
-    rows = session.execute(
-        select(Prediction).order_by(Prediction.created_at.desc())
-    ).scalars().all()
+    truck_ids = session.execute(select(Truck.id).order_by(Truck.id)).scalars().all()
+    rows = (_newest_prediction(session, truck_id) for truck_id in truck_ids)
+    return [row for row in rows if row is not None]
 
-    seen: set[str] = set()
+
+def _collect_food_loss_rows(session) -> list[dict]:
+    """Latest-per-truck food-loss records, the one basis for every loss total."""
     latest: list[dict] = []
-    all_with_loss: list[Prediction] = []
-
-    for row in rows:
-        result = row.result or {}
-        loss = result.get("foodLoss")
+    for row in _latest_predictions(session):
+        loss = (row.result or {}).get("foodLoss")
         if loss:
-            all_with_loss.append(row)
-        if row.truck_id not in seen:
-            seen.add(row.truck_id)
-            if loss:
-                latest.append({"batchId": row.batch_id, "truckId": row.truck_id,
-                                "row": row, **loss})
-    return latest, all_with_loss
+            latest.append({"batchId": row.batch_id, "truckId": row.truck_id,
+                           "row": row, **loss})
+    return latest
 
 
 @router.get("/analytics/food-loss")
 def food_loss_analytics() -> dict:
     with session_scope() as session:
-        latest, _ = _collect_food_loss_rows(session)
+        latest = _collect_food_loss_rows(session)
 
         # Sum transported kg from the batches referenced by latest predictions
         transported_kg = 0.0
@@ -269,31 +276,40 @@ def food_loss_analytics() -> dict:
 @router.get("/analytics/food-loss/series")
 def food_loss_series() -> dict:
     with session_scope() as session:
-        _, all_rows = _collect_food_loss_rows(session)
+        latest = _collect_food_loss_rows(session)
+        truck_ids = session.execute(select(Truck.id).order_by(Truck.id)).scalars().all()
 
+        # overTime: each truck's loss position at the end of each UTC day (its
+        # newest prediction that day), summed across trucks. Like the summary,
+        # snapshots are read, not accumulated.
         over_time: dict[str, dict] = {}
+        today = dt.datetime.now(dt.timezone.utc).date()
+        for offset in range(settings.food_loss_series_days - 1, -1, -1):
+            day = today - dt.timedelta(days=offset)
+            start = dt.datetime.combine(day, dt.time.min, tzinfo=dt.timezone.utc)
+            end = start + dt.timedelta(days=1)
+            for truck_id in truck_ids:
+                row = _newest_prediction(session, truck_id, before=end, since=start)
+                loss = ((row.result or {}).get("foodLoss") if row else None) or {}
+                if not loss:
+                    continue
+                point = over_time.setdefault(day.isoformat(), {"lostKg": 0.0, "predictedLostKg": 0.0})
+                point["lostKg"] += float(loss.get("lossWithInterventionKg") or 0.0)
+                point["predictedLostKg"] += float(loss.get("predictedLossKg") or 0.0)
+
+        # Breakdowns partition the same latest-per-truck loss the summary reports,
+        # so each one sums to its lostKg.
         by_cause: dict[str, float] = {}
         by_product: dict[str, float] = {}
         by_warehouse: dict[str, float] = {}
 
-        for row in all_rows:
+        for entry in latest:
+            row = entry["row"]
             result = row.result or {}
-            loss = result.get("foodLoss") or {}
-            lost = float(loss.get("lossWithInterventionKg") or 0.0)
-            predicted = float(loss.get("predictedLossKg") or 0.0)
-
-            # overTime
-            created = row.created_at
-            if created is not None and created.tzinfo is None:
-                created = created.replace(tzinfo=dt.timezone.utc)
-            date_str = created.date().isoformat() if created else "unknown"
-            if date_str not in over_time:
-                over_time[date_str] = {"lostKg": 0.0, "predictedLostKg": 0.0}
-            over_time[date_str]["lostKg"] += lost
-            over_time[date_str]["predictedLostKg"] += predicted
+            lost = float(entry.get("lossWithInterventionKg") or 0.0)
 
             # byCause
-            cause = result.get("anomalyType") or "Unknown"
+            cause = entry.get("lossCause") or result.get("anomalyType") or "Unknown"
             by_cause[cause] = by_cause.get(cause, 0.0) + lost
 
             # byProduct
@@ -333,20 +349,14 @@ def food_loss_series() -> dict:
 @router.get("/analytics/scenario-comparison/{scenario}")
 def scenario_comparison(scenario: str) -> dict:
     with session_scope() as session:
-        rows = session.execute(
-            select(Prediction).order_by(Prediction.created_at.desc())
-        ).scalars().all()
+        rows = _latest_predictions(session)
 
-    seen: set[str] = set()
     without_pcts: list[float] = []
     with_pcts: list[float] = []
     food_saved_kg = 0.0
     financial_saved = 0.0
 
     for row in rows:
-        if row.truck_id in seen:
-            continue
-        seen.add(row.truck_id)
         result = row.result or {}
         sp = result.get("spoilageProbability")
         if sp is not None:

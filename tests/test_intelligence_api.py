@@ -99,6 +99,23 @@ def test_food_loss_analytics(client, live, fake_llm):
     assert body["batches"]
 
 
+def test_food_loss_series_reads_snapshots_not_history(client, live, fake_llm):
+    """Every recompute stores a whole-batch snapshot; the series must not sum them."""
+    _seed_risk()
+    for _ in range(3):
+        client.get("/api/predictions/CHK-1029", params={"refresh": "true"})
+    summary = client.get("/api/analytics/food-loss").json()
+    series = client.get("/api/analytics/food-loss/series").json()
+
+    for dimension in ("byCause", "byProduct", "byWarehouse"):
+        total = sum(item["lostKg"] for item in series[dimension])
+        assert total == pytest.approx(summary["lostKg"], abs=0.05), dimension
+    assert series["overTime"]
+    today = series["overTime"][-1]
+    assert today["lostKg"] == pytest.approx(summary["lostKg"], abs=0.05)
+    assert today["predictedLostKg"] == pytest.approx(summary["atRiskKg"], abs=0.05)
+
+
 def test_scenario_comparison_is_honest_when_empty(client, live):
     """No predictions -> available false and nulls, never invented headline numbers."""
     body = client.get("/api/analytics/scenario-comparison/REFRIGERATION_FAILURE").json()
