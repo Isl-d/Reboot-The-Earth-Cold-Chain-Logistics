@@ -208,15 +208,10 @@ body {
     opacity 0.5s ease,
     visibility 0s linear 0s;
 }
-.journey-video {
-  transform: scale(1.1);
-  transition: transform 0.6s ease;
-  will-change: transform;
-}
-.journey-scene.is-active .journey-video {
-  transform: scale(1.02);
-  transition: transform 7s cubic-bezier(0.2, 0.6, 0.3, 1);
-}
+/* The footage itself never comes to rest: the near-static clips have a slow
+   camera drift baked in and every clip loops seamlessly (see the media
+   README). Nothing here animates the <video> element: scaling a playing
+   video every frame made it miss frames. */
 .rail-fill {
   transform-origin: left;
   transform: scaleX(clamp(0, calc(var(--p, 0) * var(--n) - var(--i)), 1));
@@ -546,9 +541,7 @@ body {
   article:not(.is-active) .doc-card {
     opacity: 0;
   }
-  .journey-scene,
-  .journey-scene .journey-video {
-    transform: none;
+  .journey-scene {
     transition: none;
   }
   .scan-beam {
