@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { fetchTruckTelemetry } from '../fetchers'
+import { IDLE_POLL_MS, POLL_MS } from './useModel'
 
 export function useTruckTelemetry(truckId: string, running: boolean) {
   return useQuery({
@@ -9,6 +10,6 @@ export function useTruckTelemetry(truckId: string, running: boolean) {
     queryKey: ['intelTelemetry', truckId],
     queryFn: () => fetchTruckTelemetry(truckId),
     enabled: Boolean(truckId),
-    refetchInterval: running ? 2000 : false,
+    refetchInterval: running ? POLL_MS : IDLE_POLL_MS,
   })
 }
