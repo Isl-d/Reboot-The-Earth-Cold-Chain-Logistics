@@ -114,11 +114,17 @@ class Pipeline:
             log.warning("dropped non-JSON message on %s", msg.topic)
             return
         topic = msg.topic
-        if topic.endswith("/telemetry"):
-            self.handle(payload)
-        elif topic.endswith("/events"):
-            truck_id = topic.split("/")[-2] if topic.count("/") >= 2 else None
-            self.handle_event(payload, truck_id)
+        # paho-mqtt 2.x re-raises callback exceptions, which kills its network
+        # thread: one bad message (e.g. "database is locked") would silently
+        # stop the whole live feed. Drop the message, keep the feed.
+        try:
+            if topic.endswith("/telemetry"):
+                self.handle(payload)
+            elif topic.endswith("/events"):
+                truck_id = topic.split("/")[-2] if topic.count("/") >= 2 else None
+                self.handle_event(payload, truck_id)
+        except Exception:
+            log.exception("failed to process message on %s; feed continues", topic)
 
     # ----------------------------------------------------------- device events
     def handle_event(self, raw: dict, truck_id: str | None = None) -> dict | None:

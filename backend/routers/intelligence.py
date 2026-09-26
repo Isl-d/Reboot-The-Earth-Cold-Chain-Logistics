@@ -20,7 +20,7 @@ import time
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import and_, func, select
+from sqlalchemy import select
 
 from ..config import settings
 from ..context import build_context
@@ -193,48 +193,32 @@ def optimization_for_batch(batch_id: str, refresh: bool = Query(default=False)) 
 
 # -------------------------------------------------------------------- analytics
 
-def _latest_predictions(session, *, per_day: bool = False) -> list[Prediction]:
-    """The newest prediction per truck (or per truck per UTC day), picked in SQL.
+def _newest_prediction(session, truck_id: str, before: dt.datetime | None = None,
+                       since: dt.datetime | None = None) -> Prediction | None:
+    query = select(Prediction).where(Prediction.truck_id == truck_id)
+    if before is not None:
+        query = query.where(Prediction.created_at < before)
+    if since is not None:
+        query = query.where(Prediction.created_at >= since)
+    return session.execute(query.order_by(Prediction.created_at.desc()).limit(1)).scalar_one_or_none()
 
-    The engine persists a full result every ``intelligence_interval_s`` per
-    truck with no retention, so the table grows by tens of thousands of rows
-    per demo-hour. Loading every row (and its result JSON) made the analytics
-    endpoints slower than the frontend's request timeout, and summing every
-    snapshot counted the same truck's loss thousands of times. Each prediction
-    already carries the truck's cumulative loss, so only the newest one per
-    group is meaningful.
+
+def _latest_predictions(session) -> list[Prediction]:
+    """The newest prediction for each truck.
+
+    The engine writes a Prediction on every tick, and each row's foodLoss is the
+    batch's whole projected loss at that moment, not an increment: a truck's rows
+    supersede each other and must never be summed. One indexed lookup per truck
+    (ix_predictions_truck_created) keeps this cost independent of how long the
+    stack has been running.
     """
-    keys = [Prediction.truck_id]
-    if per_day:
-        keys.append(func.date(Prediction.created_at))
-    newest = (
-        select(*[k.label(f"k{i}") for i, k in enumerate(keys)],
-               func.max(Prediction.created_at).label("newest"))
-        .group_by(*keys)
-        .subquery()
-    )
-    conditions = [Prediction.truck_id == newest.c.k0, Prediction.created_at == newest.c.newest]
-    rows = session.execute(
-        select(Prediction).join(newest, and_(*conditions)).order_by(Prediction.created_at)
-    ).scalars().all()
-
-    # Two rows sharing the exact max timestamp would both join; keep one.
-    unique: dict[tuple, Prediction] = {}
-    for row in rows:
-        created = _as_utc(row.created_at)
-        key = (row.truck_id, created.date() if (per_day and created) else None)
-        unique[key] = row
-    return list(unique.values())
-
-
-def _as_utc(value: dt.datetime | None) -> dt.datetime | None:
-    if value is not None and value.tzinfo is None:
-        return value.replace(tzinfo=dt.timezone.utc)
-    return value
+    truck_ids = session.execute(select(Truck.id).order_by(Truck.id)).scalars().all()
+    rows = (_newest_prediction(session, truck_id) for truck_id in truck_ids)
+    return [row for row in rows if row is not None]
 
 
 def _collect_food_loss_rows(session) -> list[dict]:
-    """Latest-per-truck food-loss records (trucks whose newest prediction has one)."""
+    """Latest-per-truck food-loss records, the one basis for every loss total."""
     latest: list[dict] = []
     for row in _latest_predictions(session):
         loss = (row.result or {}).get("foodLoss")
@@ -292,32 +276,44 @@ def food_loss_analytics() -> dict:
 @router.get("/analytics/food-loss/series")
 def food_loss_series() -> dict:
     with session_scope() as session:
+        latest = _collect_food_loss_rows(session)
+        truck_ids = session.execute(select(Truck.id).order_by(Truck.id)).scalars().all()
+
+        # overTime: each truck's loss position at the end of each UTC day (its
+        # newest prediction that day), summed across trucks. Like the summary,
+        # snapshots are read, not accumulated.
         over_time: dict[str, dict] = {}
+        today = dt.datetime.now(dt.timezone.utc).date()
+        for offset in range(settings.food_loss_series_days - 1, -1, -1):
+            day = today - dt.timedelta(days=offset)
+            start = dt.datetime.combine(day, dt.time.min, tzinfo=dt.timezone.utc)
+            end = start + dt.timedelta(days=1)
+            for truck_id in truck_ids:
+                row = _newest_prediction(session, truck_id, before=end, since=start)
+                loss = ((row.result or {}).get("foodLoss") if row else None) or {}
+                if not loss:
+                    continue
+                point = over_time.setdefault(day.isoformat(), {"lostKg": 0.0, "predictedLostKg": 0.0})
+                point["lostKg"] += float(loss.get("lossWithInterventionKg") or 0.0)
+                point["predictedLostKg"] += float(loss.get("predictedLossKg") or 0.0)
+
+        # Breakdowns partition the same latest-per-truck loss the summary reports,
+        # so each one sums to its lostKg.
         by_cause: dict[str, float] = {}
         by_product: dict[str, float] = {}
         by_warehouse: dict[str, float] = {}
 
-        # overTime: each truck's end-of-day cumulative loss, summed per day.
-        for row in _latest_predictions(session, per_day=True):
-            loss = (row.result or {}).get("foodLoss")
-            if not loss:
-                continue
-            created = _as_utc(row.created_at)
-            date_str = created.date().isoformat() if created else "unknown"
-            day = over_time.setdefault(date_str, {"lostKg": 0.0, "predictedLostKg": 0.0})
-            day["lostKg"] += float(loss.get("lossWithInterventionKg") or 0.0)
-            day["predictedLostKg"] += float(loss.get("predictedLossKg") or 0.0)
-
-        # Breakdowns: the same latest-per-truck set as the headline KPIs, so
-        # each dimension partitions exactly the "Lost" figure.
-        for entry in _collect_food_loss_rows(session):
-            result = entry["row"].result or {}
+        for entry in latest:
+            row = entry["row"]
+            result = row.result or {}
             lost = float(entry.get("lossWithInterventionKg") or 0.0)
 
-            cause = result.get("anomalyType") or "Unknown"
+            # byCause
+            cause = entry.get("lossCause") or result.get("anomalyType") or "Unknown"
             by_cause[cause] = by_cause.get(cause, 0.0) + lost
 
-            batch = session.get(ProductBatch, entry["batchId"]) if entry["batchId"] else None
+            # byProduct
+            batch = session.get(ProductBatch, row.batch_id) if row.batch_id else None
             if batch:
                 product = session.get(Product, batch.product_id)
                 product_name = product.name if product else (batch.product_id or "Unknown")
@@ -325,6 +321,7 @@ def food_loss_series() -> dict:
                 product_name = "Unknown"
             by_product[product_name] = by_product.get(product_name, 0.0) + lost
 
+            # byWarehouse
             rec = result.get("recommendation") or {}
             dest = rec.get("destinationId") or "Unknown"
             by_warehouse[dest] = by_warehouse.get(dest, 0.0) + lost
@@ -352,20 +349,14 @@ def food_loss_series() -> dict:
 @router.get("/analytics/scenario-comparison/{scenario}")
 def scenario_comparison(scenario: str) -> dict:
     with session_scope() as session:
-        rows = session.execute(
-            select(Prediction).order_by(Prediction.created_at.desc())
-        ).scalars().all()
+        rows = _latest_predictions(session)
 
-    seen: set[str] = set()
     without_pcts: list[float] = []
     with_pcts: list[float] = []
     food_saved_kg = 0.0
     financial_saved = 0.0
 
     for row in rows:
-        if row.truck_id in seen:
-            continue
-        seen.add(row.truck_id)
         result = row.result or {}
         sp = result.get("spoilageProbability")
         if sp is not None:
