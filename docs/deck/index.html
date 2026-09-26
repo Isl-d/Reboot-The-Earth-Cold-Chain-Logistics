@@ -628,9 +628,57 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 07 · PHYSICS ═════════ -->
+  <!-- ═════════ 07 · SENSING ═════════ -->
+  <section class="slide" data-title="What we measure" data-notes="One line per sensor if you have time; otherwise read the three outputs at the bottom and move on. &lt;p&gt;Temperature and humidity are the cold chain's vital signs. Shock explains bruising that temperature cannot. Ethylene is the food itself reporting that it has started to ripen. NIR sees inside the box before anything shows outside it, and a camera sees the surface.&lt;/p&gt;&lt;p&gt;Be straight about the tiers: temperature, humidity and shock flow through the pipeline today; gas, NIR and vision are the designed next layer, not built. Every sensor publishes the same MQTT message, so adding one changes nothing downstream.&lt;/p&gt;&lt;p&gt;Then land the point: these six signals exist to produce three numbers - is it deteriorating, how long is it still good for, and how much damage has already been done.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">07</span><span class="rule"></span>What we measure</div>
+    <h2 data-a style="--d:120">Six signals. <em>Three numbers that matter.</em></h2>
+
+    <div class="prov" style="margin-top:30px;gap:18px">
+      <div class="pv" data-a style="--d:300;padding:22px 24px 24px">
+        <span class="tag t-measured" style="font-size:17px">Temperature</span>
+        <div style="font:600 24px/1.2 var(--mono);color:#e6eef8;margin-top:14px">DS18B20 · ±0.5 °C</div>
+        <p style="margin-top:12px;font-size:21px;line-height:1.36">Ceiling and floor, so a warm layer shows up instead of hiding in an average.</p>
+      </div>
+      <div class="pv" data-a style="--d:370;padding:22px 24px 24px">
+        <span class="tag t-measured" style="font-size:17px">Humidity</span>
+        <div style="font:600 24px/1.2 var(--mono);color:#e6eef8;margin-top:14px">Sensirion SHT3x · ±2 % RH</div>
+        <p style="margin-top:12px;font-size:21px;line-height:1.36">With temperature it gives the dew point: whether an open door wets the cartons.</p>
+      </div>
+      <div class="pv" data-a style="--d:440;padding:22px 24px 24px">
+        <span class="tag t-measured" style="font-size:17px">Shock &amp; tilt</span>
+        <div style="font:600 24px/1.2 var(--mono);color:#e6eef8;margin-top:14px">3-axis MEMS accelerometer</div>
+        <p style="margin-top:12px;font-size:21px;line-height:1.36">Bruising from a dropped pallet is damage a thermometer never sees.</p>
+      </div>
+      <div class="pv" data-a style="--d:510;padding:22px 24px 24px">
+        <span class="tag t-simulated dashed" style="font-size:17px">Gases · designed</span>
+        <div style="font:600 24px/1.2 var(--mono);color:#e6eef8;margin-top:14px">Metal-oxide · VOC, C<sub>2</sub>H<sub>4</sub></div>
+        <p style="margin-top:12px;font-size:21px;line-height:1.36">Ethylene is the fruit itself reporting that it has started to ripen.</p>
+      </div>
+      <div class="pv" data-a style="--d:580;padding:22px 24px 24px">
+        <span class="tag t-simulated dashed" style="font-size:17px">Sub-surface · designed</span>
+        <div style="font:600 24px/1.2 var(--mono);color:#e6eef8;margin-top:14px">NIR · 700–2500 nm</div>
+        <p style="margin-top:12px;font-size:21px;line-height:1.36">Finds internal bruising before anything is visible from outside.</p>
+      </div>
+      <div class="pv" data-a style="--d:650;padding:22px 24px 24px">
+        <span class="tag t-simulated dashed" style="font-size:17px">Surface · designed</span>
+        <div style="font:600 24px/1.2 var(--mono);color:#e6eef8;margin-top:14px">RGB camera · edge vision</div>
+        <p style="margin-top:12px;font-size:21px;line-height:1.36">Colour shift, mould, and a count of what is actually on the shelf.</p>
+      </div>
+    </div>
+
+    <div class="models" data-a style="--d:850;margin-top:26px;gap:12px">
+      <span class="lbl" style="font-size:17px">They feed</span>
+      <span class="chip">Deterioration detection</span>
+      <span class="chip">Remaining Useful Time</span>
+      <span class="chip">Thermal exposure E<sub>T</sub></span>
+      <span class="tag t-calculated" style="font-size:17px">Calculated</span>
+    </div>
+    <p class="small" data-a style="--d:1000;margin-top:14px">The first three flow through the pipeline today; the rest are the designed next layer. All publish the same message, so adding one changes nothing downstream.</p>
+  </section>
+
+  <!-- ═════════ 08 · PHYSICS ═════════ -->
   <section class="slide" data-title="Physics before AI" data-notes="Thermal exposure is the sum of the degrees above the limit over time: the shaded area. Deterioration is an Arrhenius rate relative to the product's ideal temperature. Remaining shelf life follows from it. &lt;p&gt;Every one of those numbers is deterministic Python; no model touches them. These are prototype models, not certified food-safety science: say so if asked.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">07</span><span class="rule"></span>Physics before AI</div>
+    <div class="eyebrow" data-a="fade"><span class="n">08</span><span class="rule"></span>Physics before AI</div>
     <h2 data-a style="--d:120">Damage is <em>measured</em>, not guessed.</h2>
     <div class="phys">
       <div class="panel" data-a style="--d:300">
@@ -673,9 +721,9 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 08 · AI ═════════ -->
+  <!-- ═════════ 09 · AI ═════════ -->
   <section class="slide" data-title="AI where it earns its place" data-notes="Two AI layers, both on a leash. &lt;p&gt;Laya is System 1: a local, offline, Apache-2.0 decision model. It answers typed questions in a single forward pass (condition, action, urgency, needs human review) and cannot write text, so it cannot invent a number. It corroborates the deterministic decision and never overrides it.&lt;/p&gt;&lt;p&gt;System 2 is DeepSeek V4.1 Flash, a cloud language model reached through OpenRouter, the explainer: it turns code-computed facts into plain language. It may only move the spoilage estimate within a fixed band and only rank options that are already feasible. With no API key the system still runs; only the prose is plainer.&lt;/p&gt;&lt;p&gt;The chips at the bottom are deterministic code, not AI.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">08</span><span class="rule"></span>AI where it earns its place</div>
+    <div class="eyebrow" data-a="fade"><span class="n">09</span><span class="rule"></span>AI where it earns its place</div>
     <h2 data-a style="--d:120">Two AI layers. <em>Neither may invent a number.</em></h2>
     <div class="ai">
       <div class="card" data-a style="--d:320">
@@ -697,10 +745,10 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 09 · OPTIMIZATION ═════════ -->
+  <!-- ═════════ 10 · OPTIMIZATION ═════════ -->
   <section class="slide" data-title="Optimization" data-notes="Optimization, not vibes. Minimize transport plus food-loss plus delay, subject to hard constraints: the ETA must beat the remaining safe time, the store must have capacity, and it must hold the right temperature. &lt;p&gt;Three cold stores are in range; the optimizer picks WH01. The model did not choose this. The optimizer did; the model only explains it. ETAs are the example scenario values.&lt;/p&gt;">
     <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">ETAs · example scenario</span></div>
-    <div class="eyebrow" data-a="fade"><span class="n">09</span><span class="rule"></span>Optimization</div>
+    <div class="eyebrow" data-a="fade"><span class="n">10</span><span class="rule"></span>Optimization</div>
     <h2 data-a style="--d:120">Optimization, <em>not vibes.</em></h2>
     <div class="opt">
       <div>
@@ -724,10 +772,10 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 10 · THE NUMBER ═════════ -->
+  <!-- ═════════ 11 · THE NUMBER ═════════ -->
   <section class="slide" data-title="The number that matters" data-notes="The whole point in one subtraction: expected loss without the intervention minus expected loss with it, times the quantity. That is food saved in kilograms, and in QAR, loss prevented. &lt;p&gt;The bars are illustrative. The real figure is computed live by the food-loss engine: the audience sees it in the demo at the end.&lt;/p&gt;">
     <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative bars · live figure in the demo</span></div>
-    <div class="eyebrow" data-a="fade"><span class="n">10</span><span class="rule"></span>The number that matters</div>
+    <div class="eyebrow" data-a="fade"><span class="n">11</span><span class="rule"></span>The number that matters</div>
     <h2 data-a style="--d:120">Food saved. <em style="color:var(--low)">Money not thrown away.</em></h2>
     <div class="impact">
       <div>
@@ -747,10 +795,10 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 11 · THERMAL RESERVE ═════════ -->
+  <!-- ═════════ 12 · THERMAL RESERVE ═════════ -->
   <section class="slide" data-title="Thermal reserve" data-notes="Now the supermarket's side. Every delivery arrives with its thermal reserve: the safe shelf life it has left, calculated from every minute of its temperature history. Not the label date: the label assumes the food was kept cold the whole way. &lt;p&gt;Inventory: the loads with the least reserve go on sale first, and surplus against forecast demand is flagged for transfer, discount or redistribution before it expires. Finance: food saved times value per kilogram, in QAR, for every intervention; mark down early instead of writing off late. Receiving: a temperature record for every delivery, so the dock accepts or rejects on evidence. The bars are illustrative.&lt;/p&gt;">
     <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative bars</span></div>
-    <div class="eyebrow" data-a="fade"><span class="n">11</span><span class="rule"></span>For the supermarket</div>
+    <div class="eyebrow" data-a="fade"><span class="n">12</span><span class="rule"></span>For the supermarket</div>
     <h2 data-a style="--d:120;font-size:68px">Every delivery arrives with its <em>thermal reserve.</em></h2>
     <div class="reserve">
       <div class="res-def">
@@ -773,9 +821,9 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 12 · PROVENANCE ═════════ -->
+  <!-- ═════════ 13 · PROVENANCE ═════════ -->
   <section class="slide" data-title="Provenance" data-notes="Every value on screen carries one of these marks. Synthetic demo data is never dressed up as a real measurement, and literature values are marked as unverified. &lt;p&gt;The language model explains the numbers. It is never allowed to invent one.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">12</span><span class="rule"></span>Trust</div>
+    <div class="eyebrow" data-a="fade"><span class="n">13</span><span class="rule"></span>Trust</div>
     <h2 data-a style="--d:120">Every value knows <em>where it came from.</em></h2>
     <div class="prov">
       <div class="pv" data-a style="--d:300"><span class="tag t-measured">Measured</span><p>Read from a sensor on the truck.</p></div>
@@ -788,9 +836,9 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     <p class="small" data-a style="--d:1000;margin-top:40px">Shown on screen, next to the number. Literature values are cited, not certified thresholds.</p>
   </section>
 
-  <!-- ═════════ 13 · WHAT'S DIFFERENT ═════════ -->
+  <!-- ═════════ 14 · WHAT'S DIFFERENT ═════════ -->
   <section class="slide" data-title="What's different" data-notes="Most cold-chain products today are monitoring: a logger or tracker that records the temperature and raises an alert when it crosses a limit. That is where they stop. &lt;p&gt;We carry on from the alert: we measure the damage already done, choose where the truck should go under hard constraints, record the action, and prove the food and money it saved.&lt;/p&gt;&lt;p&gt;And it is open: MIT licence, 17 openly licensed data sources, runs on one laptop with one command, 120 automated tests. No cloud service is needed for any number; only the map tiles and the AI explanation use the internet.&lt;/p&gt;&lt;p&gt;Then switch to the dashboard for the live demo (pitch/DEMO_SCRIPT.md, two minutes): Command Center → Model → Optimization → Food Loss, and come back to the team slide (End key).&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">13</span><span class="rule"></span>What's different</div>
+    <div class="eyebrow" data-a="fade"><span class="n">14</span><span class="rule"></span>What's different</div>
     <h2 data-a style="--d:120">Monitoring stops at the alert. <em>We start there.</em></h2>
     <div class="diff">
       <table class="cmp" data-a style="--d:300">

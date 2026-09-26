@@ -1,4 +1,4 @@
-# Thermal Trace — thirteen slides
+# Thermal Trace — fourteen slides
 
 The words for the pitch. The built deck is **[docs/deck/index.html](../docs/deck/index.html)**
 (open it in a browser: ← → to move, F fullscreen, N speaker notes, O overview,
@@ -8,7 +8,7 @@ P print to PDF; a PDF export sits next to it). The landing page
 
 Non-technical. One number per slide where possible, each with its source or a
 EXAMPLE / ILLUSTRATIVE tag. **Hard limit: 5 minutes in total, then 2 minutes of
-Q&A.** Thirteen slides in about three minutes (roughly 15 seconds each, one
+Q&A.** Fourteen slides in about three minutes (roughly 13 seconds each, one
 sentence per slide), then a two-minute live demo, then the team slide.
 
 **1. Thermal Trace.**
@@ -44,13 +44,30 @@ safe band and stays there. Not a dashboard of charts — a decision surface.
 *(The screenshot was taken in mock mode and is labelled so; retake it from the
 live stack with `make demo` when there is time.)*
 
-**7. Physics before AI.**
+**7. What we measure.**
+Six signals, each answering a question the others cannot. **Temperature**
+(DS18B20, ±0.5 °C) at ceiling and floor, so a warm layer shows up instead of
+hiding in an average. **Humidity** (Sensirion SHT3x, ±2 % RH) at the return
+vent — with temperature it gives the dew point, and whether an open door will
+wet the cartons. **Shock and tilt** (3-axis MEMS) on the chassis, because
+bruising from a dropped pallet is damage a thermometer never sees. Then the
+designed next layer: **gas** (metal-oxide, VOC and ethylene) beside the
+high-respiring crates, which is the fruit itself reporting that it has started
+to ripen; **NIR** (700–2500 nm) at receiving, which finds internal bruising
+before anything shows outside; and an **RGB camera** overhead for colour shift,
+mould and shelf count. They exist to produce three numbers: deterioration
+detection, Remaining Useful Time, and thermal exposure. *(Temperature, humidity
+and shock flow through the pipeline today; gas, NIR and vision are designed,
+not built. Every sensor publishes the same MQTT message, so adding one changes
+nothing downstream.)*
+
+**8. Physics before AI.**
 Thermal exposure is the sum of the degrees above the limit over time.
 Deterioration is an Arrhenius rate relative to the product's ideal temperature.
 Remaining shelf life follows from it. Every one of those numbers is
 deterministic Python — no model touches them.
 
-**8. AI where it earns its place.**
+**9. AI where it earns its place.**
 Two AI layers, neither allowed to invent a number. **Laya** (System 1) is a
 local, offline, Apache-2.0 decision model: it answers typed questions —
 condition, action, urgency, needs human review — and never generates text; it
@@ -61,19 +78,19 @@ feasible options, and may move the spoilage estimate only within a fixed band.
 Around them, plain deterministic code (not AI): spoilage probability, anomaly
 detection and demand forecasting.
 
-**9. Optimization, not vibes.**
+**10. Optimization, not vibes.**
 `min(transport + food-loss + delay)` subject to ETA ≤ remaining safe time,
 warehouse capacity and temperature compatibility. Three cold stores in range
 (WH01 18 min, WH02 27 min, WH03 46 min — example scenario ETAs); the optimizer
 picks WH01 and the decision is DIVERT. The model only explains the choice.
 
-**10. The number that matters.**
+**11. The number that matters.**
 Food saved (kg) and financial loss prevented (QAR): expected loss without the
 intervention minus expected loss with it, times the quantity. That is the whole
 point. *(Bars on the slide are illustrative; the real figure is the one the live
-demo computes after slide 13.)*
+demo computes after slide 14.)*
 
-**11. Every delivery arrives with its thermal reserve.**
+**12. Every delivery arrives with its thermal reserve.**
 For the supermarket. Thermal reserve is the safe shelf life a load has left,
 calculated from every minute of its temperature history (`L·(1 − D)`), not the
 label date. Inventory: shelve by reserve, and surplus is flagged for transfer,
@@ -82,12 +99,12 @@ for every intervention; mark down early instead of writing off late. Receiving:
 a temperature record for every delivery, so the dock accepts or rejects on
 evidence. *(The 7.0 vs 4.5 day bars are illustrative.)*
 
-**12. Every value knows where it came from.**
+**13. Every value knows where it came from.**
 MEASURED, CALCULATED, PREDICTED, OPTIMIZED, AI-EXPLAINED, SYNTHETIC — shown on
 screen. Test data is never dressed up as a real measurement, and
 literature values are marked as unverified.
 
-**13. What's different.**
+**14. What's different.**
 Monitoring stops at the alert; we start there. Alert-only monitoring records the
 temperature and raises an alarm. Thermal Trace measures the damage already done,
 chooses where to divert under constraints, records the action, proves the food
@@ -95,14 +112,14 @@ saved, and labels every number with its source. And it is open: MIT licence, 17
 openly licensed data sources, runs on one laptop (`make demo`), 120
 automated tests. SDG 12.3 · 2 · 13.
 
-**Live demo (2 minutes)** — after slide 13, switch to the dashboard: T102, 500 kg
+**Live demo (2 minutes)** — after slide 14, switch to the dashboard: T102, 500 kg
 of fresh chicken, refrigeration failure. Follow [DEMO_SCRIPT.md](DEMO_SCRIPT.md),
 then come back to the deck and press **End** for the team slide (it skips the
 two backup slides).
 
 ---
 
-### Backup slides (between slide 13 and the team slide)
+### Backup slides (between slide 14 and the team slide)
 
 - **B1 · Architecture.** Sensors (a test simulator in the demo) → MQTT → FastAPI ingestion → Postgres + Redis
   → intelligence engine → REST + WebSocket → one React dashboard. Nothing that
