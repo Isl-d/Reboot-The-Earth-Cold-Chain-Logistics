@@ -285,17 +285,6 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
 .decision b { white-space: nowrap; font: 600 42px/1 var(--mono); color: #e6eef8; letter-spacing: .02em; }
 .decision span { font-size: 25px; color: var(--text-2); }
 
-/* ── Demo divider ─────────────────────────────────────────────────── */
-.s-demo { justify-content: center; align-items: flex-start; }
-.live { display: inline-flex; align-items: center; gap: 16px; font: 600 26px/1 var(--mono); letter-spacing: .2em; color: var(--low); margin-bottom: 40px; }
-.live i { position: relative; width: 18px; height: 18px; border-radius: 50%; background: var(--low); }
-.live i::after { content: ""; position: absolute; inset: 0; border-radius: 50%; background: var(--low); animation: ring 1.8s ease-out infinite; }
-.s-demo h2 { font-size: 132px; }
-.cmd { margin-top: 56px; display: inline-flex; align-items: center; gap: 22px; padding: 26px 34px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font: 500 30px/1 var(--mono); color: var(--text); }
-.cmd .p { color: var(--primary); }
-.beats { display: flex; gap: 14px; margin-top: 44px; flex-wrap: wrap; }
-.beats span { font: 500 22px/1 var(--mono); color: var(--text-2); padding: 12px 16px; border: 1px solid var(--border); border-radius: 2px; }
-
 /* ── UN SDG row ───────────────────────────────────────────────────── */
 .sdgs { display: flex; gap: 16px; margin-top: 36px; flex-wrap: wrap; }
 .sdg { display: inline-flex; align-items: center; gap: 16px; padding: 10px 22px 10px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font-size: 24px; color: var(--text-2); }
@@ -561,9 +550,51 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 04 · PRODUCT ═════════ -->
-  <section class="slide" data-title="The product" data-notes="This is the spine of the talk; every later slide is one of these boxes. &lt;p&gt;Sensors tell us what is happening; mathematics tells us how much damage has occurred; models predict what happens next; optimization chooses the action; the decision engine turns it into an operation; and the food-loss engine proves what it saved.&lt;/p&gt;&lt;p&gt;Next slide is the live demo: show it, then explain it.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">04</span><span class="rule"></span>The product in one line</div>
+  <!-- ═════════ 04 · WHAT GOES WRONG ═════════ -->
+  <section class="slide" data-title="What goes wrong" data-notes="Tell it as a story: the fridge fails at noon, the truck keeps driving, the cargo warms, and nobody knows until the load is rejected at the gate. &lt;p&gt;By then the food is gone, and so is any chance to send it somewhere it could still be sold. The times on the slide are illustrative.&lt;/p&gt;">
+    <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative timeline</span></div>
+    <div class="eyebrow" data-a="fade"><span class="n">04</span><span class="rule"></span>What actually goes wrong</div>
+    <h2 data-a style="--d:120">Nobody finds out until the load is <em style="color:var(--critical)">rejected at the gate</em>.</h2>
+    <div class="tl">
+      <svg viewBox="0 0 1664 420" aria-hidden="true">
+        <defs>
+          <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+            <line x1="0" y1="0" x2="0" y2="14" stroke="#f87171" stroke-opacity=".35" stroke-width="5" />
+          </pattern>
+        </defs>
+        <!-- cargo temperature, rising after the failure -->
+        <line x1="0" x2="1664" y1="150" y2="150" stroke="#f87171" stroke-opacity=".5" stroke-width="2" stroke-dasharray="8 8" />
+        <text x="0" y="138" fill="#f87171" fill-opacity=".8" font-family="IBM Plex Mono, monospace" font-size="18" letter-spacing="2">SAFE MAX</text>
+        <path class="draw" style="--d:700;--dur:5s" fill="none" stroke="#fb923c" stroke-width="4" stroke-linecap="round"
+          d="M40 186 C 110 184, 150 188, 200 186 S 360 176, 470 150 S 760 98, 980 70 S 1360 34, 1624 22" />
+        <!-- the blind window -->
+        <rect class="wipe" style="--d:1000" x="200" y="236" width="1260" height="44" fill="url(#hatch)" stroke="#f87171" stroke-opacity=".5" />
+        <text data-a="fade" style="--d:2200" x="830" y="268" text-anchor="middle" fill="#f87171" font-family="IBM Plex Sans, sans-serif" font-size="24" font-weight="500" stroke="#0c1825" stroke-width="10" paint-order="stroke" stroke-linejoin="round">hours in which nobody knows</text>
+        <!-- road -->
+        <line x1="0" x2="1664" y1="330" y2="330" stroke="#3d5476" stroke-width="3" />
+        <g font-family="IBM Plex Mono, monospace" font-size="22" fill="#8fa8c8">
+          <circle cx="200" cy="330" r="9" fill="#fbbf24" /><text x="200" y="380" text-anchor="middle" fill="#fbbf24">12:00 · fridge fails</text>
+          <circle cx="830" cy="330" r="6" fill="#3d5476" /><text x="830" y="380" text-anchor="middle">cargo warming</text>
+          <circle cx="1460" cy="330" r="9" fill="#f87171" /><text x="1460" y="380" text-anchor="middle" fill="#f87171">16:00 · rejected</text>
+        </g>
+        <!-- truck -->
+        <g class="truck">
+          <g transform="translate(20 282)">
+            <rect x="0" y="0" width="74" height="38" rx="3" fill="#1e3048" stroke="#8fa8c8" stroke-width="2.5" />
+            <path d="M74 12 h20 l12 13 v13 h-32 z" fill="#1e3048" stroke="#8fa8c8" stroke-width="2.5" stroke-linejoin="round" />
+            <circle cx="20" cy="42" r="7" fill="#0c1825" stroke="#8fa8c8" stroke-width="2.5" />
+            <circle cx="88" cy="42" r="7" fill="#0c1825" stroke="#8fa8c8" stroke-width="2.5" />
+            <use href="#glyph" x="25" y="7" width="24" height="24" style="color:#00c8e0" />
+          </g>
+        </g>
+      </svg>
+    </div>
+    <p class="lead" data-a style="--d:1600;margin-top:24px">By then the food is gone, and so is any chance to send it somewhere it could still be sold.</p>
+  </section>
+
+  <!-- ═════════ 05 · PRODUCT ═════════ -->
+  <section class="slide" data-title="The product" data-notes="This is the spine of the talk; every later slide is one of these boxes. &lt;p&gt;Sensors tell us what is happening; mathematics tells us how much damage has occurred; models predict what happens next; optimization chooses the action; the decision engine turns it into an operation; and the food-loss engine proves what it saved.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">05</span><span class="rule"></span>The product in one line</div>
     <h2 data-a style="--d:120">Physics first. <em>AI where it earns its place.</em></h2>
     <p class="lead" data-a style="--d:250">Sensors say what is happening, the maths says how much damage is done, and the optimizer chooses the action that loses the least food.</p>
     <div class="pipe">
@@ -577,19 +608,29 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ DEMO ═════════ -->
-  <section class="slide s-demo" data-title="Live demo" data-notes="Two minutes, no more (pitch/DEMO_SCRIPT.md). &lt;p&gt;The failure was triggered at the start of the talk, so the cargo is already warming: make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102. Walk: Command Center (incident on T102) → Model (exposure, deterioration, risk) → Optimization (DIVERT → WH01) → Food Loss (kg, QAR and CO₂ saved). Then come back to the next slide. If anything breaks, play the backup recording.&lt;/p&gt;">
-    <div class="live" data-a="fade"><i></i>LIVE DEMO</div>
-    <h2 data-a style="--d:150">One truck. One failure.<br />One decision.</h2>
-    <p class="lead" data-a style="--d:350">T102 is carrying <strong>500 kg of fresh chicken</strong>, safe between 0 and 4 °C. Its refrigeration has just failed.</p>
-    <div class="beats">
-      <span data-a style="--d:600">Command Center</span><span data-a style="--d:680">Model</span><span data-a style="--d:760">Optimization</span><span data-a style="--d:840">Food loss</span>
+  <!-- ═════════ 06 · DETECT ═════════ -->
+  <section class="slide" data-title="Detect" data-notes="A live map of every truck, with an incident the instant a temperature leaves the safe band and stays there. Not a dashboard of charts: a decision surface. &lt;p&gt;Point at the incident panel (outlined). This screenshot was taken in mock mode (design preview), not from the live stack; say so if asked. Real sensors publish to the same topics, so nothing changes when they arrive.&lt;/p&gt;">
+    <div class="source"><span class="tag t-synthetic dashed" data-a="fade" style="--d:200">Screenshot · mock data, design preview</span></div>
+    <div class="split">
+      <div>
+        <div class="eyebrow" data-a="fade"><span class="n">06</span><span class="rule"></span>Detect</div>
+        <h2 data-a style="--d:120">At the moment of failure, <em>not at the gate.</em></h2>
+        <p class="lead" data-a style="--d:300;font-size:30px">A live map of every truck, with an incident the instant a temperature leaves the safe band and stays there.</p>
+        <div class="callout" data-a style="--d:1500"><span class="dot"></span><span>A decision surface, not a dashboard of charts.</span></div>
+      </div>
+      <div class="shot" data-a="right" style="--d:350">
+        <div class="bar"><i></i><i></i><i></i><span>Thermal Trace · Command Center</span></div>
+        <div style="position:relative">
+          <img src="assets/command-center.jpg" alt="Thermal Trace Command Center: live Doha map of five trucks, stat cards, active incidents for T103 and T102, sensor monitoring and simulation controls" />
+          <span class="hl" style="left:63.4%;top:13.6%;width:35.6%;height:34.6%"></span>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- ═════════ 05 · PHYSICS ═════════ -->
+  <!-- ═════════ 07 · PHYSICS ═════════ -->
   <section class="slide" data-title="Physics before AI" data-notes="Thermal exposure is the sum of the degrees above the limit over time: the shaded area. Deterioration is an Arrhenius rate relative to the product's ideal temperature. Remaining shelf life follows from it. &lt;p&gt;Every one of those numbers is deterministic Python; no model touches them. These are prototype models, not certified food-safety science: say so if asked.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">05</span><span class="rule"></span>Physics before AI</div>
+    <div class="eyebrow" data-a="fade"><span class="n">07</span><span class="rule"></span>Physics before AI</div>
     <h2 data-a style="--d:120">Damage is <em>measured</em>, not guessed.</h2>
     <div class="phys">
       <div class="panel" data-a style="--d:300">
@@ -632,9 +673,9 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 06 · AI ═════════ -->
+  <!-- ═════════ 08 · AI ═════════ -->
   <section class="slide" data-title="AI where it earns its place" data-notes="Two AI layers, both on a leash. &lt;p&gt;Laya is System 1: a local, offline, Apache-2.0 decision model. It answers typed questions in a single forward pass (condition, action, urgency, needs human review) and cannot write text, so it cannot invent a number. It corroborates the deterministic decision and never overrides it.&lt;/p&gt;&lt;p&gt;System 2 is DeepSeek V4.1 Flash, a cloud language model reached through OpenRouter, the explainer: it turns code-computed facts into plain language. It may only move the spoilage estimate within a fixed band and only rank options that are already feasible. With no API key the system still runs; only the prose is plainer.&lt;/p&gt;&lt;p&gt;The chips at the bottom are deterministic code, not AI.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">06</span><span class="rule"></span>AI where it earns its place</div>
+    <div class="eyebrow" data-a="fade"><span class="n">08</span><span class="rule"></span>AI where it earns its place</div>
     <h2 data-a style="--d:120">Two AI layers. <em>Neither may invent a number.</em></h2>
     <div class="ai">
       <div class="card" data-a style="--d:320">
@@ -656,10 +697,60 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 07 · THERMAL RESERVE ═════════ -->
+  <!-- ═════════ 09 · OPTIMIZATION ═════════ -->
+  <section class="slide" data-title="Optimization" data-notes="Optimization, not vibes. Minimize transport plus food-loss plus delay, subject to hard constraints: the ETA must beat the remaining safe time, the store must have capacity, and it must hold the right temperature. &lt;p&gt;Three cold stores are in range; the optimizer picks WH01. The model did not choose this. The optimizer did; the model only explains it. ETAs are the example scenario values.&lt;/p&gt;">
+    <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">ETAs · example scenario</span></div>
+    <div class="eyebrow" data-a="fade"><span class="n">09</span><span class="rule"></span>Optimization</div>
+    <h2 data-a style="--d:120">Optimization, <em>not vibes.</em></h2>
+    <div class="opt">
+      <div>
+        <div class="objective" data-a style="--d:320"><span class="min">min</span>( C<sub style="font-size:.6em">transport</sub> + C<sub style="font-size:.6em">food&#8209;loss</sub> + C<sub style="font-size:.6em">delay</sub> )</div>
+        <div class="st">
+          <div class="h" data-a="fade" style="--d:500">Subject to</div>
+          <ul>
+            <li data-a="left" style="--d:600">ETA ≤ remaining safe time</li>
+            <li data-a="left" style="--d:720">Quantity ≤ available capacity</li>
+            <li data-a="left" style="--d:840">Storage temperature compatible</li>
+          </ul>
+        </div>
+      </div>
+      <div class="cands">
+        <div class="cand-h" data-a="fade" style="--d:500"><span>Cold store</span><span>ETA</span><span>Free space</span><span>Feasible</span></div>
+        <div class="cand sel"><div><span class="id">WH01</span><span class="nm">Central Warehouse</span></div><span class="v">18 min</span><span class="v">1,200 kg</span><span class="ok" data-a="fade" style="--d:1500">✓ met</span></div>
+        <div class="cand" data-a="right" style="--d:850"><div><span class="id">WH02</span><span class="nm">North Cold Store</span></div><span class="v">27 min</span><span class="v">800 kg</span><span class="ok" data-a="fade" style="--d:1650">✓ met</span></div>
+        <div class="cand" data-a="right" style="--d:1000"><div><span class="id">WH03</span><span class="nm">South Distribution Hub</span></div><span class="v">46 min</span><span class="v">600 kg</span><span class="ok" data-a="fade" style="--d:1800">✓ met</span></div>
+        <div class="decision" data-a style="--d:2400"><span class="tag t-optimized">Optimized</span><b>DIVERT → WH01</b><span>The optimizer picks the store; the model only explains why.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ 10 · THE NUMBER ═════════ -->
+  <section class="slide" data-title="The number that matters" data-notes="The whole point in one subtraction: expected loss without the intervention minus expected loss with it, times the quantity. That is food saved in kilograms, and in QAR, loss prevented. &lt;p&gt;The bars are illustrative. The real figure is computed live by the food-loss engine: the audience sees it in the demo at the end.&lt;/p&gt;">
+    <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative bars · live figure in the demo</span></div>
+    <div class="eyebrow" data-a="fade"><span class="n">10</span><span class="rule"></span>The number that matters</div>
+    <h2 data-a style="--d:120">Food saved. <em style="color:var(--low)">Money not thrown away.</em></h2>
+    <div class="impact">
+      <div>
+        <div class="formula" data-a style="--d:350">
+          <span class="k">food saved</span> =<br />(loss<sub style="font-size:.6em">without</sub> − loss<sub style="font-size:.6em">with</sub>) × quantity
+        </div>
+        <p class="small" data-a style="--d:600;margin-top:30px;max-width:760px">In kilograms, and in QAR as financial loss prevented. Computed by the food-loss engine for every intervention. <span class="tag t-calculated" style="font-size:15px;padding:6px 11px;vertical-align:middle">Calculated</span></p>
+      </div>
+      <div class="bars" data-a="fade" style="--d:300">
+        <div class="col"><div class="b rise" style="--d:600;height:92%;background:linear-gradient(180deg,var(--critical),color-mix(in srgb,var(--critical) 55%,var(--surface)))"></div><div class="lab" style="left:2%;width:38%">Without intervention</div></div>
+        <div class="col"><div class="b rise" style="--d:900;height:14%;background:linear-gradient(180deg,var(--low),color-mix(in srgb,var(--low) 55%,var(--surface)))"></div><div class="lab" style="left:46%;width:38%">With Thermal Trace</div></div>
+        <div class="saved" data-a="fade" style="--d:2200;top:8%;height:78%">
+          <svg width="26" height="100%" viewBox="0 0 26 400" preserveAspectRatio="none" style="height:100%"><path d="M4 2 H18 V398 H4" fill="none" stroke="#22d4b0" stroke-width="3" vector-effect="non-scaling-stroke" /></svg>
+          <span>food<br />saved</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ 11 · THERMAL RESERVE ═════════ -->
   <section class="slide" data-title="Thermal reserve" data-notes="Now the supermarket's side. Every delivery arrives with its thermal reserve: the safe shelf life it has left, calculated from every minute of its temperature history. Not the label date: the label assumes the food was kept cold the whole way. &lt;p&gt;Inventory: the loads with the least reserve go on sale first, and surplus against forecast demand is flagged for transfer, discount or redistribution before it expires. Finance: food saved times value per kilogram, in QAR, for every intervention; mark down early instead of writing off late. Receiving: a temperature record for every delivery, so the dock accepts or rejects on evidence. The bars are illustrative.&lt;/p&gt;">
     <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative bars</span></div>
-    <div class="eyebrow" data-a="fade"><span class="n">07</span><span class="rule"></span>For the supermarket</div>
+    <div class="eyebrow" data-a="fade"><span class="n">11</span><span class="rule"></span>For the supermarket</div>
     <h2 data-a style="--d:120;font-size:68px">Every delivery arrives with its <em>thermal reserve.</em></h2>
     <div class="reserve">
       <div class="res-def">
@@ -682,9 +773,24 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 08 · WHAT'S DIFFERENT ═════════ -->
-  <section class="slide" data-title="What's different" data-notes="Most cold-chain products today are monitoring: a logger or tracker that records the temperature and raises an alert when it crosses a limit. That is where they stop. &lt;p&gt;We carry on from the alert: we measure the damage already done, choose where the truck should go under hard constraints, record the action, and prove the food and money it saved.&lt;/p&gt;&lt;p&gt;And it is open: an open-source license, 17 openly licensed data sources, runs offline on one laptop with one command, and 120 automated tests. Anyone can take it and adapt it to their own fleet or product.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">08</span><span class="rule"></span>What's different</div>
+  <!-- ═════════ 12 · PROVENANCE ═════════ -->
+  <section class="slide" data-title="Provenance" data-notes="Every value on screen carries one of these marks. Synthetic demo data is never dressed up as a real measurement, and literature values are marked as unverified. &lt;p&gt;The language model explains the numbers. It is never allowed to invent one.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">12</span><span class="rule"></span>Trust</div>
+    <h2 data-a style="--d:120">Every value knows <em>where it came from.</em></h2>
+    <div class="prov">
+      <div class="pv" data-a style="--d:300"><span class="tag t-measured">Measured</span><p>Read from a sensor on the truck.</p></div>
+      <div class="pv" data-a style="--d:400"><span class="tag t-calculated">Calculated</span><p>Deterministic Python: exposure, deterioration, shelf life, food saved.</p></div>
+      <div class="pv" data-a style="--d:500"><span class="tag t-predicted">Predicted</span><p>A model estimate, shown with its probability.</p></div>
+      <div class="pv" data-a style="--d:600"><span class="tag t-optimized">Optimized</span><p>Chosen by the optimizer under hard constraints.</p></div>
+      <div class="pv" data-a style="--d:700"><span class="tag t-explained">AI-explained</span><p>Plain language about code-computed facts. No new numbers.</p></div>
+      <div class="pv" data-a style="--d:800"><span class="tag t-synthetic dashed">Synthetic</span><p>Test and training data, labelled as such. Never shown as measured.</p></div>
+    </div>
+    <p class="small" data-a style="--d:1000;margin-top:40px">Shown on screen, next to the number. Literature values are cited, not certified thresholds.</p>
+  </section>
+
+  <!-- ═════════ 13 · WHAT'S DIFFERENT ═════════ -->
+  <section class="slide" data-title="What's different" data-notes="Most cold-chain products today are monitoring: a logger or tracker that records the temperature and raises an alert when it crosses a limit. That is where they stop. &lt;p&gt;We carry on from the alert: we measure the damage already done, choose where the truck should go under hard constraints, record the action, and prove the food and money it saved.&lt;/p&gt;&lt;p&gt;And it is open: MIT licence, 17 openly licensed data sources, runs offline on one laptop with one command, 120 automated tests.&lt;/p&gt;&lt;p&gt;Then switch to the dashboard for the live demo (pitch/DEMO_SCRIPT.md, two minutes): Command Center → Model → Optimization → Food Loss, and come back to the team slide (End key).&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">13</span><span class="rule"></span>What's different</div>
     <h2 data-a style="--d:120">Monitoring stops at the alert. <em>We start there.</em></h2>
     <div class="diff">
       <table class="cmp" data-a style="--d:300">
@@ -710,153 +816,9 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ TEAM · CLOSING ═════════ -->
-  <section class="slide s-end" data-title="Team 2 · Thank you" data-notes="Leave this up while taking questions. Backup slides follow (→) if a judge asks about the timeline, the dashboard, the optimizer, the formula, provenance, the architecture or the data. We are Team 2 at the Reboot the Earth hackathon, CMUQ. Thank you.">
-    <div class="eyebrow" data-a="fade"><span class="n">—</span><span class="rule"></span>Reboot the Earth hackathon · CMUQ</div>
-    <h2 data-a style="--d:120">Team 2. <em>Thank you.</em></h2>
-    <p class="lead" data-a style="--d:300">We built <strong>Thermal Trace</strong>: an open-source cold-chain decision system that measures how much safe life a failure has cost and chooses the action that loses the least food.</p>
-    <ol class="crew">
-      <li data-a style="--d:500"><b>Najeeb Abdi</b><span>Math · Frontend</span></li>
-      <li data-a style="--d:600"><b>Islambek</b><span>Hardware engineer</span></li>
-      <li data-a style="--d:700"><b>Param Anand Trimbake</b><span>Frontend</span></li>
-      <li data-a style="--d:800"><b>Ahad Hussain</b><span>AI engineer</span></li>
-    </ol>
-    <div class="end-meta" data-a="fade" style="--d:1200">
-      <span><b>Team 2</b> · Reboot the Earth · CMUQ</span>
-      <span class="mono">github.com/Isl-d/Reboot-The-Earth-Cold-Chain-Logistics</span>
-    </div>
-  </section>
-
-  <!-- ═════════ B1 · WHAT GOES WRONG ═════════ -->
-  <section class="slide backup" data-title="Backup · What goes wrong" data-notes="Tell it as a story: the fridge fails at noon, the truck keeps driving, the cargo warms, and nobody knows until the load is rejected at the gate. &lt;p&gt;By then the food is gone, and so is any chance to send it somewhere it could still be sold. The times on the slide are illustrative.&lt;/p&gt;">
-    <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative timeline</span></div>
-    <div class="eyebrow" data-a="fade"><span class="n">B1</span><span class="rule"></span>Backup · What actually goes wrong</div>
-    <h2 data-a style="--d:120">Nobody finds out until the load is <em style="color:var(--critical)">rejected at the gate</em>.</h2>
-    <div class="tl">
-      <svg viewBox="0 0 1664 420" aria-hidden="true">
-        <defs>
-          <pattern id="hatch" width="14" height="14" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-            <line x1="0" y1="0" x2="0" y2="14" stroke="#f87171" stroke-opacity=".35" stroke-width="5" />
-          </pattern>
-        </defs>
-        <!-- cargo temperature, rising after the failure -->
-        <line x1="0" x2="1664" y1="150" y2="150" stroke="#f87171" stroke-opacity=".5" stroke-width="2" stroke-dasharray="8 8" />
-        <text x="0" y="138" fill="#f87171" fill-opacity=".8" font-family="IBM Plex Mono, monospace" font-size="18" letter-spacing="2">SAFE MAX</text>
-        <path class="draw" style="--d:700;--dur:5s" fill="none" stroke="#fb923c" stroke-width="4" stroke-linecap="round"
-          d="M40 186 C 110 184, 150 188, 200 186 S 360 176, 470 150 S 760 98, 980 70 S 1360 34, 1624 22" />
-        <!-- the blind window -->
-        <rect class="wipe" style="--d:1000" x="200" y="236" width="1260" height="44" fill="url(#hatch)" stroke="#f87171" stroke-opacity=".5" />
-        <text data-a="fade" style="--d:2200" x="830" y="268" text-anchor="middle" fill="#f87171" font-family="IBM Plex Sans, sans-serif" font-size="24" font-weight="500" stroke="#0c1825" stroke-width="10" paint-order="stroke" stroke-linejoin="round">hours in which nobody knows</text>
-        <!-- road -->
-        <line x1="0" x2="1664" y1="330" y2="330" stroke="#3d5476" stroke-width="3" />
-        <g font-family="IBM Plex Mono, monospace" font-size="22" fill="#8fa8c8">
-          <circle cx="200" cy="330" r="9" fill="#fbbf24" /><text x="200" y="380" text-anchor="middle" fill="#fbbf24">12:00 · fridge fails</text>
-          <circle cx="830" cy="330" r="6" fill="#3d5476" /><text x="830" y="380" text-anchor="middle">cargo warming</text>
-          <circle cx="1460" cy="330" r="9" fill="#f87171" /><text x="1460" y="380" text-anchor="middle" fill="#f87171">16:00 · rejected</text>
-        </g>
-        <!-- truck -->
-        <g class="truck">
-          <g transform="translate(20 282)">
-            <rect x="0" y="0" width="74" height="38" rx="3" fill="#1e3048" stroke="#8fa8c8" stroke-width="2.5" />
-            <path d="M74 12 h20 l12 13 v13 h-32 z" fill="#1e3048" stroke="#8fa8c8" stroke-width="2.5" stroke-linejoin="round" />
-            <circle cx="20" cy="42" r="7" fill="#0c1825" stroke="#8fa8c8" stroke-width="2.5" />
-            <circle cx="88" cy="42" r="7" fill="#0c1825" stroke="#8fa8c8" stroke-width="2.5" />
-            <use href="#glyph" x="25" y="7" width="24" height="24" style="color:#00c8e0" />
-          </g>
-        </g>
-      </svg>
-    </div>
-    <p class="lead" data-a style="--d:1600;margin-top:24px">By then the food is gone, and so is any chance to send it somewhere it could still be sold.</p>
-  </section>
-
-  <!-- ═════════ B2 · DETECT ═════════ -->
-  <section class="slide backup" data-title="Backup · Detect" data-notes="A live map of every truck, with an incident the instant a temperature leaves the safe band and stays there. Not a dashboard of charts: a decision surface. &lt;p&gt;Point at the incident panel (outlined). This screenshot was taken in mock mode (design preview), not from the live stack; say so if asked. Real sensors publish to the same topics, so nothing changes when they arrive.&lt;/p&gt;">
-    <div class="source"><span class="tag t-synthetic dashed" data-a="fade" style="--d:200">Screenshot · mock data, design preview</span></div>
-    <div class="split">
-      <div>
-        <div class="eyebrow" data-a="fade"><span class="n">B2</span><span class="rule"></span>Backup · Detect</div>
-        <h2 data-a style="--d:120">At the moment of failure, <em>not at the gate.</em></h2>
-        <p class="lead" data-a style="--d:300;font-size:30px">A live map of every truck, with an incident the instant a temperature leaves the safe band and stays there.</p>
-        <div class="callout" data-a style="--d:1500"><span class="dot"></span><span>A decision surface, not a dashboard of charts.</span></div>
-      </div>
-      <div class="shot" data-a="right" style="--d:350">
-        <div class="bar"><i></i><i></i><i></i><span>Thermal Trace · Command Center</span></div>
-        <div style="position:relative">
-          <img src="assets/command-center.jpg" alt="Thermal Trace Command Center: live Doha map of five trucks, stat cards, active incidents for T103 and T102, sensor monitoring and simulation controls" />
-          <span class="hl" style="left:63.4%;top:13.6%;width:35.6%;height:34.6%"></span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═════════ B3 · OPTIMIZATION ═════════ -->
-  <section class="slide backup" data-title="Backup · Optimization" data-notes="Optimization, not vibes. Minimize transport plus food-loss plus delay, subject to hard constraints: the ETA must beat the remaining safe time, the store must have capacity, and it must hold the right temperature. &lt;p&gt;Three cold stores are in range; the optimizer picks WH01. The model did not choose this. The optimizer did; the model only explains it. ETAs are the example scenario values.&lt;/p&gt;">
-    <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">ETAs · example scenario</span></div>
-    <div class="eyebrow" data-a="fade"><span class="n">B3</span><span class="rule"></span>Backup · Optimization</div>
-    <h2 data-a style="--d:120">Optimization, <em>not vibes.</em></h2>
-    <div class="opt">
-      <div>
-        <div class="objective" data-a style="--d:320"><span class="min">min</span>( C<sub style="font-size:.6em">transport</sub> + C<sub style="font-size:.6em">food&#8209;loss</sub> + C<sub style="font-size:.6em">delay</sub> )</div>
-        <div class="st">
-          <div class="h" data-a="fade" style="--d:500">Subject to</div>
-          <ul>
-            <li data-a="left" style="--d:600">ETA ≤ remaining safe time</li>
-            <li data-a="left" style="--d:720">Quantity ≤ available capacity</li>
-            <li data-a="left" style="--d:840">Storage temperature compatible</li>
-          </ul>
-        </div>
-      </div>
-      <div class="cands">
-        <div class="cand-h" data-a="fade" style="--d:500"><span>Cold store</span><span>ETA</span><span>Free space</span><span>Feasible</span></div>
-        <div class="cand sel"><div><span class="id">WH01</span><span class="nm">Central Warehouse</span></div><span class="v">18 min</span><span class="v">1,200 kg</span><span class="ok" data-a="fade" style="--d:1500">✓ met</span></div>
-        <div class="cand" data-a="right" style="--d:850"><div><span class="id">WH02</span><span class="nm">North Cold Store</span></div><span class="v">27 min</span><span class="v">800 kg</span><span class="ok" data-a="fade" style="--d:1650">✓ met</span></div>
-        <div class="cand" data-a="right" style="--d:1000"><div><span class="id">WH03</span><span class="nm">South Distribution Hub</span></div><span class="v">46 min</span><span class="v">600 kg</span><span class="ok" data-a="fade" style="--d:1800">✓ met</span></div>
-        <div class="decision" data-a style="--d:2400"><span class="tag t-optimized">Optimized</span><b>DIVERT → WH01</b><span>The optimizer picks the store; the model only explains why.</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═════════ B4 · THE NUMBER ═════════ -->
-  <section class="slide backup" data-title="Backup · The number that matters" data-notes="The whole point in one subtraction: expected loss without the intervention minus expected loss with it, times the quantity. That is food saved in kilograms, and in QAR, loss prevented. &lt;p&gt;The bars are illustrative. The real figure is computed live by the food-loss engine: the audience sees it in the demo at the end.&lt;/p&gt;">
-    <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative bars · live figure in the demo</span></div>
-    <div class="eyebrow" data-a="fade"><span class="n">B4</span><span class="rule"></span>Backup · The number that matters</div>
-    <h2 data-a style="--d:120">Food saved. <em style="color:var(--low)">Money not thrown away.</em></h2>
-    <div class="impact">
-      <div>
-        <div class="formula" data-a style="--d:350">
-          <span class="k">food saved</span> =<br />(loss<sub style="font-size:.6em">without</sub> − loss<sub style="font-size:.6em">with</sub>) × quantity
-        </div>
-        <p class="small" data-a style="--d:600;margin-top:30px;max-width:760px">In kilograms, and in QAR as financial loss prevented. Computed by the food-loss engine for every intervention. <span class="tag t-calculated" style="font-size:15px;padding:6px 11px;vertical-align:middle">Calculated</span></p>
-      </div>
-      <div class="bars" data-a="fade" style="--d:300">
-        <div class="col"><div class="b rise" style="--d:600;height:92%;background:linear-gradient(180deg,var(--critical),color-mix(in srgb,var(--critical) 55%,var(--surface)))"></div><div class="lab" style="left:2%;width:38%">Without intervention</div></div>
-        <div class="col"><div class="b rise" style="--d:900;height:14%;background:linear-gradient(180deg,var(--low),color-mix(in srgb,var(--low) 55%,var(--surface)))"></div><div class="lab" style="left:46%;width:38%">With Thermal Trace</div></div>
-        <div class="saved" data-a="fade" style="--d:2200;top:8%;height:78%">
-          <svg width="26" height="100%" viewBox="0 0 26 400" preserveAspectRatio="none" style="height:100%"><path d="M4 2 H18 V398 H4" fill="none" stroke="#22d4b0" stroke-width="3" vector-effect="non-scaling-stroke" /></svg>
-          <span>food<br />saved</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═════════ B5 · PROVENANCE ═════════ -->
-  <section class="slide backup" data-title="Backup · Provenance" data-notes="Every value on screen carries one of these marks. Synthetic demo data is never dressed up as a real measurement, and literature values are marked as unverified. &lt;p&gt;The language model explains the numbers. It is never allowed to invent one.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">B5</span><span class="rule"></span>Backup · Trust</div>
-    <h2 data-a style="--d:120">Every value knows <em>where it came from.</em></h2>
-    <div class="prov">
-      <div class="pv" data-a style="--d:300"><span class="tag t-measured">Measured</span><p>Read from a sensor on the truck.</p></div>
-      <div class="pv" data-a style="--d:400"><span class="tag t-calculated">Calculated</span><p>Deterministic Python: exposure, deterioration, shelf life, food saved.</p></div>
-      <div class="pv" data-a style="--d:500"><span class="tag t-predicted">Predicted</span><p>A model estimate, shown with its probability.</p></div>
-      <div class="pv" data-a style="--d:600"><span class="tag t-optimized">Optimized</span><p>Chosen by the optimizer under hard constraints.</p></div>
-      <div class="pv" data-a style="--d:700"><span class="tag t-explained">AI-explained</span><p>Plain language about code-computed facts. No new numbers.</p></div>
-      <div class="pv" data-a style="--d:800"><span class="tag t-synthetic dashed">Synthetic</span><p>Test and training data, labelled as such. Never shown as measured.</p></div>
-    </div>
-    <p class="small" data-a style="--d:1000;margin-top:40px">Shown on screen, next to the number. Literature values are cited, not certified thresholds.</p>
-  </section>
-
-  <!-- ═════════ B6 · ARCHITECTURE ═════════ -->
+  <!-- ═════════ BACKUP · ARCHITECTURE ═════════ -->
   <section class="slide backup" data-title="Backup · Architecture" data-notes="Nothing that cannot run on a laptop in a warehouse office. The seam that makes it real: one internal endpoint is the single contract between the data platform and the intelligence engine, so they can never disagree about what a truck is experiencing. &lt;p&gt;Sensors are anything that publishes to MQTT: truck sensors in production, a test simulator in the demo. The rest of the stack cannot tell the difference.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">B6</span><span class="rule"></span>Backup · Architecture</div>
+    <div class="eyebrow" data-a="fade"><span class="n">B1</span><span class="rule"></span>Backup · Architecture</div>
     <h2 data-a style="--d:120">Nothing that cannot run on a laptop <em>in a warehouse office.</em></h2>
     <div class="flow">
       <div class="node" data-a style="--d:250">Sensors<small>IoT · MQTT</small></div><div class="link" style="--d:900"><i></i></div>
@@ -873,9 +835,9 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ B7 · OPEN DATA ═════════ -->
+  <!-- ═════════ BACKUP · OPEN DATA ═════════ -->
   <section class="slide backup" data-title="Backup · Open data" data-notes="17 openly licensed sources, catalogued with their licence and fetch status, and served live by the running system at /api/opendata.">
-    <div class="eyebrow" data-a="fade"><span class="n">B7</span><span class="rule"></span>Backup · Data provenance</div>
+    <div class="eyebrow" data-a="fade"><span class="n">B2</span><span class="rule"></span>Backup · Data provenance</div>
     <h2 data-a style="--d:120"><span data-count="17" data-delay="300">17</span> openly licensed sources, <em>served live.</em></h2>
     <div class="sources">
       <div class="src" data-a style="--d:300"><div class="c">Geography<b>4</b></div><ul><li>GeoNames places</li><li>OSM cold-chain sites</li><li>OSM HGV restrictions</li><li>Natural Earth</li></ul></div>
@@ -888,6 +850,23 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
       <div class="src" data-a style="--d:1000"><div class="c">Operational<b>1</b></div><ul><li>Public holidays</li></ul></div>
     </div>
     <p class="small" data-a style="--d:1200;margin-top:32px">Catalogue at <span class="mono" style="color:var(--text)">GET /api/opendata</span>. Literature values are cited, not certified thresholds.</p>
+  </section>
+
+  <!-- ═════════ TEAM · CLOSING ═════════ -->
+  <section class="slide s-end" data-title="Team 2 · Thank you" data-notes="Leave this up while taking questions. We are Team 2 at the Reboot the Earth hackathon, CMUQ. Thank you.">
+    <div class="eyebrow" data-a="fade"><span class="n">—</span><span class="rule"></span>Reboot the Earth hackathon · CMUQ</div>
+    <h2 data-a style="--d:120">Team 2. <em>Thank you.</em></h2>
+    <p class="lead" data-a style="--d:300">We built <strong>Thermal Trace</strong>: an open-source cold-chain decision system that measures how much safe life a failure has cost and chooses the action that loses the least food.</p>
+    <ol class="crew">
+      <li data-a style="--d:500"><b>Najeeb Abdi</b><span>Math · Frontend</span></li>
+      <li data-a style="--d:600"><b>Islambek</b><span>Hardware engineer</span></li>
+      <li data-a style="--d:700"><b>Param Anand Trimbake</b><span>Frontend</span></li>
+      <li data-a style="--d:800"><b>Ahad Hussain</b><span>AI engineer</span></li>
+    </ol>
+    <div class="end-meta" data-a="fade" style="--d:1200">
+      <span><b>Team 2</b> · Reboot the Earth · CMUQ</span>
+      <span class="mono">github.com/Isl-d/Reboot-The-Earth-Cold-Chain-Logistics</span>
+    </div>
   </section>
 
 </div>
