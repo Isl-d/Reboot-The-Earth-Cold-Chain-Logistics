@@ -15,7 +15,7 @@ AI cold-chain management & food-loss prevention.
 
 **Open source** under the [MIT licence](LICENSE). Built on open technology
 (Mosquitto, PostgreSQL, Redis, FastAPI, React, an Apache-2.0 local model) and
-17 openly licensed data sources; the whole stack runs offline on one laptop.
+17 openly licensed data sources; the whole stack runs on one laptop.
 
 **UN Sustainable Development Goals:** SDG **12.3** (halve food waste and cut
 food loss along supply chains), SDG **2** (zero hunger, food security) and
@@ -50,8 +50,9 @@ make demo                 # broker + db + redis + backend + simulator + frontend
 ```
 
 Then open **http://localhost:5173** (dashboard) and **http://localhost:8000/docs**
-(API). The whole stack runs offline; the only optional network call is the LLM
-used to *explain* code-computed facts.
+(API). Once built, no number depends on a cloud service. The only network calls are
+the map tiles (OpenStreetMap) and the optional LLM used to *explain*
+code-computed facts.
 
 ### The stage scenario (refrigeration failure)
 

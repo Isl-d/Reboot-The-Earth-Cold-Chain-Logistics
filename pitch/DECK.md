@@ -92,7 +92,7 @@ Monitoring stops at the alert; we start there. Alert-only monitoring records the
 temperature and raises an alarm. Thermal Trace measures the damage already done,
 chooses where to divert under constraints, records the action, proves the food
 saved, and labels every number with its source. And it is open: MIT licence, 17
-openly licensed data sources, runs offline on one laptop (`make demo`), 120
+openly licensed data sources, runs on one laptop (`make demo`), 120
 automated tests. SDG 12.3 · 2 · 13.
 
 **Live demo (2 minutes)** — after slide 13, switch to the dashboard: T102, 500 kg
@@ -135,6 +135,10 @@ frontend), Islambek (hardware), Param Anand Trimbake (frontend), Ahad Hussain
   the FAO 2013 global average for wasted food (3.3 Gt CO₂e over 1.3 Gt). It is a
   cited factor (`CC_CO2E_KG_PER_KG_FOOD`), not a measurement, and conservative
   for chicken, whose footprint per kg is higher.
+- **Does it run offline?** The numbers do: sensors, maths, risk, optimizer and
+  food loss need no cloud service. The first `make demo` downloads images and
+  models; after that only the map tiles and the AI explanation use the internet,
+  and without them the map is blank and the explanation falls back to a template.
 - **Why use an LLM at all?** Only to explain. It cannot produce a number, may
   only rank feasible options, and the system runs end to end without it.
 - **What's next?** One cold-chain operator, one month, twenty pallets: on day one
