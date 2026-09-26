@@ -242,7 +242,7 @@ def food_loss_analytics() -> dict:
     loss_rate = round(lost_kg / transported_kg * 100, 2) if transported_kg > 0 else 0.0
     loss_rate = min(loss_rate, 100.0)
     prevented_pct = round(saved_kg / at_risk_kg * 100, 2) if at_risk_kg > 0 else 0.0
-    co2_avoided = round(saved_kg * 2.5, 2)
+    co2_avoided = round(saved_kg * settings.co2e_kg_per_kg_food, 2)
 
     batches = [
         {k: v for k, v in e.items() if k != "row"}

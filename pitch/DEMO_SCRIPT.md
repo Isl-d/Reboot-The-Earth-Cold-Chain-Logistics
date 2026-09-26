@@ -1,15 +1,15 @@
-# Thermal Trace — the four-minute demo
+# Thermal Trace — the two-minute demo
 
-One presenter drives; one person keeps the terminal ready. Rehearse twice.
-The demo runs at the **LIVE DEMO** slide of the deck
-([docs/deck/index.html](../docs/deck/index.html)), between slides 9 and 10;
-after `make reset`, switch back to the deck and press → for slide 10.
+The whole pitch is **5 minutes**; the demo gets **2:00** of it, between slide 4
+(**The product**) and slide 5 (**Physics before AI**) of the deck
+([docs/deck/index.html](../docs/deck/index.html)). One presenter drives; one
+person keeps the terminal ready. Rehearse the full five minutes with a stopwatch.
 
 The story is one truck and one failure: **T102 loses its refrigeration in
-transit, the system detects it, measures the damage, predicts the risk, chooses
-a cold store, diverts, and proves how much food it saved.**
+transit, the system detects it, measures the damage, chooses a cold store, and
+proves how much food it saved.**
 
-## Five minutes before
+## Before the talk
 
 ```bash
 make laya-pull       # once, before the event: ~1.4 GB of Laya checkpoints
@@ -17,31 +17,29 @@ make demo            # broker, database, redis, laya, backend, simulator, fronte
 make reset           # everyone back to NORMAL
 ```
 
-- [ ] Deck open in a second browser window at the LIVE DEMO slide
-      (`docs/deck/index.html#10`), fullscreen with **F**.
-- [ ] Dashboard open at **http://localhost:5173**; `LIVE` pill green.
-- [ ] `make watch` in a side terminal shows `coldchain/trucks/.../telemetry`.
-      Close it before you start talking.
-- [ ] Open **Command Center**. T102 is moving, ~3–4 °C, risk LOW.
-- [ ] Have the API docs open in a second tab (**http://localhost:8000/docs**)
-      in case a judge asks what the numbers are.
+- [ ] Deck open in one window at slide 1, fullscreen with **F**.
+- [ ] Dashboard open at **http://localhost:5173** on the Command Center; `LIVE` pill green.
+- [ ] Backup screen recording of this demo open and ready to play.
+- [ ] **Rehearsal check:** time how long T102 takes to reach HIGH after the
+      trigger. That is how early you must trigger it on the day.
 
 ## On stage
 
 | Time | You do | They see | You say |
 | --- | --- | --- | --- |
-| 0:00 | — | Four trucks on the Doha map, temperatures in mono type, risk badges | "Every one of these is a pallet of food. We know its temperature, its location, and how much safe life it has left." |
-| 0:20 | Click **T102** | 500 kg of fresh chicken, safe 0–4 °C, currently 3.8 °C, risk LOW | "This one is carrying five hundred kilos of chicken. Right now it is fine." |
-| 0:40 | `make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102` | Temperature climbs 3.8 → 4.4 → 5.1 → 5.9 → 6.7 → 7.4 °C | "Its refrigeration just failed. Watch the cargo warm." |
-| 1:00 | — | An incident opens; risk climbs through MEDIUM to HIGH/CRITICAL | "The system caught the deviation immediately — not at the gate, now." |
-| 1:20 | Open **Model** | Chain cards: temperature → thermal exposure → deterioration → remaining shelf life → spoilage → risk, each with a **provenance badge**; below them a **System 1 — Laya** card | "These are physics, not guesses. Thermal exposure is the integral of the degrees above the limit over time. Deterioration is an Arrhenius rate. The local System-1 model, Laya, reads the same facts and agrees — refrigeration failure, divert — and it cannot invent a number, because it never writes text." |
-| 2:00 | Open **Optimization** | WH01 18 min, WH02 27 min, WH03 46 min, with ETA, expected loss and a checked-then-selected candidate | "Three cold stores are in range. The optimizer minimizes transport plus food-loss plus delay, subject to ETA, capacity and temperature. It picked WH01." |
-| 2:30 | Open **Truck detail → recommendation** | `DIVERT → WH01`, ETA, and the AI explanation (OpenRouter) | "The model did not choose this. The optimizer did. The language model only explains it — it is never allowed to invent a number." |
-| 3:00 | Open **Food Loss** | WITHOUT vs WITH the intervention; food saved (kg) and loss prevented (QAR) climbing | "Do nothing and we risk a large share of the load. Divert and we lose only the transit cost. That is real chicken the store can still sell, and real money not thrown away." |
-| 3:30 | Open **Comparison** | The two bars, without vs with, side by side | "This is the whole product in one picture: the sensors told us what was happening, the maths told us how bad it was, the optimizer told us what to do, and the food-loss engine proves it mattered." |
-| 3:50 | `make reset` | T102 returns to NORMAL, incident resolves | "Same platform, next truck." |
+| Talk start (0:00) | Terminal person runs `make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102` | — (deck is on screen) | — |
+| 1:15 | Switch to the dashboard: **Command Center** | Trucks on the Doha map; T102 with an open incident, temperature above 4 °C | "This truck carries 500 kg of chicken. Its refrigeration failed while we were talking. The system caught it the moment the cargo left the safe band — not at the gate." |
+| 1:45 | Open **Model** | Temperature → thermal exposure → deterioration → shelf life → risk, each with a provenance badge; the Laya System-1 card | "This is physics, not guessing: exposure is the degrees above the limit over time, deterioration is an Arrhenius rate. The local AI reads the same facts and agrees — but it cannot invent a number." |
+| 2:15 | Open **Optimization** | WH01 / WH02 / WH03 with ETA and expected loss; WH01 selected, `DIVERT` | "Three cold stores in range. The optimizer minimizes transport plus food loss plus delay, under ETA, capacity and temperature. It picked WH01. The language model only explains why." |
+| 2:45 | Open **Food Loss** | Food saved (kg), loss prevented (QAR), CO₂ avoided | "Without action we lose most of the load. With the diversion we save this much food, this much money, and this much CO₂ — computed, not estimated." |
+| 3:15 | Switch back to the deck, → slide 5 | — | "Here is what you just saw, under the hood." |
+
+`make reset` after the talk, not on stage.
 
 ## If something fails
+
+- **Anything breaks on stage?** Do not debug live. Play the backup recording and
+  keep talking over it; the clock does not stop.
 
 - **No telemetry?** `make sim-logs`. If the broker is down, `make demo` again.
 - **Frontend blank?** Confirm the backend is on :8000 and reload; the vite proxy

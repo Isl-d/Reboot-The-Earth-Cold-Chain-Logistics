@@ -4,7 +4,7 @@ AI-powered cold-chain management & food-loss prevention system. Read
 [ARCHITECTURE.md](ARCHITECTURE.md) first; it is the single source of truth for
 the system shape. Wire shapes live in [docs/API_CONTRACT.md](docs/API_CONTRACT.md),
 objects in [docs/DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md), and the full
-component-by-component reference and thesis in [AI_COLD_STORAGE_LOGISTICS.md](AI_COLD_STORAGE_LOGISTICS.md).
+component-by-component reference and thesis in [pitch/AI_COLD_STORAGE_LOGISTICS.md](pitch/AI_COLD_STORAGE_LOGISTICS.md).
 
 ## What runs
 

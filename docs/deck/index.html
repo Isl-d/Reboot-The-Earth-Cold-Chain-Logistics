@@ -220,8 +220,9 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
 @keyframes travel { 0% { left: 0; opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { left: calc(100% - 12px); opacity: 0; } }
 
 /* ── 06 Detect ─────────────────────────────────────────────────────── */
-.split { display: grid; grid-template-columns: 560px 1fr; gap: 72px; flex: 1; align-items: center; }
+.split { display: grid; grid-template-columns: 560px 1fr; gap: 72px; flex: 1; align-items: start; }
 .split h2 { font-size: 72px; }
+.split .shot { margin-top: 64px; } /* clears the source tag above it */
 .shot { position: relative; border: 1px solid var(--border-strong); border-radius: 6px; overflow: hidden; background: var(--surface); }
 .shot .bar { height: 40px; display: flex; align-items: center; gap: 10px; padding: 0 16px; border-bottom: 1px solid var(--border); background: var(--base); }
 .shot .bar i { width: 12px; height: 12px; border-radius: 50%; background: var(--elevated); }
@@ -295,6 +296,28 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
 .beats { display: flex; gap: 14px; margin-top: 44px; flex-wrap: wrap; }
 .beats span { font: 500 22px/1 var(--mono); color: var(--text-2); padding: 12px 16px; border: 1px solid var(--border); border-radius: 2px; }
 
+/* ── UN SDG row ───────────────────────────────────────────────────── */
+.sdgs { display: flex; gap: 16px; margin-top: 36px; flex-wrap: wrap; }
+.sdg { display: inline-flex; align-items: center; gap: 16px; padding: 10px 22px 10px 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; font-size: 24px; color: var(--text-2); }
+.sdg b { display: inline-grid; place-items: center; min-width: 76px; height: 46px; padding: 0 12px; border-radius: 3px; background: var(--g); color: #fff; font: 600 22px/1 var(--mono); letter-spacing: .04em; }
+.sdg strong { color: var(--text); font-weight: 500; }
+
+/* ── What's different ─────────────────────────────────────────────── */
+.diff { display: grid; grid-template-columns: 1.45fr 1fr; gap: 56px; margin-top: 52px; align-items: start; }
+.cmp { width: 100%; border-collapse: collapse; }
+.cmp th { font: 500 18px/1.25 var(--mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); text-align: center; padding: 0 12px 18px; }
+.cmp th:first-child { text-align: left; padding-left: 0; }
+.cmp th.us { color: var(--primary); }
+.cmp td { padding: 17px 12px; border-top: 1px solid var(--border); font-size: 26px; line-height: 1.3; color: var(--text); text-align: center; }
+.cmp td:first-child { text-align: left; padding-left: 0; }
+.cmp td.x { color: var(--text-2); }
+.cmp td.y { color: var(--low); font-weight: 600; }
+.open { background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--low); border-radius: 4px; padding: 30px 34px 20px; }
+.open h3 { margin: 0 0 14px; font-size: 34px; font-weight: 600; color: #e6eef8; }
+.open ul { list-style: none; margin: 0; padding: 0; }
+.open li { padding: 13px 0; border-top: 1px solid var(--border); font-size: 24px; line-height: 1.35; color: var(--text-2); }
+.open li b { color: var(--text); font-weight: 600; }
+
 /* ── 10 The number ────────────────────────────────────────────────── */
 .impact { display: grid; grid-template-columns: 1fr 780px; gap: 80px; margin-top: 48px; flex: 1; align-items: end; }
 .formula { font: 500 38px/1.5 var(--mono); color: #e6eef8; padding: 36px 40px; background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--p-calculated); border-radius: 4px; }
@@ -311,24 +334,25 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
 .pv .tag { font-size: 20px; }
 .pv p { margin: 24px 0 0; font-size: 27px; line-height: 1.42; color: var(--text-2); }
 
-/* ── 12 The ask ───────────────────────────────────────────────────── */
-.s-ask { justify-content: center; }
-.s-ask .lead { max-width: 1000px; }
-.team { position: absolute; right: 128px; top: 180px; width: 560px; padding: 34px 36px 30px; background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--primary); border-radius: 4px; }
-.team .th { display: flex; align-items: center; gap: 18px; }
-.team .th svg { width: 56px; height: 56px; flex: none; }
-.team .th b { display: block; font: 600 44px/1 var(--mono); letter-spacing: -0.01em; color: #e6eef8; }
-.team .th span { display: block; margin-top: 10px; font: 500 18px/1 var(--mono); letter-spacing: .14em; text-transform: uppercase; color: var(--text-2); }
-.team ol { list-style: none; margin: 26px 0 0; padding: 0; display: grid; gap: 10px; counter-reset: m; }
-.team li { counter-increment: m; display: flex; align-items: center; gap: 16px; padding: 12px 16px; border: 1px dashed var(--border-strong); border-radius: 2px; font-size: 25px; color: var(--text-2); }
-.team li::before { content: counter(m, decimal-leading-zero); font: 500 18px/1 var(--mono); color: var(--primary); }
-.s-ask h2 { font-size: 110px; line-height: 1.02; }
-.s-ask h2 span { display: block; }
-.close { margin-top: 64px; padding-top: 44px; border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr auto; gap: 80px; align-items: end; }
-.close blockquote { margin: 0; font-size: 30px; line-height: 1.5; color: var(--text-2); max-width: 1100px; }
-.close blockquote b { color: var(--text); font-weight: 500; }
-.close .meta { text-align: right; font: 400 22px/1.7 var(--mono); color: var(--text-2); }
-.close .meta b { color: var(--primary); font-weight: 500; }
+/* ── 11 Thermal reserve ───────────────────────────────────────────── */
+.reserve { display: grid; grid-template-columns: 1fr 760px; gap: 64px; margin-top: 44px; align-items: start; }
+.res-def .eq .f { font-size: 36px; }
+.res-def .eq p { margin: 18px 0 0; font-size: 24px; line-height: 1.45; color: var(--text-2); }
+.res-def .eq p .tag { font-size: 15px; padding: 6px 11px; margin-left: 8px; vertical-align: middle; }
+.rbars { margin-top: 36px; }
+.rrow { display: grid; grid-template-columns: 230px 1fr 150px; gap: 22px; align-items: center; margin-bottom: 20px; }
+.rrow .k { font: 500 19px/1.2 var(--mono); letter-spacing: .1em; text-transform: uppercase; color: var(--text-2); }
+.rrow .v { font: 600 30px/1 var(--mono); color: #e6eef8; text-align: right; }
+.rtrack { position: relative; height: 30px; background: var(--elevated); border-radius: 2px; overflow: hidden; }
+.rtrack i { position: absolute; inset: 0; background: var(--c); border-radius: 2px; }
+.rtrack.spent { background: repeating-linear-gradient(45deg, color-mix(in srgb, var(--critical) 38%, var(--elevated)) 0 8px, var(--elevated) 8px 16px); }
+.rbars .small { margin: 8px 0 0; }
+.gains { display: flex; flex-direction: column; gap: 16px; }
+.gain { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 22px 30px 24px; }
+.gain .gh { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.gain h3 { margin: 0; font-size: 34px; font-weight: 600; color: #e6eef8; }
+.gain .tag { font-size: 15px; padding: 6px 11px; }
+.gain p { margin: 0; font-size: 24px; line-height: 1.42; color: var(--text-2); }
 
 /* ── Backup slides ────────────────────────────────────────────────── */
 .backup .eyebrow .n { color: var(--text-2); }
@@ -354,6 +378,17 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
 .fact h3 { margin: 26px 0 14px; font-size: 32px; font-weight: 600; color: #e6eef8; }
 .fact p { margin: 0; font-size: 25px; line-height: 1.45; color: var(--text-2); }
 .fact code { font-family: var(--mono); font-size: .92em; color: var(--text); }
+
+/* ── Team closing ─────────────────────────────────────────────────── */
+.s-end { justify-content: center; }
+.s-end h2 { font-size: 120px; }
+.crew { list-style: none; margin: 72px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; counter-reset: m; }
+.crew li { counter-increment: m; background: var(--surface); border: 1px solid var(--border); border-top: 3px solid var(--primary); border-radius: 4px; padding: 30px 28px 32px; }
+.crew li::before { content: counter(m, decimal-leading-zero); display: block; font: 500 18px/1 var(--mono); color: var(--primary); letter-spacing: .1em; margin-bottom: 22px; }
+.crew b { display: block; font-size: 32px; font-weight: 600; line-height: 1.2; color: #e6eef8; }
+.crew span { display: block; margin-top: 10px; font: 500 18px/1.3 var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); }
+.end-meta { display: flex; justify-content: space-between; gap: 40px; margin-top: 64px; padding-top: 36px; border-top: 1px solid var(--border); font-size: 24px; color: var(--text-2); }
+.end-meta b { color: var(--text); font-weight: 500; }
 
 /* ── Overlays: notes, overview, hint (outside the scaled stage) ───── */
 .notes {
@@ -465,23 +500,28 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
   </section>
 
   <!-- ═════════ 02 · PROBLEM ═════════ -->
-  <section class="slide" data-title="The problem" data-notes="One idea: the loss happens before anyone sees it. Read the three numbers slowly. &lt;p&gt;13% of food is lost between harvest and retail; another 19% is wasted after. Food loss and waste cause 8–10% of global emissions (FAO / UNEP, 2024).&lt;/p&gt;">
+  <section class="slide" data-title="The problem" data-notes="One idea: the loss happens before anyone sees it. Read the three numbers slowly. &lt;p&gt;13% of food is lost between harvest and retail; another 19% is wasted after. Food loss and waste cause 8–10% of global emissions (FAO / UNEP, 2024).&lt;/p&gt;&lt;p&gt;Name the goal out loud: this is UN SDG target 12.3, halving food waste and cutting loss along supply chains. It also serves SDG 2 (food security) and SDG 13 (the emissions from food that rots).&lt;/p&gt;">
     <div class="source"><span class="tag t-cited" data-a="fade" style="--d:200">Cited · FAO / UNEP 2024</span></div>
     <div class="eyebrow" data-a="fade"><span class="n">02</span><span class="rule"></span>The problem</div>
     <h2 data-a style="--d:120">A third of our food never gets eaten.</h2>
+    <div class="sdgs" data-a style="--d:260">
+      <span class="sdg"><b style="--g:#BF8B2E">12.3</b><span><strong>SDG 12.3</strong> · halve food waste, cut supply-chain loss</span></span>
+      <span class="sdg"><b style="--g:#DDA63A">2</b><span><strong>SDG 2</strong> · zero hunger</span></span>
+      <span class="sdg"><b style="--g:#3F7E44">13</b><span><strong>SDG 13</strong> · climate action</span></span>
+    </div>
     <div class="stats">
       <div class="stat" data-a style="--d:400">
-        <div class="v"><span data-count="13" data-delay="500">0</span><small>%</small></div>
+        <div class="v"><span data-count="13" data-delay="500">13</span><small>%</small></div>
         <div class="bar"><i class="grow" style="--c:var(--critical);--to:.13;--d:500"></i></div>
         <p>of food is <strong style="color:var(--text);font-weight:500">lost</strong> between harvest and retail.</p>
       </div>
       <div class="stat" data-a style="--d:650">
-        <div class="v"><span data-count="19" data-delay="750">0</span><small>%</small></div>
+        <div class="v"><span data-count="19" data-delay="750">19</span><small>%</small></div>
         <div class="bar"><i class="grow" style="--c:var(--high);--to:.19;--d:750"></i></div>
         <p>more is <strong style="color:var(--text);font-weight:500">wasted</strong> after it reaches retail and homes.</p>
       </div>
       <div class="stat" data-a style="--d:900">
-        <div class="v"><span data-count="8" data-delay="1000">0</span><small>–</small><span data-count="10" data-delay="1000">0</span><small>%</small></div>
+        <div class="v"><span data-count="8" data-delay="1000">8</span><small>–</small><span data-count="10" data-delay="1000">10</span><small>%</small></div>
         <div class="bar"><i class="grow" style="--c:var(--medium);--to:.1;--d:1000"></i></div>
         <p>of global greenhouse-gas emissions come from food loss and waste.</p>
       </div>
@@ -489,7 +529,7 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
   </section>
 
   <!-- ═════════ 03 · WHY HERE ═════════ -->
-  <section class="slide" data-title="Why here" data-notes="Make it local. Qatar imports most of its fresh food across a summer that passes 45 °C. A truck fridge that fails at noon can spoil a load in hours. &lt;p&gt;The National Food Security Strategy 2030 targets −50% food waste and −30% food loss. We are a tool for those two numbers.&lt;/p&gt;">
+  <section class="slide" data-title="Why here" data-notes="Make it local. Qatar imports most of its fresh food across a summer that passes 45 °C. A truck fridge that fails at noon can spoil a load in hours. &lt;p&gt;The National Food Security Strategy 2030 targets −50% food waste and −30% food loss. We are a tool for those two numbers. Source: The Peninsula, 2 Jan 2025, citing the NFSS 2030.&lt;/p&gt;">
     <div class="source"><span class="tag t-cited" data-a="fade" style="--d:200">Cited · Qatar NFSS 2030</span></div>
     <div class="eyebrow" data-a="fade"><span class="n">03</span><span class="rule"></span>Why here</div>
     <h2 data-a style="--d:120">Qatar imports most of its fresh food across a summer that passes <em style="color:var(--high)">45&nbsp;°C</em>.</h2>
@@ -502,7 +542,7 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
           <g stroke="#3d5476" stroke-width="2"><line x1="88" x2="104" y1="60" y2="60" /><line x1="88" x2="100" y1="120" y2="120" /><line x1="88" x2="104" y1="180" y2="180" /><line x1="88" x2="100" y1="240" y2="240" /></g>
         </svg>
         <div>
-          <div class="read"><span data-count="45" data-delay="600" data-dur="2000">0</span><small> °C</small></div>
+          <div class="read"><span data-count="45" data-delay="600" data-dur="2000">45</span><small> °C</small></div>
           <div class="cap">A fridge that fails at noon can spoil a load in hours.</div>
         </div>
       </div>
@@ -521,10 +561,176 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 04 · WHAT GOES WRONG ═════════ -->
-  <section class="slide" data-title="What goes wrong" data-notes="Tell it as a story: the fridge fails at noon, the truck keeps driving, the cargo warms, and nobody knows until the load is rejected at the gate. &lt;p&gt;By then the food is gone, and so is any chance to send it somewhere it could still be sold. The times on the slide are illustrative.&lt;/p&gt;">
+  <!-- ═════════ 04 · PRODUCT ═════════ -->
+  <section class="slide" data-title="The product" data-notes="This is the spine of the talk; every later slide is one of these boxes. &lt;p&gt;Sensors tell us what is happening; mathematics tells us how much damage has occurred; models predict what happens next; optimization chooses the action; the decision engine turns it into an operation; and the food-loss engine proves what it saved.&lt;/p&gt;&lt;p&gt;Next slide is the live demo: show it, then explain it.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">04</span><span class="rule"></span>The product in one line</div>
+    <h2 data-a style="--d:120">Physics first. <em>AI where it earns its place.</em></h2>
+    <p class="lead" data-a style="--d:250">Sensors say what is happening, the maths says how much damage is done, and the optimizer chooses the action that loses the least food.</p>
+    <div class="pipe">
+      <div class="wire" data-a="fade" style="--d:300"><i></i></div>
+      <div class="step" data-a style="--d:300"><div class="k">01</div><h3>Sensors</h3><div class="verb">say what is happening</div><span class="tag t-measured">Measured</span></div>
+      <div class="step" data-a style="--d:420"><div class="k">02</div><h3>Mathematics</h3><div class="verb">says how much damage has occurred</div><span class="tag t-calculated">Calculated</span></div>
+      <div class="step" data-a style="--d:540"><div class="k">03</div><h3>Prediction</h3><div class="verb">says what may happen next</div><span class="tag t-predicted">Predicted</span></div>
+      <div class="step" data-a style="--d:660"><div class="k">04</div><h3>Optimization</h3><div class="verb">chooses the action</div><span class="tag t-optimized">Optimized</span></div>
+      <div class="step" data-a style="--d:780"><div class="k">05</div><h3>Decision</h3><div class="verb">turns it into an operation</div><span class="tag t-optimized">Optimized</span></div>
+      <div class="step" data-a style="--d:900"><div class="k">06</div><h3>Food loss</h3><div class="verb">proves what it saved</div><span class="tag t-calculated">Calculated</span></div>
+    </div>
+  </section>
+
+  <!-- ═════════ DEMO ═════════ -->
+  <section class="slide s-demo" data-title="Live demo" data-notes="Two minutes, no more (pitch/DEMO_SCRIPT.md). &lt;p&gt;The failure was triggered at the start of the talk, so the cargo is already warming: make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102. Walk: Command Center (incident on T102) → Model (exposure, deterioration, risk) → Optimization (DIVERT → WH01) → Food Loss (kg, QAR and CO₂ saved). Then come back to the next slide. If anything breaks, play the backup recording.&lt;/p&gt;">
+    <div class="live" data-a="fade"><i></i>LIVE DEMO</div>
+    <h2 data-a style="--d:150">One truck. One failure.<br />One decision.</h2>
+    <p class="lead" data-a style="--d:350">T102 is carrying <strong>500 kg of fresh chicken</strong>, safe between 0 and 4 °C. Its refrigeration has just failed.</p>
+    <div class="beats">
+      <span data-a style="--d:600">Command Center</span><span data-a style="--d:680">Model</span><span data-a style="--d:760">Optimization</span><span data-a style="--d:840">Food loss</span>
+    </div>
+  </section>
+
+  <!-- ═════════ 05 · PHYSICS ═════════ -->
+  <section class="slide" data-title="Physics before AI" data-notes="Thermal exposure is the sum of the degrees above the limit over time: the shaded area. Deterioration is an Arrhenius rate relative to the product's ideal temperature. Remaining shelf life follows from it. &lt;p&gt;Every one of those numbers is deterministic Python; no model touches them. These are prototype models, not certified food-safety science: say so if asked.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">05</span><span class="rule"></span>Physics before AI</div>
+    <h2 data-a style="--d:120">Damage is <em>measured</em>, not guessed.</h2>
+    <div class="phys">
+      <div class="panel" data-a style="--d:300">
+        <div class="ph"><span>T102 · cargo temperature</span><span class="tag t-illustrative dashed" style="font-size:15px;padding:6px 11px">Example scenario</span></div>
+        <div class="chart">
+          <svg viewBox="0 0 900 470" aria-label="Example: T102 temperature climbing from 3.8 to 7.4 °C across the 4 °C safe limit; the area above the limit is the thermal exposure">
+            <defs>
+              <clipPath id="above"><rect x="60" y="0" width="840" height="286" /></clipPath>
+              <linearGradient id="ex" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d55181" stop-opacity=".55" /><stop offset="1" stop-color="#d55181" stop-opacity=".12" /></linearGradient>
+            </defs>
+            <g font-family="IBM Plex Mono, monospace" font-size="17" fill="#8fa8c8">
+              <g stroke="#2d4160" stroke-dasharray="3 6"><line x1="60" x2="880" y1="30" y2="30" /><line x1="60" x2="880" y1="158" y2="158" /><line x1="60" x2="880" y1="414" y2="414" /></g>
+              <text x="48" y="36" text-anchor="end">8°</text><text x="48" y="164" text-anchor="end">6°</text><text x="48" y="292" text-anchor="end">4°</text><text x="48" y="420" text-anchor="end">2°</text>
+            </g>
+            <!-- exposure area: the integral -->
+            <path class="wipe" style="--d:1900" clip-path="url(#above)" fill="url(#ex)"
+              d="M60 299 L 225 299 C 300 299, 330 264, 390 254 S 520 214, 555 208 S 680 154, 720 145 S 830 105, 880 94 L 880 286 L 60 286 Z" />
+            <line x1="60" x2="880" y1="286" y2="286" stroke="#f87171" stroke-width="2.5" stroke-dasharray="9 7" />
+            <text x="876" y="276" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="17" fill="#f87171">SAFE MAX 4 °C</text>
+            <path class="draw" style="--d:500;--dur:2s" fill="none" stroke="#00c8e0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
+              d="M60 299 L 225 299 C 300 299, 330 264, 390 254 S 520 214, 555 208 S 680 154, 720 145 S 830 105, 880 94" />
+            <g data-a="fade" style="--d:1100">
+              <line x1="225" x2="225" y1="299" y2="440" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4 5" />
+              <text x="235" y="450" font-family="IBM Plex Mono, monospace" font-size="17" fill="#fbbf24">refrigeration fails</text>
+            </g>
+            <g font-family="IBM Plex Mono, monospace" font-size="20" font-weight="500">
+              <text data-a="fade" style="--d:600" x="60" y="330" fill="#c9d6e8">3.8°</text>
+              <text data-a="fade" style="--d:2300" x="872" y="80" text-anchor="end" fill="#fb923c">7.4°</text>
+            </g>
+            <text data-a="fade" style="--d:2600" x="640" y="250" font-family="IBM Plex Mono, monospace" font-size="21" fill="#eb9dbb">E<tspan font-size="14" dy="5">T</tspan><tspan dy="-5"> = exposure</tspan></text>
+          </svg>
+        </div>
+      </div>
+      <div class="eqs">
+        <div class="eq" data-a="right" style="--d:500"><div class="l">Thermal exposure · °C·min</div><div class="f">E<sub>T</sub> = Σ max(0, T<sub>i</sub> − T<sub>safe</sub>) · Δt</div></div>
+        <div class="eq" data-a="right" style="--d:700"><div class="l">Deterioration rate · Arrhenius</div><div class="f">k(T) = k<sub>ref</sub> · e<sup>(E<sub>a</sub>/R)(1/T<sub>ideal</sub> − 1/T)</sup></div></div>
+        <div class="eq" data-a="right" style="--d:900"><div class="l">Shelf life spent · remaining</div><div class="f">D = Σ k(T<sub>i</sub>)·Δt<sub>i</sub> <span class="u">→</span> L·(1 − D)</div></div>
+        <div data-a style="--d:1200;display:flex;gap:14px;align-items:center;margin-top:6px"><span class="tag t-calculated">Calculated</span><span class="small">Deterministic Python. No model touches these numbers.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ 06 · AI ═════════ -->
+  <section class="slide" data-title="AI where it earns its place" data-notes="Two AI layers, both on a leash. &lt;p&gt;Laya is System 1: a local, offline, Apache-2.0 decision model. It answers typed questions in a single forward pass (condition, action, urgency, needs human review) and cannot write text, so it cannot invent a number. It corroborates the deterministic decision and never overrides it.&lt;/p&gt;&lt;p&gt;System 2 is DeepSeek V4.1 Flash, a cloud language model reached through OpenRouter, the explainer: it turns code-computed facts into plain language. It may only move the spoilage estimate within a fixed band and only rank options that are already feasible. With no API key the system still runs; only the prose is plainer.&lt;/p&gt;&lt;p&gt;The chips at the bottom are deterministic code, not AI.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">06</span><span class="rule"></span>AI where it earns its place</div>
+    <h2 data-a style="--d:120">Two AI layers. <em>Neither may invent a number.</em></h2>
+    <div class="ai">
+      <div class="card" data-a style="--d:320">
+        <div class="top"><span class="sys">System 1 · local · offline</span><span class="tag t-predicted">Predicted</span></div>
+        <h3>Laya</h3>
+        <p>Answers typed questions in a single pass: condition, recommended action, urgency, needs human review. Open source (Apache-2.0), runs on the laptop.</p>
+        <div class="guard"><svg style="color:var(--p-predicted-fg)"><use href="#lock" /></svg>Never generates text. Corroborates the decision, never overrides it.</div>
+      </div>
+      <div class="card" data-a style="--d:480">
+        <div class="top"><span class="sys">System 2 · cloud · OpenRouter</span><span class="tag t-explained">AI-explained</span></div>
+        <h3>DeepSeek V4.1 Flash</h3>
+        <p>Turns the calculated facts into plain language for the operator. May rank only feasible options, and move the spoilage estimate only within a fixed band.</p>
+        <div class="guard"><svg style="color:var(--text)"><use href="#lock" /></svg>Never invents a temperature, ETA, cost or quantity.</div>
+      </div>
+    </div>
+    <div class="models" data-a style="--d:750">
+      <span class="lbl">Plain code, not AI</span>
+      <span class="chip">Spoilage probability</span><span class="chip">Anomaly detection</span><span class="chip">Demand forecasting</span>
+    </div>
+  </section>
+
+  <!-- ═════════ 07 · THERMAL RESERVE ═════════ -->
+  <section class="slide" data-title="Thermal reserve" data-notes="Now the supermarket's side. Every delivery arrives with its thermal reserve: the safe shelf life it has left, calculated from every minute of its temperature history. Not the label date: the label assumes the food was kept cold the whole way. &lt;p&gt;Inventory: the loads with the least reserve go on sale first, and surplus against forecast demand is flagged for transfer, discount or redistribution before it expires. Finance: food saved times value per kilogram, in QAR, for every intervention; mark down early instead of writing off late. Receiving: a temperature record for every delivery, so the dock accepts or rejects on evidence. The bars are illustrative.&lt;/p&gt;">
+    <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative bars</span></div>
+    <div class="eyebrow" data-a="fade"><span class="n">07</span><span class="rule"></span>For the supermarket</div>
+    <h2 data-a style="--d:120;font-size:68px">Every delivery arrives with its <em>thermal reserve.</em></h2>
+    <div class="reserve">
+      <div class="res-def">
+        <div class="eq" data-a style="--d:300">
+          <div class="l">Thermal reserve · safe shelf life left</div>
+          <div class="f">reserve = L · (1 − D)</div>
+          <p>Calculated from every minute of the cargo's temperature history, not from the label date. <span class="tag t-calculated">Calculated</span></p>
+        </div>
+        <div class="rbars" data-a style="--d:500">
+          <div class="rrow"><span class="k">Label date</span><div class="rtrack"><i class="grow" style="--c:var(--text-2);--to:1;--d:700"></i></div><span class="v">7.0 days</span></div>
+          <div class="rrow"><span class="k">Thermal reserve</span><div class="rtrack spent"><i class="grow" style="--c:var(--low);--to:.64;--d:900"></i></div><span class="v" style="color:var(--low)">4.5 days</span></div>
+          <p class="small">The hatched part was spent in the heat on the road. The label cannot see it; the reserve can.</p>
+        </div>
+      </div>
+      <div class="gains">
+        <div class="gain" data-a="right" style="--d:500"><div class="gh"><h3>Inventory</h3><span class="tag t-optimized">Optimized</span></div><p>Shelve by reserve, not by label. Surplus is flagged for transfer, discount or redistribution before it expires.</p></div>
+        <div class="gain" data-a="right" style="--d:650"><div class="gh"><h3>Finance</h3><span class="tag t-calculated">Calculated</span></div><p>Loss prevented in QAR for every intervention. Mark down early instead of writing off late.</p></div>
+        <div class="gain" data-a="right" style="--d:800"><div class="gh"><h3>Receiving</h3><span class="tag t-measured">Measured</span></div><p>A temperature record for every delivery. Accept or reject at the dock on evidence, not argument.</p></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ 08 · WHAT'S DIFFERENT ═════════ -->
+  <section class="slide" data-title="What's different" data-notes="Most cold-chain products today are monitoring: a logger or tracker that records the temperature and raises an alert when it crosses a limit. That is where they stop. &lt;p&gt;We carry on from the alert: we measure the damage already done, choose where the truck should go under hard constraints, record the action, and prove the food and money it saved.&lt;/p&gt;&lt;p&gt;And it is open: an open-source license, 17 openly licensed data sources, runs offline on one laptop with one command, and 120 automated tests. Anyone can take it and adapt it to their own fleet or product.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">08</span><span class="rule"></span>What's different</div>
+    <h2 data-a style="--d:120">Monitoring stops at the alert. <em>We start there.</em></h2>
+    <div class="diff">
+      <table class="cmp" data-a style="--d:300">
+        <thead><tr><th></th><th>Alert-only monitoring</th><th class="us">Thermal Trace</th></tr></thead>
+        <tbody>
+          <tr><td>Alert when a limit is crossed</td><td class="y">✓</td><td class="y">✓</td></tr>
+          <tr><td>Measure the damage already done</td><td class="x">—</td><td class="y">✓</td></tr>
+          <tr><td>Choose where to divert, under constraints</td><td class="x">—</td><td class="y">✓</td></tr>
+          <tr><td>Record the action, prove the food saved</td><td class="x">—</td><td class="y">✓</td></tr>
+          <tr><td>Every number labelled with its source</td><td class="x">—</td><td class="y">✓</td></tr>
+        </tbody>
+      </table>
+      <div class="open" data-a="right" style="--d:500">
+        <h3>Open, and built to be reused</h3>
+        <ul>
+          <li><b>Open source</b> · MIT licence</li>
+          <li><b>17</b> openly licensed data sources</li>
+          <li><b>Runs offline</b> on one laptop · <span class="mono">make demo</span></li>
+          <li><b>120</b> automated tests, full failure replayed end to end</li>
+          <li><b>SDG 12.3 · 2 · 13</b></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═════════ TEAM · CLOSING ═════════ -->
+  <section class="slide s-end" data-title="Team 2 · Thank you" data-notes="Leave this up while taking questions. Backup slides follow (→) if a judge asks about the timeline, the dashboard, the optimizer, the formula, provenance, the architecture or the data. We are Team 2 at the Reboot the Earth hackathon, CMUQ. Thank you.">
+    <div class="eyebrow" data-a="fade"><span class="n">—</span><span class="rule"></span>Reboot the Earth hackathon · CMUQ</div>
+    <h2 data-a style="--d:120">Team 2. <em>Thank you.</em></h2>
+    <p class="lead" data-a style="--d:300">We built <strong>Thermal Trace</strong>: an open-source cold-chain decision system that measures how much safe life a failure has cost and chooses the action that loses the least food.</p>
+    <ol class="crew">
+      <li data-a style="--d:500"><b>Najeeb Abdi</b><span>Math · Frontend</span></li>
+      <li data-a style="--d:600"><b>Islambek</b><span>Hardware engineer</span></li>
+      <li data-a style="--d:700"><b>Param Anand Trimbake</b><span>Frontend</span></li>
+      <li data-a style="--d:800"><b>Ahad Hussain</b><span>AI engineer</span></li>
+    </ol>
+    <div class="end-meta" data-a="fade" style="--d:1200">
+      <span><b>Team 2</b> · Reboot the Earth · CMUQ</span>
+      <span class="mono">github.com/Isl-d/Reboot-The-Earth-Cold-Chain-Logistics</span>
+    </div>
+  </section>
+
+  <!-- ═════════ B1 · WHAT GOES WRONG ═════════ -->
+  <section class="slide backup" data-title="Backup · What goes wrong" data-notes="Tell it as a story: the fridge fails at noon, the truck keeps driving, the cargo warms, and nobody knows until the load is rejected at the gate. &lt;p&gt;By then the food is gone, and so is any chance to send it somewhere it could still be sold. The times on the slide are illustrative.&lt;/p&gt;">
     <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative timeline</span></div>
-    <div class="eyebrow" data-a="fade"><span class="n">04</span><span class="rule"></span>What actually goes wrong</div>
+    <div class="eyebrow" data-a="fade"><span class="n">B1</span><span class="rule"></span>Backup · What actually goes wrong</div>
     <h2 data-a style="--d:120">Nobody finds out until the load is <em style="color:var(--critical)">rejected at the gate</em>.</h2>
     <div class="tl">
       <svg viewBox="0 0 1664 420" aria-hidden="true">
@@ -563,28 +769,12 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     <p class="lead" data-a style="--d:1600;margin-top:24px">By then the food is gone, and so is any chance to send it somewhere it could still be sold.</p>
   </section>
 
-  <!-- ═════════ 05 · PRODUCT ═════════ -->
-  <section class="slide" data-title="The product" data-notes="This is the spine of the talk; every later slide is one of these boxes. &lt;p&gt;Sensors tell us what is happening; mathematics tells us how much damage has occurred; AI predicts what happens next; optimization chooses the action; the decision engine turns it into an operation; and the food-loss engine proves what it saved.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">05</span><span class="rule"></span>The product in one line</div>
-    <h2 data-a style="--d:120">Physics first. <em>AI where it earns its place.</em></h2>
-    <p class="lead" data-a style="--d:250">Sensors say what is happening, the maths says how much damage is done, and the optimizer chooses the action that loses the least food.</p>
-    <div class="pipe">
-      <div class="wire" data-a="fade" style="--d:300"><i></i></div>
-      <div class="step" data-a style="--d:300"><div class="k">01</div><h3>Sensors</h3><div class="verb">say what is happening</div><span class="tag t-measured">Measured</span></div>
-      <div class="step" data-a style="--d:420"><div class="k">02</div><h3>Mathematics</h3><div class="verb">says how much damage has occurred</div><span class="tag t-calculated">Calculated</span></div>
-      <div class="step" data-a style="--d:540"><div class="k">03</div><h3>Prediction</h3><div class="verb">says what may happen next</div><span class="tag t-predicted">Predicted</span></div>
-      <div class="step" data-a style="--d:660"><div class="k">04</div><h3>Optimization</h3><div class="verb">chooses the action</div><span class="tag t-optimized">Optimized</span></div>
-      <div class="step" data-a style="--d:780"><div class="k">05</div><h3>Decision</h3><div class="verb">turns it into an operation</div><span class="tag t-optimized">Optimized</span></div>
-      <div class="step" data-a style="--d:900"><div class="k">06</div><h3>Food loss</h3><div class="verb">proves what it saved</div><span class="tag t-calculated">Calculated</span></div>
-    </div>
-  </section>
-
-  <!-- ═════════ 06 · DETECT ═════════ -->
-  <section class="slide" data-title="Detect" data-notes="A live map of every truck, with an incident the instant a temperature leaves the safe band and stays there. Not a dashboard of charts: a decision surface. &lt;p&gt;Point at the incident panel (outlined). The screen is the demo build with a simulated fleet.&lt;/p&gt;">
-    <div class="source"><span class="tag t-synthetic dashed" data-a="fade" style="--d:200">Synthetic · demo build, simulated fleet</span></div>
+  <!-- ═════════ B2 · DETECT ═════════ -->
+  <section class="slide backup" data-title="Backup · Detect" data-notes="A live map of every truck, with an incident the instant a temperature leaves the safe band and stays there. Not a dashboard of charts: a decision surface. &lt;p&gt;Point at the incident panel (outlined). This screenshot was taken in mock mode (design preview), not from the live stack; say so if asked. Real sensors publish to the same topics, so nothing changes when they arrive.&lt;/p&gt;">
+    <div class="source"><span class="tag t-synthetic dashed" data-a="fade" style="--d:200">Screenshot · mock data, design preview</span></div>
     <div class="split">
       <div>
-        <div class="eyebrow" data-a="fade"><span class="n">06</span><span class="rule"></span>Detect</div>
+        <div class="eyebrow" data-a="fade"><span class="n">B2</span><span class="rule"></span>Backup · Detect</div>
         <h2 data-a style="--d:120">At the moment of failure, <em>not at the gate.</em></h2>
         <p class="lead" data-a style="--d:300;font-size:30px">A live map of every truck, with an incident the instant a temperature leaves the safe band and stays there.</p>
         <div class="callout" data-a style="--d:1500"><span class="dot"></span><span>A decision surface, not a dashboard of charts.</span></div>
@@ -599,79 +789,10 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 07 · PHYSICS ═════════ -->
-  <section class="slide" data-title="Physics before AI" data-notes="Thermal exposure is the sum of the degrees above the limit over time: the shaded area. Deterioration is an Arrhenius rate relative to the product's ideal temperature. Remaining shelf life follows from it. &lt;p&gt;Every one of those numbers is deterministic Python; no model touches them. These are prototype models, not certified food-safety science: say so if asked.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">07</span><span class="rule"></span>Physics before AI</div>
-    <h2 data-a style="--d:120">Damage is <em>measured</em>, not guessed.</h2>
-    <div class="phys">
-      <div class="panel" data-a style="--d:300">
-        <div class="ph"><span>T102 · cargo temperature</span><span class="tag t-simulated dashed" style="font-size:15px;padding:6px 11px">Simulated · scripted demo</span></div>
-        <div class="chart">
-          <svg viewBox="0 0 900 470" aria-label="Scripted T102 temperature climbing from 3.8 to 7.4 °C across the 4 °C safe limit; the area above the limit is the thermal exposure">
-            <defs>
-              <clipPath id="above"><rect x="60" y="0" width="840" height="286" /></clipPath>
-              <linearGradient id="ex" x1="0" x2="0" y1="0" y2="1"><stop offset="0" stop-color="#d55181" stop-opacity=".55" /><stop offset="1" stop-color="#d55181" stop-opacity=".12" /></linearGradient>
-            </defs>
-            <g font-family="IBM Plex Mono, monospace" font-size="17" fill="#8fa8c8">
-              <g stroke="#2d4160" stroke-dasharray="3 6"><line x1="60" x2="880" y1="30" y2="30" /><line x1="60" x2="880" y1="158" y2="158" /><line x1="60" x2="880" y1="414" y2="414" /></g>
-              <text x="48" y="36" text-anchor="end">8°</text><text x="48" y="164" text-anchor="end">6°</text><text x="48" y="292" text-anchor="end">4°</text><text x="48" y="420" text-anchor="end">2°</text>
-            </g>
-            <!-- exposure area: the integral -->
-            <path class="wipe" style="--d:1900" clip-path="url(#above)" fill="url(#ex)"
-              d="M60 299 L 225 299 C 300 299, 330 264, 390 254 S 520 214, 555 208 S 680 154, 720 145 S 830 105, 880 94 L 880 286 L 60 286 Z" />
-            <line x1="60" x2="880" y1="286" y2="286" stroke="#f87171" stroke-width="2.5" stroke-dasharray="9 7" />
-            <text x="876" y="276" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="17" fill="#f87171">SAFE MAX 4 °C</text>
-            <path class="draw" style="--d:500;--dur:2s" fill="none" stroke="#00c8e0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"
-              d="M60 299 L 225 299 C 300 299, 330 264, 390 254 S 520 214, 555 208 S 680 154, 720 145 S 830 105, 880 94" />
-            <g data-a="fade" style="--d:1100">
-              <line x1="225" x2="225" y1="299" y2="440" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4 5" />
-              <text x="235" y="450" font-family="IBM Plex Mono, monospace" font-size="17" fill="#fbbf24">refrigeration fails</text>
-            </g>
-            <g font-family="IBM Plex Mono, monospace" font-size="20" font-weight="500">
-              <text data-a="fade" style="--d:600" x="60" y="330" fill="#c9d6e8">3.8°</text>
-              <text data-a="fade" style="--d:2300" x="872" y="80" text-anchor="end" fill="#fb923c">7.4°</text>
-            </g>
-            <text data-a="fade" style="--d:2600" x="640" y="250" font-family="IBM Plex Mono, monospace" font-size="21" fill="#eb9dbb">E<tspan font-size="14" dy="5">T</tspan><tspan dy="-5"> = exposure</tspan></text>
-          </svg>
-        </div>
-      </div>
-      <div class="eqs">
-        <div class="eq" data-a="right" style="--d:500"><div class="l">Thermal exposure · °C·min</div><div class="f">E<sub>T</sub> = Σ max(0, T<sub>i</sub> − T<sub>safe</sub>) · Δt</div></div>
-        <div class="eq" data-a="right" style="--d:700"><div class="l">Deterioration rate · Arrhenius</div><div class="f">k(T) = k<sub>ref</sub> · e<sup>(E<sub>a</sub>/R)(1/T<sub>ideal</sub> − 1/T)</sup></div></div>
-        <div class="eq" data-a="right" style="--d:900"><div class="l">Shelf life spent · remaining</div><div class="f">D = Σ k(T<sub>i</sub>)·Δt<sub>i</sub> <span class="u">→</span> L·(1 − D)</div></div>
-        <div data-a style="--d:1200;display:flex;gap:14px;align-items:center;margin-top:6px"><span class="tag t-calculated">Calculated</span><span class="small">Deterministic Python. No model touches these numbers.</span></div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ═════════ 08 · AI ═════════ -->
-  <section class="slide" data-title="AI where it earns its place" data-notes="Two AI layers, both on a leash. &lt;p&gt;Laya is System 1: a local, offline, Apache-2.0 decision model. It answers typed questions in a single forward pass (condition, action, urgency, needs human review) and cannot write text, so it cannot invent a number. It corroborates the deterministic decision and never overrides it.&lt;/p&gt;&lt;p&gt;System 2 is an OpenRouter language model, the explainer: it turns code-computed facts into plain language. It may only move the spoilage estimate within a fixed band and only rank options that are already feasible. With no API key the system still runs; only the prose is plainer.&lt;/p&gt;&lt;p&gt;The chips at the bottom are deterministic code, not AI.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">08</span><span class="rule"></span>AI where it earns its place</div>
-    <h2 data-a style="--d:120">Two AI layers. <em>Neither may invent a number.</em></h2>
-    <div class="ai">
-      <div class="card" data-a style="--d:320">
-        <div class="top"><span class="sys">System 1 · local · offline</span><span class="tag t-predicted">Predicted</span></div>
-        <h3>Laya</h3>
-        <p>Answers typed questions in a single pass: condition, recommended action, urgency, needs human review. Open source (Apache-2.0), runs on the laptop.</p>
-        <div class="guard"><svg style="color:var(--p-predicted-fg)"><use href="#lock" /></svg>Never generates text. Corroborates the decision, never overrides it.</div>
-      </div>
-      <div class="card" data-a style="--d:480">
-        <div class="top"><span class="sys">System 2 · explainer · cloud</span><span class="tag t-explained">AI-explained</span></div>
-        <h3>OpenRouter LLM</h3>
-        <p>Turns the calculated facts into plain language for the operator. May rank only feasible options, and move the spoilage estimate only within a fixed band.</p>
-        <div class="guard"><svg style="color:var(--text)"><use href="#lock" /></svg>Never invents a temperature, ETA, cost or quantity.</div>
-      </div>
-    </div>
-    <div class="models" data-a style="--d:750">
-      <span class="lbl">Plain code, not AI</span>
-      <span class="chip">Spoilage probability</span><span class="chip">Anomaly detection</span><span class="chip">Demand forecasting</span>
-    </div>
-  </section>
-
-  <!-- ═════════ 09 · OPTIMIZATION ═════════ -->
-  <section class="slide" data-title="Optimization" data-notes="Optimization, not vibes. Minimize transport plus food-loss plus delay, subject to hard constraints: the ETA must beat the remaining safe time, the store must have capacity, and it must hold the right temperature. &lt;p&gt;Three cold stores are in range; the optimizer picks WH01. The model did not choose this. The optimizer did; the model only explains it. ETAs are the scripted demo values.&lt;/p&gt;">
-    <div class="source"><span class="tag t-simulated dashed" data-a="fade" style="--d:200">ETAs · scripted demo</span></div>
-    <div class="eyebrow" data-a="fade"><span class="n">09</span><span class="rule"></span>Optimization</div>
+  <!-- ═════════ B3 · OPTIMIZATION ═════════ -->
+  <section class="slide backup" data-title="Backup · Optimization" data-notes="Optimization, not vibes. Minimize transport plus food-loss plus delay, subject to hard constraints: the ETA must beat the remaining safe time, the store must have capacity, and it must hold the right temperature. &lt;p&gt;Three cold stores are in range; the optimizer picks WH01. The model did not choose this. The optimizer did; the model only explains it. ETAs are the example scenario values.&lt;/p&gt;">
+    <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">ETAs · example scenario</span></div>
+    <div class="eyebrow" data-a="fade"><span class="n">B3</span><span class="rule"></span>Backup · Optimization</div>
     <h2 data-a style="--d:120">Optimization, <em>not vibes.</em></h2>
     <div class="opt">
       <div>
@@ -695,21 +816,10 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ DEMO ═════════ -->
-  <section class="slide s-demo" data-title="Live demo" data-notes="Hand over to the live demo (pitch/DEMO_SCRIPT.md, about four minutes). &lt;p&gt;Before the talk: make demo, make reset, dashboard open on the Command Center with the LIVE pill green. Trigger: make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102. Walk: Command Center → T102 → Model → Optimization → Food Loss → Comparison. Finish with make reset, then come back to the next slide.&lt;/p&gt;">
-    <div class="live" data-a="fade"><i></i>LIVE DEMO</div>
-    <h2 data-a style="--d:150">One truck. One failure.<br />One decision.</h2>
-    <p class="lead" data-a style="--d:350">T102 is carrying <strong>500 kg of fresh chicken</strong>, safe between 0 and 4 °C. Its refrigeration is about to fail.</p>
-    <div class="cmd" data-a style="--d:600"><span class="p">$</span>make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102</div>
-    <div class="beats">
-      <span data-a style="--d:800">Command Center</span><span data-a style="--d:880">T102</span><span data-a style="--d:960">Model</span><span data-a style="--d:1040">Optimization</span><span data-a style="--d:1120">Food loss</span><span data-a style="--d:1200">Comparison</span>
-    </div>
-  </section>
-
-  <!-- ═════════ 10 · THE NUMBER ═════════ -->
-  <section class="slide" data-title="The number that matters" data-notes="The whole point in one subtraction: expected loss without the intervention minus expected loss with it, times the quantity. That is food saved in kilograms, and in QAR, loss prevented. &lt;p&gt;The bars are illustrative. The real figure is computed live by the food-loss engine: point back at what the audience just saw in the demo.&lt;/p&gt;">
+  <!-- ═════════ B4 · THE NUMBER ═════════ -->
+  <section class="slide backup" data-title="Backup · The number that matters" data-notes="The whole point in one subtraction: expected loss without the intervention minus expected loss with it, times the quantity. That is food saved in kilograms, and in QAR, loss prevented. &lt;p&gt;The bars are illustrative. The real figure is computed live by the food-loss engine: the audience sees it in the demo at the end.&lt;/p&gt;">
     <div class="source"><span class="tag t-illustrative dashed" data-a="fade" style="--d:200">Illustrative bars · live figure in the demo</span></div>
-    <div class="eyebrow" data-a="fade"><span class="n">10</span><span class="rule"></span>The number that matters</div>
+    <div class="eyebrow" data-a="fade"><span class="n">B4</span><span class="rule"></span>Backup · The number that matters</div>
     <h2 data-a style="--d:120">Food saved. <em style="color:var(--low)">Money not thrown away.</em></h2>
     <div class="impact">
       <div>
@@ -729,9 +839,9 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ 11 · PROVENANCE ═════════ -->
-  <section class="slide" data-title="Provenance" data-notes="Every value on screen carries one of these marks. Synthetic demo data is never dressed up as a real measurement, and literature values are marked as unverified. &lt;p&gt;The language model explains the numbers. It is never allowed to invent one.&lt;/p&gt;">
-    <div class="eyebrow" data-a="fade"><span class="n">11</span><span class="rule"></span>Trust</div>
+  <!-- ═════════ B5 · PROVENANCE ═════════ -->
+  <section class="slide backup" data-title="Backup · Provenance" data-notes="Every value on screen carries one of these marks. Synthetic demo data is never dressed up as a real measurement, and literature values are marked as unverified. &lt;p&gt;The language model explains the numbers. It is never allowed to invent one.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">B5</span><span class="rule"></span>Backup · Trust</div>
     <h2 data-a style="--d:120">Every value knows <em>where it came from.</em></h2>
     <div class="prov">
       <div class="pv" data-a style="--d:300"><span class="tag t-measured">Measured</span><p>Read from a sensor on the truck.</p></div>
@@ -739,42 +849,17 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
       <div class="pv" data-a style="--d:500"><span class="tag t-predicted">Predicted</span><p>A model estimate, shown with its probability.</p></div>
       <div class="pv" data-a style="--d:600"><span class="tag t-optimized">Optimized</span><p>Chosen by the optimizer under hard constraints.</p></div>
       <div class="pv" data-a style="--d:700"><span class="tag t-explained">AI-explained</span><p>Plain language about code-computed facts. No new numbers.</p></div>
-      <div class="pv" data-a style="--d:800"><span class="tag t-synthetic dashed">Synthetic</span><p>Simulated for the demo, and labelled as such. Never shown as measured.</p></div>
+      <div class="pv" data-a style="--d:800"><span class="tag t-synthetic dashed">Synthetic</span><p>Test and training data, labelled as such. Never shown as measured.</p></div>
     </div>
     <p class="small" data-a style="--d:1000;margin-top:40px">Shown on screen, next to the number. Literature values are cited, not certified thresholds.</p>
   </section>
 
-  <!-- ═════════ 12 · THE ASK ═════════ -->
-  <section class="slide s-ask" data-title="The ask · Team 2" data-notes="The ask: one cold-chain operator, one month, twenty pallets. On day one we can tell you how much of your loss is refrigeration and how much is scheduling. &lt;p&gt;Close with the sentence at the bottom, then: we are Team 2 at Reboot the Earth, CMUQ, and thank you. Stop talking.&lt;/p&gt;">
-    <!-- Team card. Replace "Member name" with the five names; keep the order you present in. -->
-    <aside class="team" data-a="right" style="--d:600">
-      <div class="th">
-        <svg viewBox="0 0 32 32" aria-hidden="true"><rect x=".5" y=".5" width="31" height="31" rx="5.5" fill="#1e3048" stroke="#3d5476" /><g fill="none" stroke="#00c8e0" stroke-width="2.4" stroke-linecap="round"><path class="draw" style="--d:800;--dur:.9s" d="M16 5v22" /><path class="draw" style="--d:950;--dur:.9s" d="M6.5 10.5l19 11" /><path class="draw" style="--d:1100;--dur:.9s" d="M6.5 21.5l19-11" /><path class="draw" style="--d:1350;--dur:.6s" d="M13 7l3 3 3-3" /><path class="draw" style="--d:1350;--dur:.6s" d="M13 25l3-3 3 3" /></g></svg>
-        <div><b>Team 2</b><span>Reboot the Earth · CMUQ</span></div>
-      </div>
-      <ol>
-        <li data-a="fade" style="--d:900">Member name</li>
-        <li data-a="fade" style="--d:980">Member name</li>
-        <li data-a="fade" style="--d:1060">Member name</li>
-        <li data-a="fade" style="--d:1140">Member name</li>
-        <li data-a="fade" style="--d:1220">Member name</li>
-      </ol>
-    </aside>
-    <div class="eyebrow" data-a="fade"><span class="n">12</span><span class="rule"></span>The ask</div>
-    <h2><span data-a style="--d:150">One operator.</span><span data-a style="--d:450">One month.</span><span data-a style="--d:750"><em>Twenty pallets.</em></span></h2>
-    <p class="lead" data-a style="--d:1050">On day one we can tell you how much of your loss is <strong>refrigeration</strong> and how much is <strong>scheduling</strong>.</p>
-    <div class="close" data-a style="--d:1400">
-      <blockquote>Sensors say what is happening. Mathematics says how much damage has occurred. AI predicts what happens next. Optimization chooses the action. <b>The food-loss engine proves it saved real food.</b></blockquote>
-      <div class="meta"><b>make demo</b><br />github.com/Isl-d/Reboot-The-Earth-Cold-Chain-Logistics</div>
-    </div>
-  </section>
-
-  <!-- ═════════ BACKUP · ARCHITECTURE ═════════ -->
-  <section class="slide backup" data-title="Backup · Architecture" data-notes="Nothing that cannot run on a laptop in a warehouse office. The seam that makes it real: one internal endpoint is the single contract between the data platform and the intelligence engine, so they can never disagree about what a truck is experiencing.">
-    <div class="eyebrow" data-a="fade"><span class="n">B1</span><span class="rule"></span>Backup · Architecture</div>
+  <!-- ═════════ B6 · ARCHITECTURE ═════════ -->
+  <section class="slide backup" data-title="Backup · Architecture" data-notes="Nothing that cannot run on a laptop in a warehouse office. The seam that makes it real: one internal endpoint is the single contract between the data platform and the intelligence engine, so they can never disagree about what a truck is experiencing. &lt;p&gt;Sensors are anything that publishes to MQTT: truck sensors in production, a test simulator in the demo. The rest of the stack cannot tell the difference.&lt;/p&gt;">
+    <div class="eyebrow" data-a="fade"><span class="n">B6</span><span class="rule"></span>Backup · Architecture</div>
     <h2 data-a style="--d:120">Nothing that cannot run on a laptop <em>in a warehouse office.</em></h2>
     <div class="flow">
-      <div class="node" data-a style="--d:250">Sensors<small>simulator</small></div><div class="link" style="--d:900"><i></i></div>
+      <div class="node" data-a style="--d:250">Sensors<small>IoT · MQTT</small></div><div class="link" style="--d:900"><i></i></div>
       <div class="node" data-a style="--d:330">MQTT<small>Mosquitto</small></div><div class="link" style="--d:1100"><i></i></div>
       <div class="node" data-a style="--d:410">Ingest<small>FastAPI</small></div><div class="link" style="--d:1300"><i></i></div>
       <div class="node" data-a style="--d:490">Storage<small>Postgres · Redis</small></div><div class="link" style="--d:1500"><i></i></div>
@@ -788,10 +873,10 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
     </div>
   </section>
 
-  <!-- ═════════ BACKUP · OPEN DATA ═════════ -->
+  <!-- ═════════ B7 · OPEN DATA ═════════ -->
   <section class="slide backup" data-title="Backup · Open data" data-notes="17 openly licensed sources, catalogued with their licence and fetch status, and served live by the running system at /api/opendata.">
-    <div class="eyebrow" data-a="fade"><span class="n">B2</span><span class="rule"></span>Backup · Data provenance</div>
-    <h2 data-a style="--d:120"><span data-count="17" data-delay="300">0</span> openly licensed sources, <em>served live.</em></h2>
+    <div class="eyebrow" data-a="fade"><span class="n">B7</span><span class="rule"></span>Backup · Data provenance</div>
+    <h2 data-a style="--d:120"><span data-count="17" data-delay="300">17</span> openly licensed sources, <em>served live.</em></h2>
     <div class="sources">
       <div class="src" data-a style="--d:300"><div class="c">Geography<b>4</b></div><ul><li>GeoNames places</li><li>OSM cold-chain sites</li><li>OSM HGV restrictions</li><li>Natural Earth</li></ul></div>
       <div class="src" data-a style="--d:400"><div class="c">Weather<b>3</b></div><ul><li>Open-Meteo forecast</li><li>Open-Meteo ERA5</li><li>NASA POWER</li></ul></div>
@@ -803,17 +888,6 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
       <div class="src" data-a style="--d:1000"><div class="c">Operational<b>1</b></div><ul><li>Public holidays</li></ul></div>
     </div>
     <p class="small" data-a style="--d:1200;margin-top:32px">Catalogue at <span class="mono" style="color:var(--text)">GET /api/opendata</span>. Literature values are cited, not certified thresholds.</p>
-  </section>
-
-  <!-- ═════════ BACKUP · REPRODUCIBLE ═════════ -->
-  <section class="slide backup" data-title="Backup · Offline and reproducible" data-notes="One command brings up the whole stack. With no API key the system still runs end to end; only the prose is plainer. The test suite replays the whole refrigeration failure headless. The condition engine is configured per product profile, so the same exposure to risk logic extends to pharmaceuticals and vaccines later.">
-    <div class="eyebrow" data-a="fade"><span class="n">B3</span><span class="rule"></span>Backup · Offline and reproducible</div>
-    <h2 data-a style="--d:120">Runs anywhere. <em>Proves itself.</em></h2>
-    <div class="facts">
-      <div class="fact" data-a style="--d:300"><div class="big mono">make demo</div><h3>One command</h3><p>Broker, database, cache, backend, simulator and dashboard. With no API key it still runs end to end; only the prose is plainer.</p></div>
-      <div class="fact" data-a style="--d:450"><div class="big"><span data-count="120" data-delay="600">0</span></div><h3>Tests, no network</h3><p><code>make test</code> runs the pytest suite on SQLite with the LLM mocked; <code>tests/test_demo.py</code> replays the whole failure.</p></div>
-      <div class="fact" data-a style="--d:600"><div class="big">Food&nbsp;→&nbsp;<span style="color:var(--p-predicted-fg)">Rx</span></div><h3>Beyond food, later</h3><p>Product profiles drive the condition engine, so the same exposure → integrity → risk logic extends to pharmaceuticals and vaccines.</p></div>
-    </div>
   </section>
 
 </div>
@@ -830,7 +904,8 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
   const notes = document.getElementById('notes')
   const overview = document.getElementById('overview')
   const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches
-  const mainCount = slides.filter(s => !s.classList.contains('backup') && !s.classList.contains('s-demo')).length
+  const unnumbered = s => s.classList.contains('backup') || s.classList.contains('s-demo') || s.classList.contains('s-end')
+  const mainCount = slides.filter(s => !unnumbered(s)).length
   let cur = 0
 
   // Fit the 1920×1080 stage to the window.
@@ -848,13 +923,13 @@ svg [data-a] { transform-box: fill-box; transform-origin: center; }
   // Shared chrome: brand, section and page number on every slide but the title.
   let mainNo = 0
   slides.forEach((s, i) => {
-    const backup = s.classList.contains('backup'), demo = s.classList.contains('s-demo')
-    if (!backup && !demo) mainNo++
-    s.dataset.label = backup ? 'Backup' : demo ? 'Demo' : String(mainNo).padStart(2, '0')
+    const backup = s.classList.contains('backup'), demo = s.classList.contains('s-demo'), end = s.classList.contains('s-end')
+    if (!unnumbered(s)) mainNo++
+    s.dataset.label = backup ? 'Backup' : demo ? 'Demo' : end ? 'Team' : String(mainNo).padStart(2, '0')
     if (i === 0) return
     const c = document.createElement('div')
     c.className = 'chrome'
-    const num = backup || demo ? s.dataset.label : `<b>${s.dataset.label}</b> / ${String(mainCount).padStart(2, '0')}`
+    const num = unnumbered(s) ? s.dataset.label : `<b>${s.dataset.label}</b> / ${String(mainCount).padStart(2, '0')}`
     c.innerHTML = `<span class="brand"><svg viewBox="0 0 32 32" style="color:#00c8e0"><rect x=".5" y=".5" width="31" height="31" rx="5.5" fill="#162338" stroke="#2d4160"/><use href="#glyph"/></svg>Thermal Trace</span><span class="num">${num}</span>`
     s.appendChild(c)
   })

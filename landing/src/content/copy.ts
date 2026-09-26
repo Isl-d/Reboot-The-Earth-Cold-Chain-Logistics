@@ -38,7 +38,7 @@ export const problem = {
   ],
   source: 'FAO / UNEP, 2024',
   target:
-    "Qatar's National Food Security Strategy 2030 targets −50% food waste and −30% food loss.",
+    "Qatar's National Food Security Strategy 2030 targets −50% food waste and −30% food loss. Thermal Trace serves UN SDG 12.3 (halve food waste, cut supply-chain loss), SDG 2 (zero hunger) and SDG 13 (climate action).",
 }
 
 // The pinned, scroll-driven film. `video` names a clip in src/assets/media/;
@@ -168,7 +168,7 @@ export const architecture = {
   eyebrow: 'Architecture',
   title: 'Nothing that cannot run on a laptop in a warehouse office.',
   body:
-    'Mosquitto, Postgres, Redis, Python and React. With no API key the system still runs end to end. Only the prose is plainer. 17 openly licensed data sources cover geography, routing, weather, food science and emissions.',
+    'Open source under the MIT licence, built on Mosquitto, Postgres, Redis, Python and React. With no API key the system still runs end to end. Only the prose is plainer. 17 openly licensed data sources cover geography, routing, weather, food science and emissions.',
   flow: ['Sensors', 'MQTT', 'FastAPI ingest', 'Postgres + Redis', 'Intelligence engine', 'REST + WebSocket', 'Command center'],
   command: 'make demo',
 }

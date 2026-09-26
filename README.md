@@ -13,6 +13,14 @@ AI cold-chain management & food-loss prevention.
 [docs/deck/thermal-trace-pitch.pdf](docs/deck/thermal-trace-pitch.pdf)). Brand rules and logo files:
 [docs/brand/](docs/brand/README.md).
 
+**Open source** under the [MIT licence](LICENSE). Built on open technology
+(Mosquitto, PostgreSQL, Redis, FastAPI, React, an Apache-2.0 local model) and
+17 openly licensed data sources; the whole stack runs offline on one laptop.
+
+**UN Sustainable Development Goals:** SDG **12.3** (halve food waste and cut
+food loss along supply chains), SDG **2** (zero hunger, food security) and
+SDG **13** (climate action: CO₂ avoided is reported for every intervention).
+
 A condition-aware cold-chain decision system. Simulated refrigerated trucks
 publish live telemetry; the platform validates and stores it; deterministic
 mathematics measures how much thermal exposure and deterioration the cargo has
@@ -32,7 +40,7 @@ Sensors say what is happening
 ```
 
 For the full component-by-component reference, the data/AI split, and the thesis
-behind it, see **[AI_COLD_STORAGE_LOGISTICS.md](AI_COLD_STORAGE_LOGISTICS.md)**.
+behind it, see **[pitch/AI_COLD_STORAGE_LOGISTICS.md](pitch/AI_COLD_STORAGE_LOGISTICS.md)**.
 
 ## One command
 

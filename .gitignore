@@ -15,3 +15,6 @@ dev_coldchain.db
 # redis-server writes its snapshot into the working directory
 dump.rdb
 coldchain.db
+
+# Local slide exports stay out of the repo
+*.pptx

@@ -48,6 +48,7 @@ before the event.
 | FAO Food Loss and Waste | CC BY-NC-SA 3.0 IGO | Observed loss rates — the "without ColdGuard" baseline | not yet |
 | UK DESNZ/DEFRA GHG factors | Open Government Licence v3.0 | kg CO2e per tonne-km for refrigerated HGVs | not yet |
 | EEA/EMEP road transport | CC BY 4.0 | Fuel burn per vehicle class, cost of a longer reroute | not yet |
+| FAO Food Wastage Footprint (2013) | FAO report, cited value | 3.3 Gt CO2e / 1.3 Gt food ≈ 2.5 kg CO2e per kg wasted; the `CC_CO2E_KG_PER_KG_FOOD` factor behind "CO₂ avoided" | cited, not fetched |
 
 ## Two things to be careful about
 
