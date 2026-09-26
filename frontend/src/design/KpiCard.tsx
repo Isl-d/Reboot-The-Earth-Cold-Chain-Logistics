@@ -1,4 +1,5 @@
 import Card from './Card'
+import { clsx } from './clsx'
 import InfoTip from './InfoTip'
 import MiniTrend from './MiniTrend'
 import ProvenanceBadge from './ProvenanceBadge'
@@ -34,7 +35,12 @@ export default function KpiCard({ label, value, unit, provenance, tip, compactPr
         </span>
         <ProvenanceBadge kind={provenance} compact={compactProvenance} className="shrink-0" />
       </div>
-      <div className="mt-2 font-mono text-telemetry-xl tabular-nums text-navy">
+      <div
+        className={clsx(
+          'mt-2 break-words font-mono tabular-nums text-navy',
+          value.length > 10 ? 'text-telemetry-md' : 'text-telemetry-xl',
+        )}
+      >
         {value}
         {unit && <span className="ml-1 text-telemetry-md text-muted">{unit}</span>}
       </div>

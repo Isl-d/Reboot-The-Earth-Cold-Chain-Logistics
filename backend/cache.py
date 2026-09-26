@@ -148,6 +148,15 @@ class Cache:
     def get_prediction(self, truck_id: str) -> dict | None:
         return self._get(f"prediction:{truck_id}")
 
+    # ------------------------------------------------------------ reset marker
+    # A reset marks a point in time rather than deleting history, so the
+    # time-series stays persistent while the derived state starts fresh.
+    def set_reset_at(self, truck_id: str, ts_iso: str) -> None:
+        self._set(f"truck:{truck_id}:reset_at", ts_iso, ttl=7 * 24 * 3600)
+
+    def get_reset_at(self, truck_id: str) -> str | None:
+        return self._get(f"truck:{truck_id}:reset_at")
+
     # ----------------------------------------------------------------- debug
     def clear(self) -> None:
         """Drop every cached key (Redis DB 0 and the in-process fallback)."""

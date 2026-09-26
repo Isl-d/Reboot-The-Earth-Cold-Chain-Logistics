@@ -95,20 +95,12 @@ def reset(body: dict | None = Body(default=None)) -> dict:
     _publish(truck_id, {"reset": True, "paused": False})
     tracker.reset(truck_id)
     now = dt.datetime.now(dt.timezone.utc)
+    marker = now.strftime("%Y-%m-%dT%H:%M:%SZ")
     with session_scope() as session:
         stmt = update(SimulationRun).where(SimulationRun.status == "running")
         if truck_id:
             stmt = stmt.where(SimulationRun.truck_id == truck_id)
         session.execute(stmt.values(status="reset", stopped_at=now))
-
-        # Reset must clear the *derived history* too, not just the live state.
-        # Otherwise the hot readings from the excursion stay inside the
-        # intelligence window and the truck reads CRITICAL at 2 C for minutes.
-        for model in (SensorReading, DeviceEvent, Prediction):
-            stmt = delete(model)
-            if truck_id:
-                stmt = stmt.where(model.truck_id == truck_id)
-            session.execute(stmt)
 
         incidents = update(Incident).where(Incident.status == "OPEN").values(
             status="RESOLVED", updated_at=now)
@@ -116,8 +108,14 @@ def reset(body: dict | None = Body(default=None)) -> dict:
             incidents = incidents.where(Incident.truck_id == truck_id)
         session.execute(incidents)
 
+    # History is deliberately NOT deleted: the time-series stays persistent.
+    # A reset marker tells the intelligence engine to ignore everything before
+    # this point, so derived state starts fresh without losing the chart.
     cache.clear()
-    # Drop carried-forward explainer rationale and the computed snapshots.
+    targets = [truck_id] if truck_id else list(pipeline.truck_info)
+    for tid in targets:
+        cache.set_reset_at(tid, marker)
+
     from ..intelligence import engine as intelligence_engine
     intelligence_engine.clear_rationale(truck_id)
     intelligence_engine.clear_snapshots(truck_id)

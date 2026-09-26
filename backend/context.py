@@ -6,9 +6,12 @@ engine both call :func:`build_context`, so they can never disagree.
 """
 from __future__ import annotations
 
+import datetime as dt
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from .cache import cache
 from .models import Product, ProductBatch, Route, SensorReading, Truck, Warehouse
 from .routers import common
 
@@ -46,11 +49,18 @@ def build_context(session: Session, truck_id: str, telemetry: int = 60) -> dict 
         reading = common.reading_from_row(row) if row else {}
 
     batch = session.get(ProductBatch, truck.current_batch_id) if truck.current_batch_id else None
+    query = select(SensorReading).where(SensorReading.truck_id == truck_id)
+    # Honour a reset marker: derived state starts fresh, but the stored
+    # time-series is never deleted, so the charts stay persistent.
+    reset_at = cache.get_reset_at(truck_id)
+    if reset_at:
+        try:
+            cutoff = dt.datetime.fromisoformat(reset_at.replace("Z", "+00:00"))
+            query = query.where(SensorReading.ts >= cutoff)
+        except ValueError:
+            pass
     readings = session.execute(
-        select(SensorReading)
-        .where(SensorReading.truck_id == truck_id)
-        .order_by(SensorReading.ts.desc())
-        .limit(telemetry)
+        query.order_by(SensorReading.ts.desc()).limit(telemetry)
     ).scalars().all()
     recent = [common.reading_from_row(r) for r in reversed(readings)]
 

@@ -40,8 +40,8 @@ export function SimulationControls({ trucks }: Props) {
   async function handleStart() {
     setLoading(true)
     try {
-      await startSimulation()
-      setStatus('Simulation started')
+      await startSimulation(selectedTruck)
+      setStatus(`Simulation started on ${selectedTruck}`)
     } catch {
       setStatus('Backend offline')
     } finally {
@@ -52,8 +52,8 @@ export function SimulationControls({ trucks }: Props) {
   async function handleStop() {
     setLoading(true)
     try {
-      await stopSimulation()
-      setStatus('Simulation stopped')
+      await stopSimulation(selectedTruck)
+      setStatus(`Simulation stopped on ${selectedTruck}`)
     } catch {
       setStatus('Backend offline')
     } finally {

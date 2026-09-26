@@ -1,13 +1,18 @@
 import type { SimulationScenario } from '../types'
 import { apiClient } from './client'
 
-export async function startSimulation() {
-  const { data } = await apiClient.post('/api/simulation/start')
+export async function startSimulation(truckId?: string) {
+  const { data } = await apiClient.post('/api/simulation/start', truckId ? { truckId } : {})
   return data
 }
 
-export async function stopSimulation() {
-  const { data } = await apiClient.post('/api/simulation/stop')
+export async function stopSimulation(truckId?: string) {
+  const { data } = await apiClient.post('/api/simulation/stop', truckId ? { truckId } : {})
+  return data
+}
+
+export async function resetSimulation(truckId?: string) {
+  const { data } = await apiClient.post('/api/simulation/reset', truckId ? { truckId } : {})
   return data
 }
 

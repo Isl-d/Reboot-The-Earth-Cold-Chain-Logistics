@@ -9,10 +9,10 @@ import datetime as dt
 from backend.ingest.consumer import pipeline
 
 
-def _wire(temp: float) -> dict:
+def _wire(temp: float, secs: int = 0) -> dict:
     return {
         "deviceId": "TRUCK-T102", "truckId": "T102",
-        "timestamp": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "timestamp": (dt.datetime.now(dt.timezone.utc) + dt.timedelta(seconds=secs)).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "temperatureC": temp, "humidityPct": 74, "latitude": 25.2854, "longitude": 51.531,
         "speedKmh": 42, "gForce": 0.2, "doorOpen": False, "refrigerationOn": True,
     }
@@ -61,3 +61,16 @@ def test_snapshot_is_deterministic(client, live):
     a = client.get("/api/model/T102/spoilage").json()["spoilageProbability"]
     b = client.get("/api/model/T102/spoilage").json()["spoilageProbability"]
     assert a == b
+
+
+def test_reset_preserves_time_series(client, live):
+    pipeline.handle(_wire(5.0, 0))
+    pipeline.handle(_wire(6.0, 2))
+    before = client.get("/api/trucks/T102/telemetry").json()
+    assert len(before) == 2
+
+    client.post("/api/simulation/reset", json={"truckId": "T102"})
+
+    # History is persistent: reset does not delete stored readings.
+    after = client.get("/api/trucks/T102/telemetry").json()
+    assert len(after) == 2
