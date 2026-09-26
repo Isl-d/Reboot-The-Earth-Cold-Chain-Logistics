@@ -40,6 +40,10 @@ def telemetry(
             stmt = stmt.where(SensorReading.ts >= start)
         if end is not None:
             stmt = stmt.where(SensorReading.ts <= end)
-        stmt = stmt.order_by(SensorReading.ts.asc()).limit(limit)
+        # The newest `limit` readings in the window, returned oldest first.
+        # Taking the *first* `limit` froze live charts once a truck had more
+        # than `limit` readings (~25 min at the 3 s cadence): every poll got
+        # the same old slice back.
+        stmt = stmt.order_by(SensorReading.ts.desc()).limit(limit)
         rows = session.execute(stmt).scalars().all()
-        return [common.reading_from_row(r) for r in rows]
+        return [common.reading_from_row(r) for r in reversed(rows)]

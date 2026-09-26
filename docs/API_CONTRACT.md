@@ -861,7 +861,7 @@ in the router):
 - `GET /api/routes/geojson`, `GET /api/routes/{routeId}/geojson`, `GET /api/routes/{routeId}/trucks`
 - `GET /api/inventory` → `{ "inventory": [ … ] }`; `GET /api/inventory/{batchId}` → bare array (see 4.6)
 - `GET /api/incidents?status=OPEN&truckId=T102&limit=200` → array of incident wire objects; `GET /api/incidents/{id}`
-- `GET /api/trucks/{truckId}/telemetry?from=&to=&limit=500` → array of reading wire objects, oldest first
+- `GET /api/trucks/{truckId}/telemetry?from=&to=&limit=500` → array of reading wire objects, oldest first (the newest `limit` readings in the window)
 - `GET /api/trucks/{truckId}/events?limit=100` → `{ truckId, count, events: [ … ] }`, oldest first (see 4.8)
 - `GET /api/device-events?limit=100` → `{ count, events: [ … ] }` (see 4.8)
 - `GET /api/opendata` → `{ available, generatedAt, count, sources: [ { key, name, category, licence, url, access, output, fetched, status, rows } ], sourcesDoc, disclaimer }` — the licence/provenance catalogue for `data/opendata/`

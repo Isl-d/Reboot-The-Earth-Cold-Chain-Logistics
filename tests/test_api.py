@@ -94,6 +94,16 @@ def test_telemetry_time_filter(client, live):
     assert len(rows) == 2
 
 
+def test_telemetry_limit_keeps_the_newest_readings(client, live):
+    """A live chart polls with the default limit; once a truck has more
+    readings than that, it must get the latest window, not the first one."""
+    base = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=10)
+    for i in range(5):
+        pipeline.handle(_wire(temp=1.0 + i, timestamp=(base + dt.timedelta(seconds=3 * i)).strftime("%Y-%m-%dT%H:%M:%SZ")))
+    rows = client.get("/api/trucks/T102/telemetry", params={"limit": 2}).json()
+    assert [r["temperatureC"] for r in rows] == [4.0, 5.0]  # newest two, oldest first
+
+
 def test_warehouses_stores_inventory(client, live):
     assert len(client.get("/api/warehouses").json()["warehouses"]) == 3
     inv = client.get("/api/inventory").json()["inventory"]
