@@ -17,6 +17,7 @@ import {
   computeExcursionBands,
   CrosshairTooltip,
   ExcursionBand,
+  InfoTip,
   KpiCard,
   ProvenanceBadge,
   SafeLimitLine,
@@ -88,7 +89,13 @@ export default function ModelScreen() {
       {/* Thermal exposure */}
       <Card className="col-span-4 tablet:col-span-8 desktop:col-span-8 p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-headline-sm text-navy">Thermal Exposure</h2>
+          <h2 className="flex items-center gap-2 text-headline-sm text-navy">
+            Thermal Exposure
+            <InfoTip title="Thermal exposure">
+              The sum over time of how far the temperature exceeded the batch's safe
+              maximum. It captures both severity and duration, which one reading cannot.
+            </InfoTip>
+          </h2>
           <ProvenanceBadge kind="measured" />
         </div>
         {samples.length === 0 ? (
@@ -136,19 +143,28 @@ export default function ModelScreen() {
           value={thermalExposure.data ? thermalExposure.data.currentTemperatureC.toFixed(1) : '—'}
           unit="°C"
           provenance="measured"
+          tip="The latest sensor reading (MEASURED), compared against the batch's safe maximum."
         />
         <KpiCard
           label="Accumulated exposure"
           value={thermalExposure.data ? thermalExposure.data.thermalExposure.toFixed(1) : '—'}
           unit={thermalExposure.data?.unit ?? 'C·min'}
           provenance="calculated"
+          tip="E_T = Σ max(0, T − T_safe)·Δt: how hot and for how long, in °C·minutes. A single reading cannot show this."
         />
       </div>
 
       {/* Deterioration */}
       <Card className="col-span-4 tablet:col-span-8 desktop:col-span-6 p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-headline-sm text-navy">Deterioration</h2>
+          <h2 className="flex items-center gap-2 text-headline-sm text-navy">
+            Deterioration
+            <InfoTip title="Deterioration">
+              How much shelf life the load has spent, from a temperature-dependent
+              Arrhenius rate. Configured per product (chicken, milk, lettuce), not one
+              universal threshold.
+            </InfoTip>
+          </h2>
           <ProvenanceBadge kind="calculated" />
         </div>
         <div className="mt-3 grid grid-cols-1 gap-3 tablet:grid-cols-3">
@@ -158,6 +174,7 @@ export default function ModelScreen() {
             unit="%"
             provenance="calculated"
             compactProvenance
+            tip="Fraction of shelf life already consumed, from an Arrhenius rate k(T) that rises with temperature. Configured per product."
           />
           <KpiCard
             label="Remaining shelf life"
@@ -165,6 +182,7 @@ export default function ModelScreen() {
             unit="hrs"
             provenance="calculated"
             compactProvenance
+            tip="Initial shelf life × (1 − deterioration). Answers whether the load will still be acceptable on arrival."
           />
           <KpiCard
             label="Confidence"
@@ -172,6 +190,7 @@ export default function ModelScreen() {
             unit="%"
             provenance="calculated"
             compactProvenance
+            tip="How much history the estimate is based on — more readings means higher confidence."
           />
         </div>
       </Card>
@@ -179,7 +198,14 @@ export default function ModelScreen() {
       {/* Spoilage prediction */}
       <Card className="col-span-4 tablet:col-span-8 desktop:col-span-6 p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-headline-sm text-navy">Spoilage Prediction</h2>
+          <h2 className="flex items-center gap-2 text-headline-sm text-navy">
+            Spoilage Prediction
+            <InfoTip title="Spoilage prediction">
+              A predicted probability the batch is spoiled, from a saturating
+              exposure–response prior. It is a prediction, not a confirmed food-safety
+              determination.
+            </InfoTip>
+          </h2>
           <ProvenanceBadge kind="predicted" />
         </div>
         <p className="mt-1 text-body-sm text-muted">Prediction — not a confirmed food-safety determination.</p>
@@ -190,6 +216,7 @@ export default function ModelScreen() {
             unit="%"
             provenance="predicted"
             compactProvenance
+            tip="Probability the batch is spoiled, from a saturating exposure–response prior. A prediction, not a food-safety determination."
           />
           <KpiCard
             label="Confidence"
@@ -197,6 +224,7 @@ export default function ModelScreen() {
             unit="%"
             provenance="predicted"
             compactProvenance
+            tip="The prediction's own confidence, driven by how much telemetry it has seen."
           />
           <Card className="p-4">
             <span className="text-body-sm text-muted">Risk</span>
@@ -218,7 +246,16 @@ export default function ModelScreen() {
       {/* System 1 — Laya (local, corroborates the deterministic decision) */}
       <Card className="col-span-4 tablet:col-span-8 desktop:col-span-12 p-4">
         <div className="flex items-center justify-between">
-          <h2 className="text-headline-sm text-navy">System 1 — Laya</h2>
+          <h2 className="flex items-center gap-2 text-headline-sm text-navy">
+            System 1 — Laya
+            <InfoTip title="Laya (System 1)">
+              A local, non-autoregressive decision model (Convai Innovations, Apache-2.0).
+              It reads a plain-language description of the situation and classifies the
+              condition and cause. It corroborates the deterministic engine and never
+              overrides it; its confidence is uncalibrated, so treat disagreement as a
+              prompt to look closer, not as an error.
+            </InfoTip>
+          </h2>
           <ProvenanceBadge kind="predicted" />
         </div>
         <p className="mt-1 text-body-sm text-muted">
@@ -233,15 +270,19 @@ export default function ModelScreen() {
         ) : (
           <>
             <div className="mt-3 grid grid-cols-1 gap-3 tablet:grid-cols-3 desktop:grid-cols-5">
-              <KpiCard label="Condition" value={system1.data.condition ?? '—'} provenance="predicted" compactProvenance />
-              <KpiCard label="Cause" value={system1.data.cause ?? '—'} provenance="predicted" compactProvenance />
-              <KpiCard label="Action" value={system1.data.action ?? '—'} provenance="predicted" compactProvenance />
+              <KpiCard label="Condition" value={system1.data.condition ?? '—'} provenance="predicted" compactProvenance
+                tip="Laya's classification of the situation from the plain-language facts." />
+              <KpiCard label="Cause" value={system1.data.cause ?? '—'} provenance="predicted" compactProvenance
+                tip="Laya's best guess at the root cause (refrigeration, door, sensor, traffic, heat)." />
+              <KpiCard label="Action" value={system1.data.action ?? '—'} provenance="predicted" compactProvenance
+                tip="Laya's suggested action, derived deterministically from its condition — so it can never contradict it." />
               <KpiCard
                 label="Urgency"
                 value={system1.data.urgency !== null ? system1.data.urgency.toFixed(1) : '—'}
                 unit="/ 2"
                 provenance="predicted"
                 compactProvenance
+                tip="How urgent Laya judges the situation: 0 watch · 1 soon · 2 immediate."
               />
               <KpiCard
                 label="Action confidence"
@@ -249,6 +290,7 @@ export default function ModelScreen() {
                 unit="%"
                 provenance="predicted"
                 compactProvenance
+                tip="The model's confidence in its classification. Base checkpoints ship over-confident, so this is labelled uncalibrated."
               />
             </div>
             <div className="mt-3 flex flex-wrap items-center gap-3">

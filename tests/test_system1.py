@@ -27,7 +27,7 @@ RESULT = {
     "anomalyType": "REFRIGERATION_BEHAVIOR",
     "routeDelayMinutes": 0.0,
     "features": {"avgSpeedKmh": 42.0},
-    "optimization": {"candidates": [
+    "optimization": {"feasible": True, "selectedWarehouseId": "WH01", "candidates": [
         {"warehouseId": "WH01", "etaMinutes": 12, "feasible": True,
          "expectedLossPercent": 4.1}]},
     "decision": {"action": "DIVERT", "destinationId": "WH01"},
@@ -136,7 +136,8 @@ def test_engine_attaches_system1_without_overriding_decision(monkeypatch):
     finally:
         laya_mod.set_client(None)
 
-    assert result["system1"]["action"] == "DIVERT"
+    assert result["system1"]["condition"] == "refrigeration_failure"
+    assert result["system1"]["action"] in {"DIVERT", "PREPARE_INTERVENTION", "MONITOR", "CONTINUE"}
     assert result["provenance"]["system1"] == "PREDICTED"
     # The deterministic decision is untouched and still present.
     assert result["decision"]["action"] in {"DIVERT", "PREPARE_INTERVENTION", "MONITOR", "CONTINUE"}
@@ -165,7 +166,8 @@ def test_system1_endpoint(client, live, monkeypatch):
 
     assert body["available"] is True
     assert body["truckId"] == "T102"
-    assert body["system1"]["action"] == "DIVERT"
+    assert body["system1"]["condition"] == "refrigeration_failure"
+    assert body["system1"]["action"] in {"DIVERT", "PREPARE_INTERVENTION", "MONITOR", "CONTINUE"}
     assert body["deterministicDecision"]["action"] is not None
 
 

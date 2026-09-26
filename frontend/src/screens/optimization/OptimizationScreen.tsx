@@ -14,6 +14,7 @@ import {
   ActionChip,
   Button,
   Card,
+  InfoTip,
   ProvenanceBadge,
   Select,
   StatusChip,
@@ -140,17 +141,34 @@ export default function OptimizationScreen() {
           <Button
             variant="secondary"
             className="ml-auto"
-            disabled={!truckId || !batchId}
+            disabled={!truckId || !batchId || evaluate.isPending}
             onClick={() => evaluate.mutate({ truckId, batchId })}
           >
-            Re-evaluate
+            {evaluate.isPending ? 'Evaluating…' : 'Re-evaluate'}
           </Button>
         </div>
+        {evaluate.data && (
+          <p className="mt-2 text-body-sm text-muted">
+            Re-evaluated on demand · objective{' '}
+            <span className="font-mono tabular-nums text-navy">{evaluate.data.objectiveValue.toFixed(2)}</span>
+            {evaluate.data.selectedWarehouseId ? ` · selected ${evaluate.data.selectedWarehouseId}` : ''}
+          </p>
+        )}
+        {evaluate.isError && (
+          <p className="mt-2 text-body-sm text-risk-critical">Re-evaluate failed — try again.</p>
+        )}
       </Card>
 
       {/* Candidates */}
       <Card className="col-span-4 tablet:col-span-8 desktop:col-span-12 p-4">
-        <h2 className="text-headline-sm text-navy">Candidate Destinations</h2>
+        <h2 className="flex items-center gap-2 text-headline-sm text-navy">
+          Candidate Destinations
+          <InfoTip title="Candidate destinations">
+            Every warehouse the optimizer considered, with its ETA, capacity, temperature
+            compatibility and expected loss. Feasible rows meet all constraints; the
+            selected row minimises transport + food-loss + delay cost.
+          </InfoTip>
+        </h2>
         {!optimization.data ? (
           <p className="mt-3 text-body-sm text-muted">Select a truck to see candidate warehouses.</p>
         ) : (

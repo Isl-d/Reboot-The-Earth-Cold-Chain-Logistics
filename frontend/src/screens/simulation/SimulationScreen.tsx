@@ -10,11 +10,14 @@ import {
   YAxis,
 } from 'recharts'
 import {
+  useDeterioration,
   useResetSimulation,
   useSimTruckOptions,
   useSimulationState,
+  useSpoilagePrediction,
   useStartSimulation,
   useStopSimulation,
+  useSystem1,
   useThermalExposure,
   useTruckTelemetry,
 } from '@/api/hooks'
@@ -27,6 +30,8 @@ import {
   computeExcursionBands,
   CrosshairTooltip,
   ExcursionBand,
+  InfoTip,
+  KpiCard,
   ProvenanceBadge,
   SafeLimitLine,
   ScenarioPicker,
@@ -34,6 +39,7 @@ import {
   StatusChip,
 } from '@/design'
 import { formatClockTime, formatDuration } from '@/lib/datetime'
+import { riskLabelFromProbability, riskTierFromProbability } from '@/lib/risk'
 
 const SPEED_OPTIONS = [
   { value: '1', label: '1x (real time)' },
@@ -60,10 +66,12 @@ export default function SimulationScreen() {
   const simState = useSimulationState(truckId)
   const running = simState.data?.running ?? false
 
-  // Fetched once per truck (not polled) — only used for the chart's safe-limit
-  // reference line, so it doesn't need the continuous polling the Model
-  // screen will use for the full thermal-exposure chain.
-  const thermalExposure = useThermalExposure(truckId, false)
+  // The whole derived chain is polled while running, so this screen shows the
+  // same numbers as the Model page: exposure, deterioration, spoilage and Laya.
+  const thermalExposure = useThermalExposure(truckId, running)
+  const deterioration = useDeterioration(truckId, running)
+  const spoilage = useSpoilagePrediction(truckId, running)
+  const system1 = useSystem1(truckId, running)
   const telemetry = useTruckTelemetry(truckId, running)
 
   const startSimulation = useStartSimulation()
@@ -218,6 +226,103 @@ export default function SimulationScreen() {
             )}
           </>
         )}
+      </Card>
+
+      {/* Derived intelligence — the same chain the Model page shows */}
+      <Card className="col-span-4 tablet:col-span-8 desktop:col-span-12 p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="flex items-center gap-2 text-headline-sm text-navy">
+            Derived intelligence
+            <InfoTip title="Derived intelligence">
+              Everything here is computed from the sensor readings by the deterministic
+              engine, so it agrees with the Model, Optimization and Truck pages.
+            </InfoTip>
+          </h2>
+          <ProvenanceBadge kind="calculated" />
+        </div>
+
+        <div className="mt-3 grid grid-cols-1 gap-3 tablet:grid-cols-3 desktop:grid-cols-6">
+          <KpiCard
+            label="Thermal exposure"
+            value={thermalExposure.data ? thermalExposure.data.thermalExposure.toFixed(1) : '—'}
+            unit="°C·min"
+            provenance="calculated"
+            compactProvenance
+            tip="E_T = Σ max(0, T − T_safe)·Δt: the degrees above the safe maximum, integrated over time."
+          />
+          <KpiCard
+            label="Deterioration"
+            value={deterioration.data ? (deterioration.data.deteriorationFraction * 100).toFixed(1) : '—'}
+            unit="%"
+            provenance="calculated"
+            compactProvenance
+            tip="Fraction of shelf life consumed, from an Arrhenius rate that rises with temperature (configured per product)."
+          />
+          <KpiCard
+            label="Shelf life left"
+            value={deterioration.data ? deterioration.data.remainingShelfLifeHours.toFixed(0) : '—'}
+            unit="h"
+            provenance="calculated"
+            compactProvenance
+            tip="Initial shelf life × (1 − deterioration): whether the load will still be acceptable on arrival."
+          />
+          <KpiCard
+            label="Spoilage"
+            value={spoilage.data ? (spoilage.data.spoilageProbability * 100).toFixed(1) : '—'}
+            unit="%"
+            provenance="predicted"
+            compactProvenance
+            tip="Estimated probability the batch is spoiled, from a saturating exposure–response prior."
+          />
+          <KpiCard
+            label="Humidity"
+            value={lastSample ? lastSample.humidityPercent.toFixed(0) : '—'}
+            unit="%"
+            provenance="measured"
+            compactProvenance
+            tip="Relative humidity from the sensor. With temperature it drives condensation risk."
+          />
+          <Card className="p-4">
+            <span className="text-body-sm text-muted">Risk</span>
+            <div className="mt-2">
+              {spoilage.data ? (
+                <StatusChip
+                  tier={riskTierFromProbability(spoilage.data.spoilageProbability)}
+                  label={riskLabelFromProbability(spoilage.data.spoilageProbability)}
+                />
+              ) : (
+                <span className="text-body-sm text-muted">—</span>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        <div className="mt-4 flex flex-wrap items-center gap-3 border-t border-line pt-3 text-body-sm">
+          <span className="flex items-center gap-1.5 text-label-ui uppercase text-muted">
+            Laya · System 1
+            <InfoTip title="Laya (System 1)">
+              A local, non-autoregressive decision model (Apache-2.0). It classifies the
+              condition and cause from the facts and corroborates the engine — it never
+              overrides it, and it never generates free text, so it cannot invent numbers.
+            </InfoTip>
+          </span>
+          {system1.data?.available ? (
+            <>
+              <StatusChip
+                tier={system1.data.condition === 'normal' ? 'safe' : 'warning'}
+                label={`Condition: ${system1.data.condition ?? '—'}`}
+              />
+              <StatusChip tier="offline" label={`Cause: ${system1.data.cause ?? '—'}`} />
+              <StatusChip
+                tier={system1.data.agreesWithDecision ? 'safe' : 'warning'}
+                label={system1.data.agreesWithDecision ? 'Agrees with engine' : `Suggests ${system1.data.action ?? '—'}`}
+              />
+              <span className="text-muted">{system1.data.model ?? 'laya'} · confidence uncalibrated</span>
+            </>
+          ) : (
+            <span className="text-muted">Laya unavailable (start the laya service).</span>
+          )}
+        </div>
       </Card>
 
       {/* Timeline */}

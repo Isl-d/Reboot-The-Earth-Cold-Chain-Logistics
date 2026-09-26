@@ -64,18 +64,6 @@ QUESTIONS: dict[str, dict] = {
             "traffic_delay": "the truck is stopped or very slow, delaying arrival",
         },
     },
-    "recommended_action": {
-        "type": "choice",
-        "instructions": "Which single action minimises food loss for this shipment?",
-        "criteria": {
-            "CONTINUE": "the shipment is fine as planned",
-            "MONITOR": "keep watching, no intervention yet",
-            "PREPARE_INTERVENTION": "line up an intervention but wait for confirmation",
-            "DIVERT": "send the truck to a cold store now",
-            "REDISTRIBUTE": "move the stock to another location after arrival",
-            "PRIORITIZE_SALE": "sell this stock first because it is ageing",
-        },
-    },
     "urgency": {
         "type": "score",
         "instructions": "How urgent is this situation?",
@@ -112,40 +100,79 @@ QUESTIONS: dict[str, dict] = {
 }
 
 
-def build_state(context: dict, result: dict) -> dict:
-    """The JSON state document Laya reads, from facts the engine already has."""
+def build_state(context: dict, result: dict) -> str:
+    """A short natural-language description of the situation.
+
+    Laya's checkpoints classify *text* well but degrade badly on a raw JSON
+    document — with JSON they labelled every truck the same. So the state is a
+    paragraph, the same facts a dispatcher would read out.
+    """
     truck = context.get("truck") or {}
     batch = context.get("batch") or {}
-    feat = result.get("features") or {}
-    dec = result.get("decision") or {}
-    truck_live = context.get("truck") or {}
+    readings = context.get("recentTelemetry") or []
+    last = readings[-1] if readings else {}
+    tid = truck.get("id") or result.get("truckId") or "the truck"
+    product = batch.get("product") or "a chilled product"
+    safe_min, safe_max = batch.get("safeMinTempC"), batch.get("safeMaxTempC")
+    temp = result.get("temperatureC")
+    refrig = last.get("refrigerationOn")
+    door = last.get("doorOpen")
+    speed = truck.get("speedKmh")
 
-    return {
-        "product": batch.get("product"),
-        "quantity_kg": batch.get("quantityKg"),
-        "safe_min_c": batch.get("safeMinTempC"),
-        "safe_max_c": batch.get("safeMaxTempC"),
-        "current_temperature_c": result.get("temperatureC"),
-        "thermal_exposure_c_min": result.get("thermalExposure"),
-        "exposure_minutes": result.get("exposureMinutes"),
-        "deterioration_fraction": result.get("deteriorationFraction"),
-        "remaining_shelf_life_hours": result.get("remainingShelfLifeHours"),
-        "spoilage_probability": result.get("spoilageProbability"),
-        "risk_score": result.get("riskScore"),
-        "risk_level": result.get("riskLevel"),
-        "anomaly": result.get("anomaly"),
-        "anomaly_type": result.get("anomalyType"),
-        "route_delay_minutes": result.get("routeDelayMinutes"),
-        "average_speed_kmh": feat.get("avgSpeedKmh"),
-        "candidate_warehouses": [
-            {"id": c.get("warehouseId"), "eta_min": c.get("etaMinutes"),
-             "feasible": c.get("feasible"), "expected_loss_percent": c.get("expectedLossPercent")}
-            for c in (result.get("optimization") or {}).get("candidates", [])
-        ],
-        "deterministic_decision": dec.get("action"),
-        "deterministic_destination": dec.get("destinationId"),
-        "route_id": truck_live.get("routeId") or truck.get("routeId"),
-    }
+    parts = [f"Truck {tid} is carrying {product}."]
+    if refrig is not None:
+        parts.append(f"Refrigeration is {'ON' if refrig else 'OFF'}.")
+    if door is not None:
+        parts.append(f"The cargo door is {'OPEN' if door else 'closed'}.")
+    if temp is not None and safe_min is not None and safe_max is not None:
+        where = "inside" if safe_min <= temp <= safe_max else ("above" if temp > safe_max else "below")
+        parts.append(f"The temperature is {temp} C, {where} the safe range of {safe_min} to {safe_max} C.")
+    exposure = result.get("thermalExposure")
+    if exposure is not None:
+        parts.append(f"Accumulated thermal exposure is {exposure} C-minutes.")
+    shelf = result.get("remainingShelfLifeHours")
+    if shelf is not None:
+        parts.append(f"About {round(float(shelf), 1)} hours of shelf life remain.")
+    risk = result.get("riskLevel")
+    if risk:
+        parts.append(f"The current risk level is {risk}.")
+    anomaly = result.get("anomalyType")
+    if anomaly:
+        parts.append(f"An anomaly was detected: {str(anomaly).replace('_', ' ').lower()}.")
+    if speed is not None:
+        parts.append(f"The truck is moving at {speed} km/h.")
+    return " ".join(parts)
+
+
+def _derive_action(condition: str | None, result: dict) -> str:
+    """Laya's suggested action, derived from its own condition classification.
+
+    The base checkpoint's independent action head is near-chance (it answered
+    CONTINUE for everything), so the action label is a deterministic function of
+    the condition it *does* classify correctly — causal, not a second guess.
+    """
+    feasible = bool((result.get("optimization") or {}).get("feasible"))
+    if condition == "normal":
+        return "CONTINUE"
+    if condition in {"refrigeration_failure", "door_left_open"}:
+        return "DIVERT" if feasible else "PREPARE_INTERVENTION"
+    if condition in {"temperature_excursion", "traffic_delay", "sensor_fault"}:
+        return "MONITOR"
+    return "MONITOR"
+
+
+def _state_text(state) -> str:
+    """Flatten a small dict state into text Laya can actually read."""
+    if isinstance(state, str):
+        return state
+    if isinstance(state, dict):
+        pairs = []
+        for key, value in state.items():
+            if isinstance(value, bool):
+                value = "yes" if value else "no"
+            pairs.append(f"{key.replace('_', ' ')}: {value}")
+        return ". ".join(pairs) + "."
+    return str(state)
 
 
 # --------------------------------------------------------------------- client
@@ -250,12 +277,14 @@ def evaluate(context: dict, result: dict, client: LayaClient | None = None) -> d
 
     answers = raw["answers"]
     condition, condition_conf = _choice(answers, "condition")
-    action, action_conf = _choice(answers, "recommended_action")
     cause, cause_conf = _choice(answers, "cause")
     urgency = _score(answers, "urgency")
     review_p = _noul(answers, "needs_human_review")
     delay_p = _noul(answers, "route_delay_material")
 
+    # The action follows deterministically from Laya's condition (its own action
+    # head is near-chance), so it can never contradict the condition it reported.
+    action = _derive_action(condition, result)
     deterministic = (result.get("decision") or {}).get("action")
     return {
         "source": "laya",
@@ -265,7 +294,8 @@ def evaluate(context: dict, result: dict, client: LayaClient | None = None) -> d
         "cause": cause,
         "causeConfidence": cause_conf,
         "action": action,
-        "actionConfidence": action_conf,
+        "actionConfidence": condition_conf,
+        "actionDerived": True,
         "agreesWithDecision": bool(action and deterministic and action == deterministic),
         "urgency": urgency,
         "needsHumanReview": bool(review_p is not None and review_p >= 0.5),
@@ -375,7 +405,7 @@ def _ask(questions: dict, state: dict, client: "LayaClient | None" = None) -> di
     client = client if client is not None else get_client()
     if client is None or not client.available:
         return None
-    raw = client.classify(state, questions)
+    raw = client.classify(_state_text(state), questions)
     if not raw or not raw.get("answers"):
         return None
     return raw
