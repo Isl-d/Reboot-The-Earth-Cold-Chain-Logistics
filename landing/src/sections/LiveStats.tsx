@@ -12,16 +12,6 @@ const fmt = (n: number, digits = 0) => n.toLocaleString('en-US', { maximumFracti
 export default function LiveStats() {
   const { status, trucks, openIncidents, foodLoss, updatedAt } = useLive()
 
-  if (status === 'offline') {
-    return (
-      <div className="border-y border-border/50 bg-[#0a1520]">
-        <p className="mx-auto max-w-[1400px] px-5 py-4 font-mono text-xs text-text-secondary sm:px-8">
-          Command center offline. Run <span className="text-primary">make demo</span> to see live figures here. The
-          story below is scripted.
-        </p>
-      </div>
-    )
-  }
   if (status !== 'live') return null
 
   const stats: { label: string; value: string; tag: ProvenanceTagName }[] = [
@@ -49,7 +39,7 @@ export default function LiveStats() {
             Live from the command center
           </p>
           <p className="font-mono text-xs text-text-secondary">
-            Demo fleet (simulator) · updated {updatedAt?.toLocaleTimeString()} ·{' '}
+            Test fleet · updated {updatedAt?.toLocaleTimeString()} ·{' '}
             <a href={APP_URL} className="text-primary hover:underline">
               open dashboard →
             </a>

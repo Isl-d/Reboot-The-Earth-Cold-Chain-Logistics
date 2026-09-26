@@ -8,9 +8,9 @@ type Tag =
   | 'OPTIMIZED'
   | 'AI-EXPLAINED'
   | 'SYNTHETIC'
-  | 'SIMULATED'
   | 'CITED'
   | 'ILLUSTRATIVE'
+  | 'EXAMPLE'
   | 'AI-GENERATED'
 
 const palette: Record<Tag, { dot: string; fg: string }> = {
@@ -20,9 +20,9 @@ const palette: Record<Tag, { dot: string; fg: string }> = {
   OPTIMIZED: { dot: 'var(--color-provenance-recommended-dot)', fg: 'var(--color-provenance-recommended-fg)' },
   'AI-EXPLAINED': { dot: 'var(--color-primary)', fg: 'var(--color-primary)' },
   SYNTHETIC: { dot: 'var(--color-provenance-finance-dot)', fg: 'var(--color-provenance-finance-fg)' },
-  SIMULATED: { dot: 'var(--color-provenance-finance-dot)', fg: 'var(--color-provenance-finance-fg)' },
   CITED: { dot: 'var(--color-text-secondary)', fg: 'var(--color-text-secondary)' },
   ILLUSTRATIVE: { dot: 'var(--color-text-secondary)', fg: 'var(--color-text-secondary)' },
+  EXAMPLE: { dot: 'var(--color-text-secondary)', fg: 'var(--color-text-secondary)' },
   'AI-GENERATED': { dot: 'var(--color-text-secondary)', fg: 'var(--color-text-secondary)' },
 }
 

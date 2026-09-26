@@ -137,8 +137,9 @@ export default function ThermalTraceCard() {
             </span>
           </p>
         </div>
-        {/* The demo fleet is the simulator: its readings are synthetic, never measured. */}
-        <ProvenanceTag tag={live ? 'SYNTHETIC' : 'SIMULATED'} />
+        {/* Live: the connected fleet is the test simulator, so its readings are
+            synthetic, never measured. Offline: the worked T102 example. */}
+        <ProvenanceTag tag={live ? 'SYNTHETIC' : 'EXAMPLE'} />
       </div>
 
       <div className="mt-5 flex items-end justify-between gap-4">
@@ -226,7 +227,7 @@ export default function ThermalTraceCard() {
         </g>
       </svg>
       <p className="mt-1 font-mono text-[10px] tracking-[0.06em] text-text-secondary uppercase">
-        {live ? 'Stored readings · last 10 min · from the command center' : 'Scripted refrigeration failure'}
+        {live ? 'Stored readings · last 10 min · from the command center' : 'Example · refrigeration failure'}
       </p>
 
       {action && target && (

@@ -13,8 +13,9 @@ import { decision, temperatureTrace, truck, warehouses } from '@/content/demo'
 // from the edge named in copy.ts, and the "documents" (manifest, telemetry,
 // incident, decision) pop in over the footage.
 //
-// Every figure on the documents comes from content/demo.ts, the scripted T102
-// story, and is tagged SIMULATED. The footage is AI-generated and says so.
+// Every figure on the documents comes from content/demo.ts, the worked T102
+// example; the HUD tags the whole stage EXAMPLE once rather than every card.
+// The footage is AI-generated and says so.
 
 const chapters = journey.chapters
 const N = chapters.length
@@ -71,7 +72,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
   switch (id) {
     case 'port':
       return [
-        <DocCard key="m" title="Load manifest" tag="SIMULATED" from="right" delay={220}>
+        <DocCard key="m" title="Load manifest" from="right" delay={220}>
           <Row k="Truck" v={truck.id} />
           <Row k="Cargo" v={truck.cargo} />
           <Row k="Mass" v={`${truck.massKg} kg`} />
@@ -90,7 +91,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
       ]
     case 'lift':
       return [
-        <DocCard key="t" title={`coldchain/trucks/${truck.id}/telemetry`} tag="SIMULATED" from="left" delay={220}>
+        <DocCard key="t" title={`coldchain/trucks/${truck.id}/telemetry`} from="left" delay={220}>
           <pre className="font-mono text-[13px] leading-6 text-text-primary">
             {[
               ['{', ''],
@@ -121,7 +122,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
           </p>
           <p className="mt-2 text-xs text-text-secondary">°C·min above the limit · deterministic Python, never a model</p>
         </DocCard>,
-        <DocCard key="d" title={`Event · ${truck.id}`} tag="SIMULATED" from="below" delay={420}>
+        <DocCard key="d" title={`Event · ${truck.id}`} from="below" delay={420}>
           <p className="flex items-center gap-2 font-mono text-sm text-risk-medium">
             <span aria-hidden className="pulse-dot size-1.5 rounded-full bg-risk-medium" />
             DOOR_OPENED
@@ -130,7 +131,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
       ]
     case 'road':
       return [
-        <DocCard key="r" title={`Cargo temperature · ${truck.id}`} tag="SIMULATED" from="left" delay={220}>
+        <DocCard key="r" title={`Cargo temperature · ${truck.id}`} from="left" delay={220}>
           <div className="flex items-end justify-between gap-3">
             <p className="font-mono text-4xl font-medium text-risk-critical">
               {peak.toFixed(1)}
@@ -156,7 +157,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
             ))}
           </div>
         </DocCard>,
-        <DocCard key="i" title="Incident opened" tag="SIMULATED" from="right" delay={500}>
+        <DocCard key="i" title="Incident opened" from="right" delay={500}>
           <p className="flex items-center gap-2 font-mono text-sm text-risk-high">
             <span aria-hidden className="pulse-dot size-1.5 rounded-full bg-risk-critical" />
             {truck.id} · risk HIGH · refrigeration off
@@ -168,7 +169,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
       ]
     case 'store':
       return [
-        <DocCard key="s" title="Cold stores in range" tag="SIMULATED" from="right" delay={220}>
+        <DocCard key="s" title="Cold stores in range" from="right" delay={220}>
           <ul className="space-y-1.5">
             {warehouses.map((w) => (
               <li
@@ -183,7 +184,7 @@ function documents(id: (typeof chapters)[number]['id']): ReactNode[] {
             ))}
           </ul>
         </DocCard>,
-        <DocCard key="d" title="Decision" tag="SIMULATED" from="below" delay={440}>
+        <DocCard key="d" title="Decision" from="below" delay={440}>
           <p className="font-mono text-xl text-primary">
             {decision.action} → {decision.target}
           </p>
@@ -288,7 +289,10 @@ export default function Journey() {
             </span>{' '}
             <span className="hidden text-text-secondary sm:inline">· {current.label}</span>
           </p>
-          <ProvenanceTag tag="AI-GENERATED" />
+          <span className="flex gap-1.5">
+            <ProvenanceTag tag="EXAMPLE" />
+            <ProvenanceTag tag="AI-GENERATED" />
+          </span>
         </div>
 
         {/* Chapters: words on one side, documents on the other. */}

@@ -1,17 +1,18 @@
 // The T102 refrigeration-failure story, as scripted in pitch/DEMO_SCRIPT.md.
-// These are scenario inputs and scripted readings; SIMULATED, never measured.
+// A worked example, not a measurement: every section that shows it carries one
+// EXAMPLE tag. Never present these readings as MEASURED.
 // Food saved (kg / QAR) is deliberately absent: backend/intelligence/foodloss.py
 // computes it at runtime, and the page must not invent it. To show it, snapshot
 // one real run of `make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102` here.
 
-export type Provenance = 'SIMULATED' | 'SYNTHETIC' | 'CITED' | 'ILLUSTRATIVE' | 'AI-GENERATED'
+export type Provenance = 'EXAMPLE' | 'SYNTHETIC' | 'CITED' | 'ILLUSTRATIVE' | 'AI-GENERATED'
 
 export const truck = {
   id: 'T102',
   cargo: 'Fresh chicken',
   massKg: 500,
   safeBandC: [0, 4] as const,
-  provenance: 'SIMULATED' as Provenance,
+  provenance: 'EXAMPLE' as Provenance,
 }
 
 /** Scripted temperature climb after the cooling unit stops. */

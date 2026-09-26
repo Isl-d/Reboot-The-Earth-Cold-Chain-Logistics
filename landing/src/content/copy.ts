@@ -12,7 +12,7 @@ export const brand = {
 export const nav = [
   { href: '#journey', label: 'Journey' },
   { href: '#how', label: 'How it works' },
-  { href: '#demo', label: 'Demo' },
+  { href: '#demo', label: 'In action' },
   { href: '#trust', label: 'Trust' },
   { href: '#architecture', label: 'Architecture' },
 ]
@@ -22,7 +22,7 @@ export const hero = {
   title: 'Know what a failing fridge is costing before the gate does.',
   body:
     'A condition-aware cold-chain decision system: it watches food in transit, measures how much safe life a failure has cost, and chooses the action that loses the least of it.',
-  primaryCta: 'See the demo',
+  primaryCta: 'See it in action',
   secondaryCta: 'Open the command center',
 }
 
@@ -46,7 +46,7 @@ export const problem = {
 // the edge the words fly in from.
 export const journey = {
   eyebrow: 'The journey',
-  footage: 'Footage is AI-generated and illustrative. Readings are the scripted T102 demo.',
+  footage: 'Footage is AI-generated. The readings are a worked example of one incident.',
   cta: 'Walk through the full demo',
   chapters: [
     {
@@ -135,11 +135,11 @@ export const pipeline = {
 }
 
 export const scenario = {
-  eyebrow: 'The demo',
+  eyebrow: 'In action',
   title: 'One truck. One failure. One decision.',
   body:
     'T102 loses its refrigeration in transit. The system detects it, measures the damage, predicts the risk, chooses a cold store, diverts, and proves how much food it saved.',
-  savedNote: 'Computed live by the food-loss engine. Run the scenario to see it.',
+  savedNote: 'Computed by the food-loss engine for every incident, never estimated by hand.',
 }
 
 export const network = {
@@ -153,14 +153,14 @@ export const trust = {
   eyebrow: 'Trust',
   title: 'Every value knows where it came from.',
   body:
-    'Synthetic demo data is never dressed up as a real measurement, and literature values are marked as unverified. The language model explains the numbers. It is never allowed to invent one.',
+    'Test data is never dressed up as a real measurement, and literature values are marked as unverified. The language model explains the numbers. It is never allowed to invent one.',
   tags: [
     { tag: 'MEASURED', body: 'Read from a sensor.' },
     { tag: 'CALCULATED', body: 'Deterministic Python: exposure, deterioration, shelf life.' },
     { tag: 'PREDICTED', body: 'A model estimate, with its probability.' },
     { tag: 'OPTIMIZED', body: 'Chosen by the optimizer under hard constraints.' },
     { tag: 'AI-EXPLAINED', body: 'Prose about code-computed facts. No new numbers.' },
-    { tag: 'SYNTHETIC', body: 'Simulated for the demo, and labelled as such.' },
+    { tag: 'SYNTHETIC', body: 'Test and training data, labelled as such.' },
   ],
 }
 
@@ -181,5 +181,5 @@ export const cta = {
 
 export const footer = {
   disclaimer:
-    'Demo figures are simulated. Background footage is AI-generated and illustrative. Literature values are cited, not certified thresholds.',
+    'Example figures are illustrative. Background footage is AI-generated. Literature values are cited, not certified thresholds.',
 }

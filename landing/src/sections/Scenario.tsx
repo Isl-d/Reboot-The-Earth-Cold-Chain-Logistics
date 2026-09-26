@@ -14,7 +14,7 @@ const toneColor = {
 
 const BARS = 8
 
-// The timeline is the scripted story. The truck card beside it shows the
+// The timeline is the worked example. The truck card beside it shows the
 // command center's live answer for the truck in trouble when the backend is
 // up, and the scripted T102 card when it is not.
 export default function Scenario() {
@@ -60,7 +60,7 @@ export default function Scenario() {
         eyebrow={scenario.eyebrow}
         title={scenario.title}
         body={scenario.body}
-        aside={<ProvenanceTag tag="SIMULATED" />}
+        aside={<ProvenanceTag tag="EXAMPLE" />}
         from="left"
       />
 
@@ -105,7 +105,7 @@ export default function Scenario() {
               <p className="text-xs font-medium tracking-[0.06em] text-text-secondary uppercase">
                 {live ? 'Cargo temperature · last 10 min' : 'Cargo temperature'}
               </p>
-              <ProvenanceTag tag={live ? 'SYNTHETIC' : 'SIMULATED'} />
+              {live && <ProvenanceTag tag="SYNTHETIC" />}
             </div>
             <div
               className="mt-3 flex h-32 items-end gap-2"
@@ -159,10 +159,15 @@ export default function Scenario() {
                 <p className="flex items-center justify-end gap-2 text-xs text-text-secondary">
                   Food saved {card.savedKg !== null && <ProvenanceTag tag="CALCULATED" />}
                 </p>
-                <p className="font-mono text-lg text-white">
-                  {card.savedKg !== null ? `${card.savedKg.toFixed(1)} kg` : 'n/a kg'} ·{' '}
-                  {card.savedQar !== null ? `${Math.round(card.savedQar).toLocaleString('en-US')} QAR` : 'n/a QAR'}
-                </p>
+                {/* No figure is shown until the engine has computed one; the page never invents it. */}
+                {card.savedKg === null && card.savedQar === null ? (
+                  <p className="font-mono text-lg text-text-secondary">kg · QAR, per incident</p>
+                ) : (
+                  <p className="font-mono text-lg text-white">
+                    {card.savedKg !== null ? `${card.savedKg.toFixed(1)} kg` : '— kg'} ·{' '}
+                    {card.savedQar !== null ? `${Math.round(card.savedQar).toLocaleString('en-US')} QAR` : '— QAR'}
+                  </p>
+                )}
               </div>
             </div>
             <p className="mt-2 text-xs text-text-secondary">
