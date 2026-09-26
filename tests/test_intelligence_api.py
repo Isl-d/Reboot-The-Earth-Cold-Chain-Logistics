@@ -134,3 +134,31 @@ def test_ai_explain_falls_back_without_a_key(client, live):
     }).json()
     assert body["source"] == "template"
     assert "CHK-1029" in body["explanation"]
+
+def test_food_loss_series_counts_latest_snapshot_per_truck(client, live):
+    """Each prediction carries a truck's cumulative loss; repeated snapshots
+    must not be summed, and the breakdowns must partition the KPI "Lost"."""
+    import datetime as dt
+
+    from backend.db import session_scope
+    from backend.models import Prediction
+
+    now = dt.datetime.now(dt.timezone.utc)
+    with session_scope() as session:
+        for truck, cause in (("T901", "DOOR_OPEN"), ("T902", "REFRIGERATION_FAILURE")):
+            for i in range(5):
+                session.add(Prediction(
+                    id=f"PRED-{truck}-{i}", truck_id=truck, batch_id=None,
+                    created_at=now - dt.timedelta(seconds=5 * (5 - i)),
+                    result={"anomalyType": cause,
+                            "recommendation": {"destinationId": "WH01"},
+                            "foodLoss": {"predictedLossKg": 3.0 * (i + 1),
+                                         "lossWithInterventionKg": float(i + 1)}},
+                ))
+
+    kpis = client.get("/api/analytics/food-loss").json()
+    series = client.get("/api/analytics/food-loss/series").json()
+    assert kpis["lostKg"] == 10.0  # 5 kg latest per truck, not 1+2+3+4+5 each
+    assert sum(p["lostKg"] for p in series["overTime"]) == 10.0
+    for dimension in ("byCause", "byProduct", "byWarehouse"):
+        assert sum(r["lostKg"] for r in series[dimension]) == kpis["lostKg"]

@@ -20,7 +20,7 @@ import time
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from sqlalchemy import select
+from sqlalchemy import and_, func, select
 
 from ..config import settings
 from ..context import build_context
@@ -193,38 +193,61 @@ def optimization_for_batch(batch_id: str, refresh: bool = Query(default=False)) 
 
 # -------------------------------------------------------------------- analytics
 
-def _collect_food_loss_rows(session) -> tuple[list[dict], list[Prediction]]:
-    """Return (latest_per_truck_loss_records, all_prediction_rows_with_loss).
+def _latest_predictions(session, *, per_day: bool = False) -> list[Prediction]:
+    """The newest prediction per truck (or per truck per UTC day), picked in SQL.
 
-    First return value is the de-duplicated latest-per-truck list used for
-    aggregate totals. Second is the raw per-row list (may have dupes) used by
-    the series endpoint for time-series grouping.
+    The engine persists a full result every ``intelligence_interval_s`` per
+    truck with no retention, so the table grows by tens of thousands of rows
+    per demo-hour. Loading every row (and its result JSON) made the analytics
+    endpoints slower than the frontend's request timeout, and summing every
+    snapshot counted the same truck's loss thousands of times. Each prediction
+    already carries the truck's cumulative loss, so only the newest one per
+    group is meaningful.
     """
+    keys = [Prediction.truck_id]
+    if per_day:
+        keys.append(func.date(Prediction.created_at))
+    newest = (
+        select(*[k.label(f"k{i}") for i, k in enumerate(keys)],
+               func.max(Prediction.created_at).label("newest"))
+        .group_by(*keys)
+        .subquery()
+    )
+    conditions = [Prediction.truck_id == newest.c.k0, Prediction.created_at == newest.c.newest]
     rows = session.execute(
-        select(Prediction).order_by(Prediction.created_at.desc())
+        select(Prediction).join(newest, and_(*conditions)).order_by(Prediction.created_at)
     ).scalars().all()
 
-    seen: set[str] = set()
-    latest: list[dict] = []
-    all_with_loss: list[Prediction] = []
-
+    # Two rows sharing the exact max timestamp would both join; keep one.
+    unique: dict[tuple, Prediction] = {}
     for row in rows:
-        result = row.result or {}
-        loss = result.get("foodLoss")
+        created = _as_utc(row.created_at)
+        key = (row.truck_id, created.date() if (per_day and created) else None)
+        unique[key] = row
+    return list(unique.values())
+
+
+def _as_utc(value: dt.datetime | None) -> dt.datetime | None:
+    if value is not None and value.tzinfo is None:
+        return value.replace(tzinfo=dt.timezone.utc)
+    return value
+
+
+def _collect_food_loss_rows(session) -> list[dict]:
+    """Latest-per-truck food-loss records (trucks whose newest prediction has one)."""
+    latest: list[dict] = []
+    for row in _latest_predictions(session):
+        loss = (row.result or {}).get("foodLoss")
         if loss:
-            all_with_loss.append(row)
-        if row.truck_id not in seen:
-            seen.add(row.truck_id)
-            if loss:
-                latest.append({"batchId": row.batch_id, "truckId": row.truck_id,
-                                "row": row, **loss})
-    return latest, all_with_loss
+            latest.append({"batchId": row.batch_id, "truckId": row.truck_id,
+                           "row": row, **loss})
+    return latest
 
 
 @router.get("/analytics/food-loss")
 def food_loss_analytics() -> dict:
     with session_scope() as session:
-        latest, _ = _collect_food_loss_rows(session)
+        latest = _collect_food_loss_rows(session)
 
         # Sum transported kg from the batches referenced by latest predictions
         transported_kg = 0.0
@@ -269,35 +292,32 @@ def food_loss_analytics() -> dict:
 @router.get("/analytics/food-loss/series")
 def food_loss_series() -> dict:
     with session_scope() as session:
-        _, all_rows = _collect_food_loss_rows(session)
-
         over_time: dict[str, dict] = {}
         by_cause: dict[str, float] = {}
         by_product: dict[str, float] = {}
         by_warehouse: dict[str, float] = {}
 
-        for row in all_rows:
-            result = row.result or {}
-            loss = result.get("foodLoss") or {}
-            lost = float(loss.get("lossWithInterventionKg") or 0.0)
-            predicted = float(loss.get("predictedLossKg") or 0.0)
-
-            # overTime
-            created = row.created_at
-            if created is not None and created.tzinfo is None:
-                created = created.replace(tzinfo=dt.timezone.utc)
+        # overTime: each truck's end-of-day cumulative loss, summed per day.
+        for row in _latest_predictions(session, per_day=True):
+            loss = (row.result or {}).get("foodLoss")
+            if not loss:
+                continue
+            created = _as_utc(row.created_at)
             date_str = created.date().isoformat() if created else "unknown"
-            if date_str not in over_time:
-                over_time[date_str] = {"lostKg": 0.0, "predictedLostKg": 0.0}
-            over_time[date_str]["lostKg"] += lost
-            over_time[date_str]["predictedLostKg"] += predicted
+            day = over_time.setdefault(date_str, {"lostKg": 0.0, "predictedLostKg": 0.0})
+            day["lostKg"] += float(loss.get("lossWithInterventionKg") or 0.0)
+            day["predictedLostKg"] += float(loss.get("predictedLossKg") or 0.0)
 
-            # byCause
+        # Breakdowns: the same latest-per-truck set as the headline KPIs, so
+        # each dimension partitions exactly the "Lost" figure.
+        for entry in _collect_food_loss_rows(session):
+            result = entry["row"].result or {}
+            lost = float(entry.get("lossWithInterventionKg") or 0.0)
+
             cause = result.get("anomalyType") or "Unknown"
             by_cause[cause] = by_cause.get(cause, 0.0) + lost
 
-            # byProduct
-            batch = session.get(ProductBatch, row.batch_id) if row.batch_id else None
+            batch = session.get(ProductBatch, entry["batchId"]) if entry["batchId"] else None
             if batch:
                 product = session.get(Product, batch.product_id)
                 product_name = product.name if product else (batch.product_id or "Unknown")
@@ -305,7 +325,6 @@ def food_loss_series() -> dict:
                 product_name = "Unknown"
             by_product[product_name] = by_product.get(product_name, 0.0) + lost
 
-            # byWarehouse
             rec = result.get("recommendation") or {}
             dest = rec.get("destinationId") or "Unknown"
             by_warehouse[dest] = by_warehouse.get(dest, 0.0) + lost
