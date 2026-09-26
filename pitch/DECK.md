@@ -118,7 +118,7 @@ two backup slides).
 
 **Team 2 · Thank you.** Reboot the Earth hackathon · CMUQ. Najeeb Abdi (math,
 frontend), Islambek (hardware), Param Anand Trimbake (frontend), Ahad Hussain
-(AI), and the repository link. Leave it up during questions.
+(AI), Robin Thomas (business, product), and the repository link. Leave it up during questions.
 
 ### Q&A — one-sentence answers
 
