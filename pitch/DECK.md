@@ -1,162 +1,186 @@
-# Thermal Trace — fourteen slides
+# Thermal Trace — pre-seed deck, eighteen slides
 
 The words for the pitch. The built deck is **[docs/deck/index.html](../docs/deck/index.html)**
 (open it in a browser: ← → to move, F fullscreen, N speaker notes, O overview,
-P print to PDF; a PDF export sits next to it). The landing page
-(`landing/src/content/copy.ts`) mirrors this file, so edit here first. Brand rules:
-[docs/brand/README.md](../docs/brand/README.md).
+P print to PDF). The landing page (`landing/src/content/copy.ts`) mirrors this
+file, so edit here first. Brand rules: [docs/brand/README.md](../docs/brand/README.md).
 
-Non-technical. One number per slide where possible, each with its source or a
-EXAMPLE / ILLUSTRATIVE tag. **Hard limit: 5 minutes in total, then 2 minutes of
-Q&A.** Fourteen slides in about three minutes (roughly 13 seconds each, one
-sentence per slide), then a two-minute live demo, then the team slide.
+This is the pre-seed version: the hackathon deck proved the technology; this one
+proves the value and lands the ask. Every number carries its source or an
+EXAMPLE / ILLUSTRATIVE / TARGET tag. Seventeen numbered slides and a closing
+slide, no backups. Slides 11–16 are the ask: the amount, then exactly where the
+money goes and what it proves; slide 17 closes on the vision. Figures come from the pre-seed budget.
 
 **1. Thermal Trace.**
-*Know what a failing fridge is costing before the gate does.* A condition-aware
-cold-chain decision system: it watches food in transit, measures how much safe
-life a failure has cost, and chooses the action that loses the least of it.
+*Know what a failing fridge is costing before the gate does.* Cold-chain
+intelligence: physical risk and commercial value, in one reserve. Pre-seed ·
+QAR 1.85M · Qatar first, GCC next. Presented by **Generative Gains** (logo top
+right, `docs/deck/assets/generative-gains.png`).
 
 **2. The problem.**
-13 % of food is lost between harvest and retail; another 19 % is wasted after.
-Food loss and waste cause 8–10 % of global emissions. *(FAO/UNEP 2024.)* Say the
-goal out loud: this is **UN SDG target 12.3** (halve food waste, cut loss along
-supply chains); it also serves **SDG 2** (food security) and **SDG 13** (climate).
+13 % of food is lost between harvest and retail; another 19 % is wasted after
+*(FAO/UNEP 2024)*. **UN SDG 12.3**, and SDG 2 and 13. Qatar summers pass 45 °C;
+the National Food Security Strategy 2030 targets −30 % food loss. Today's systems
+raise an alarm; none of them says how much value is left.
 
-**3. Why here.**
-Qatar imports most of its fresh food across a summer that passes 45 °C. A truck
-fridge that fails at noon can spoil a load in hours. The National Food Security
-Strategy 2030 targets −50 % food waste and −30 % food loss.
+**3. Redefining the perishable asset.**
+The biological clock (defensive, today): inventory is a degrading liability
+managed by a printed expiry date, so the result is late markdowns and
+write-offs. The commercial trace (offensive, Thermal Trace): inventory is an
+asset with a live value, priced from its real thermal history and live demand,
+so value is recovered before it is lost.
 
-**4. What actually goes wrong.**
-Nobody finds out until the load is rejected at the gate. By then the food is
-gone, and so is any chance to send it somewhere it could still be sold.
-*(Timeline on the slide is illustrative.)*
+**4. The anatomy of value: four reserves, one stack.**
+Layer 1 **Thermal Trace** (ground truth): a continuous, timestamped memory of
+temperature exposure and stress. Layer 2 **Thermal Reserve** (the envelope): the
+physical budget left before quality is compromised. Layer 3 **Commercial
+Reserve** (the velocity): the economic runway, `CR = Qr × Pr × Vr`. Layer 4
+**Decision Reserve** (the action window): the time left to act before the good
+options disappear. Safety rules stay deterministic; commercial optimisation runs
+inside them.
 
-**5. The product in one line.**
-Sensors tell us what is happening; mathematics tells us how much damage has
-occurred; models predict what happens next; optimization chooses the action; the
-decision engine turns it into an operation; and the food-loss engine proves what
-it saved.
+**5. Layers 1–2 · The label says 7 days. The trace says 4.5.**
+Thermal exposure `E_T = Σ max(0, T − T_safe)·Δt`; Arrhenius deterioration
+`k(T)`; shelf life spent `D = Σ k·Δt`; Thermal Reserve `L·(1 − D)`.
+Deterministic Python, no AI model touches them. *(7.0 vs 4.5 days is an
+example; constants are literature values, calibrated per product in the pilot.)*
 
-**6. Detect at the moment of failure.**
-A live map of every truck, with an incident the instant a temperature leaves the
-safe band and stays there. Not a dashboard of charts — a decision surface.
-*(The screenshot was taken in mock mode and is labelled so; retake it from the
-live stack with `make demo` when there is time.)*
+**6. Layer 3 · Safe is not the same as sellable.**
+Two clocks. Thermal Reserve, the physical clock: product health ("can it still
+be consumed?"), production → transport → deterioration → shelf-life boundary,
+protect physical life. Commercial Reserve, the commercial clock: economic life
+("can it still earn its value?"), arrival → customer exposure → sell-through →
+replenishment, protect economic life. Health creates the possibility of selling;
+demand creates the possibility of realising value; Commercial Reserve lives
+where they meet. `CR = Qr × Pr × Vr`: quantity realistically realisable ×
+probability of sale × expected value per unit. Estimates carry uncertainty;
+food-safety release stays with authorised people.
 
-**7. What we measure.**
-Six signals, each answering a question the others cannot. **Temperature**
-(DS18B20, ±0.5 °C) at ceiling and floor, so a warm layer shows up instead of
-hiding in an average. **Humidity** (Sensirion SHT3x, ±2 % RH) at the return
-vent — with temperature it gives the dew point, and whether an open door will
-wet the cartons. **Shock and tilt** (3-axis MEMS) on the chassis, because
-bruising from a dropped pallet is damage a thermometer never sees. Then the
-designed next layer: **gas** (metal-oxide, VOC and ethylene) beside the
-high-respiring crates, which is the fruit itself reporting that it has started
-to ripen; **NIR** (700–2500 nm) at receiving, which finds internal bruising
-before anything shows outside; and an **RGB camera** overhead for colour shift,
-mould and shelf count. They exist to produce three numbers: deterioration
-detection, Remaining Useful Time, and thermal exposure. *(Temperature, humidity
-and shock flow through the pipeline today; gas, NIR and vision are designed,
-not built. Every sensor publishes the same MQTT message, so adding one changes
-nothing downstream.)*
+**7. Layer 3 · In transit until the profit is booked.**
+Kinetic transit (on the truck: Thermal + Decision Reserve), static transit (on
+the shelf: Commercial Reserve), consumer transit (into the cart: value
+realised), consolidation (POS data flows back, profit hits the ledger, demand
+triggers replenishment: Value Ledger). *(The value curve is illustrative.)*
 
-**8. Physics before AI.**
-Thermal exposure is the sum of the degrees above the limit over time.
-Deterioration is an Arrhenius rate relative to the product's ideal temperature.
-Remaining shelf life follows from it. Every one of those numbers is
-deterministic Python — no model touches them.
+**8. Layer 4 · The window to act, and the move to make.**
+`min(transport + food-loss + delay)` subject to ETA ≤ remaining thermal reserve,
+capacity and temperature compatibility. A reefer's compressor is failing with 45
+minutes of Thermal Reserve; the hypermarket is 90 minutes away (spoils), a buyer
+is 20 minutes away (fits): REROUTE, with about 25 minutes to commit. The
+optimizer picks; the AI corroborates and explains, and never invents a number.
+*(Example scenario.)*
 
-**9. AI where it earns its place.**
-Two AI layers, neither allowed to invent a number. **Laya** (System 1) is a
-local, offline, Apache-2.0 decision model: it answers typed questions —
-condition, action, urgency, needs human review — and never generates text; it
-corroborates the deterministic decision and never overrides it. **DeepSeek
-V4.1 Flash** (System 2, a cloud model reached through OpenRouter) is the
-explainer: it turns the calculated facts into plain language, may only rank
-feasible options, and may move the spoilage estimate only within a fixed band.
-Around them, plain deterministic code (not AI): spoilage probability, anomaly
-detection and demand forecasting.
+**9. From managing biology to managing liquidity.**
+Legacy vs Thermal Trace. Goal: delay spoilage vs maximise yield. Asset view: a
+degrading object vs an asset with a live, priced value. Inventory rule: FEFO by
+printed date vs **LCRFO** (lowest Commercial Reserve, first out) by live
+physics. Intervention: passive alarms vs optimized routing and early markdowns.
+Waste: an invisible operating tax vs a quantified, bounded value at risk.
 
-**10. Optimization, not vibes.**
-`min(transport + food-loss + delay)` subject to ETA ≤ remaining safe time,
-warehouse capacity and temperature compatibility. Three cold stores in range
-(WH01 18 min, WH02 27 min, WH03 46 min — example scenario ETAs); the optimizer
-picks WH01 and the decision is DIVERT. The model only explains the choice.
+**10. Priced against verified value.**
+Pilot, 12–16 weeks: QAR 100–175K. Enterprise subscription: QAR 120–240K a year,
+plus implementation fees. The value test: avoided loss ≥ 3× the fee (QAR 540K of
+benefit for a QAR 180K fee). Two divisions: **Thermal Reserve** is the entry
+point, for 3PLs, fleets and warehouses (a live countdown, e.g. 45 minutes
+left); **Commercial Reserve** follows as a controlled extension, for
+hypermarkets and HORECA (joins POS, ERP and WMS to route stock and price it to
+clear). *(Prices are hypotheses to validate, not market prices.)*
 
-**11. The number that matters.**
-Food saved (kg) and financial loss prevented (QAR): expected loss without the
-intervention minus expected loss with it, times the quantity. That is the whole
-point. *(Bars on the slide are illustrative; the real figure is the one the live
-demo computes after slide 14.)*
+**11. The ask: twelve months to prove it in the field.**
+**QAR 1,850,000** (≈ US$508,000), 12 months, pre-seed or strategic round. Core
+five-person engineering team 55.1 %; sensors, deployment, cloud and integration
+23.5 %; validation, customers and legal 10.8 %; contingency reserve 10.5 %. It
+buys: an anchor customer live at 3–5 facilities, avoided loss measured at ≥ 3×
+the fee, Commercial Reserve tested in controlled trials, an annual contract and
+a second customer, and the QAR 300–500K ARR target. Every kilogram saved is
+logged as evidence toward SDG 12.3.
 
-**12. Every delivery arrives with its thermal reserve.**
-For the supermarket. Thermal reserve is the safe shelf life a load has left,
-calculated from every minute of its temperature history (`L·(1 − D)`), not the
-label date. Inventory: shelve by reserve, and surplus is flagged for transfer,
-discount or redistribution before it expires. Finance: loss prevented in QAR
-for every intervention; mark down early instead of writing off late. Receiving:
-a temperature record for every delivery, so the dock accepts or rejects on
-evidence. *(The 7.0 vs 4.5 day bars are illustrative.)*
+**12. The ask · Every riyal, from round to line item.**
+A flow from QAR 1.85M into four groups and nine lines: engineering team
+1,020,000 (55.1 %); hardware and platform 435,000 (sensors and edge 155,000,
+deployment and calibration 95,000, cloud, data and security 100,000,
+enterprise integration 85,000); validation and go-to-market 200,000
+(food-domain validation 65,000, customer development 70,000, legal, IP and
+readiness 65,000); contingency 195,000 (10.5 %).
 
-**13. Every value knows where it came from.**
-MEASURED, CALCULATED, PREDICTED, OPTIMIZED, AI-EXPLAINED, SYNTHETIC — shown on
-screen. Test data is never dressed up as a real measurement, and
-literature values are marked as unverified.
+**13. The ask · Five engineers, QAR 76,000 a month.**
+CTO / systems and product architect (architecture, scope, data contracts,
+security, delivery) QAR 20,000 a month; thermal intelligence / data engineer
+(thermal state, exposure, risk models, shelf-life logic) 16,000; backend and
+data platform engineer (ingestion, databases, APIs, identity, integrations)
+15,000; IoT and edge engineer (sensors, gateways, connectivity, calibration)
+13,000; application and workflow engineer (operator UI, alerts, approvals, ERP
+and WMS workflows) 12,000. Gross QAR 76,000 a month, 912,000 a year, plus about
+109,000 of employment costs: about QAR 1,020,000. The CEO leads investors,
+anchor customers and sales; food-safety experts are hired fractionally from the
+validation line. *(Lean planning assumptions, not guaranteed market rates.)*
 
-**14. What's different.**
-Monitoring stops at the alert; we start there. Alert-only monitoring records the
-temperature and raises an alarm. Thermal Trace measures the damage already done,
-chooses where to divert under constraints, records the action, proves the food
-saved, and labels every number with its source. And it is open: MIT licence, 17
-openly licensed data sources, runs on one laptop (`make demo`), 120
-automated tests. SDG 12.3 · 2 · 13.
+**14. The ask · The other QAR 830K, line by line.**
+Sensors and gateways for 3–5 facilities (cold rooms, reefer trucks, dispatch
+areas) 155,000; install, calibrate and test outages and alerts 95,000; 12
+months of hosting, storage and security 100,000; a few high-value flows into
+product, shipment, ERP and WMS records 85,000; fractional food-safety experts
+65,000; the anchor pilot from site survey to conversion 70,000; data-access
+agreements, contracts and IP 65,000; contingency 195,000, released only with
+documented founder and investor approval.
 
-**Live demo (2 minutes)** — after slide 14, switch to the dashboard: T102, 500 kg
-of fresh chicken, refrigeration failure. Follow [DEMO_SCRIPT.md](DEMO_SCRIPT.md),
-then come back to the deck and press **End** for the team slide (it skips the
-two backup slides).
+**15. The ask · From pilot to recurring revenue.**
+M1–2 secure the pilot, survey sites, agree how value is measured, build the
+baseline. M3–4 install devices, build ingestion and asset history, test outages
+and alerts. M5–6 run excursion logic, risk estimates and the approved
+intervention workflow. M7–9 compare to baseline, quantify value, start
+controlled Commercial Reserve tests. M10–12 convert to an annual contract and
+pursue a second customer. The team runs at about QAR 85K a month throughout;
+the other lines follow the work *(phasing indicative)*. The pilot must prove
+measured avoided loss ≥ 3× the fee; month-12 target QAR 300–500K contracted ARR
+*(a target, not a forecast)*.
 
----
+**16. The ask · Known risks, planned responses.**
+Customer data access → sign data access and a named sponsor first. False
+precision → validated assumptions, uncertainty shown, domain review. Integration
+complexity → a few high-value data flows, clear contracts. Long sales cycle →
+named decision-makers, success criteria, conversion terms. Building both
+divisions too early → Thermal Reserve first, Commercial Reserve staged. Behind
+it, the 10.5 % contingency (QAR 195,000), spent only with documented approval.
 
-### Backup slides (between slide 14 and the team slide)
+**17. One primitive, many industries.**
+Trace → State → Reserve → Decision applies to any asset that deteriorates, cures
+or loses viability under the stress of time: biopharma (stability budgets),
+energy (grid flexibility reserve), space cargo (mission reserve), defence
+(operational readiness). Built first for the food cold chain. The closing vision: what we have today comes first, the future last. *(Vision, not
+built.)*
 
-- **B1 · Architecture.** Sensors (a test simulator in the demo) → MQTT → FastAPI ingestion → Postgres + Redis
-  → intelligence engine → REST + WebSocket → one React dashboard. Nothing that
-  cannot run on a laptop in a warehouse office. The seam that makes it real:
-  `GET /api/internal/context/{truckId}` is the single contract between the data
-  platform and the intelligence engine, so they can never disagree about what a
-  truck is experiencing.
-- **B2 · Provenance of data.** 17 openly licensed sources (geography 4, weather 3,
-  food science 4, emissions 2, routing, impact, physics and operational 1 each),
-  catalogued and served live at `/api/opendata`.
+### Closing slide
 
-### Closing slide (last)
-
-**Team 2 · Thank you.** Reboot the Earth hackathon · CMUQ. Najeeb Abdi (math,
+**Thank you.** Thermal Trace, by Generative Gains (logo top right). Generative
+Gains is raising QAR 1.85M to prove Thermal Trace in the field: that what a
+failing fridge costs can be measured and recovered. Najeeb Abdi (math,
 frontend), Islambek (hardware), Param Anand Trimbake (frontend), Ahad Hussain
-(AI), Robin Thomas (business, product), and the repository link. Leave it up during questions.
+(AI), Robin Thomas (business, product). Leave it up during questions.
 
 ### Q&A — one-sentence answers
 
+- **Does it run today?** Yes, on one laptop (`make demo`): sensor → Thermal
+  Trace → Thermal Reserve → reroute decision, with 123 automated tests. Live
+  demo: [DEMO_SCRIPT.md](DEMO_SCRIPT.md).
+
 - **How are you different from Sensitech / Tive / Controlant?** They monitor and
-  alert; we turn the alert into a measured damage figure, an optimized diversion
-  and a proven saving — and it is open source and runs offline.
+  alert; we turn the alert into a measured damage figure, a Commercial Reserve
+  and an optimized decision, and log the value it recovered.
+- **Is Commercial Reserve built?** Not yet in full: the physical layers and the
+  rerouting decision run today; Commercial Reserve is staged in the pilot,
+  expiry-aware prioritisation first and automated pricing later.
 - **Where would real sensors come from?** Anything that publishes to MQTT: a
   standard reefer logger or an ESP32 probe (see `firmware/`); the simulator
   publishes the exact same message, so nothing downstream changes.
 - **Are the Arrhenius constants validated?** No — they are literature values,
   labelled unverified. The model is prototype-grade, not certified food-safety
-  science; a pilot would calibrate them per product.
-- **Where does the CO₂ figure come from?** Food saved × 2.5 kg CO₂e per kg,
-  the FAO 2013 global average for wasted food (3.3 Gt CO₂e over 1.3 Gt). It is a
-  cited factor (`CC_CO2E_KG_PER_KG_FOOD`), not a measurement, and conservative
-  for chicken, whose footprint per kg is higher.
-- **Does it run offline?** The numbers do: sensors, maths, risk, optimizer and
-  food loss need no cloud service. The first `make demo` downloads images and
-  models; after that only the map tiles and the AI explanation use the internet,
-  and without them the map is blank and the explanation falls back to a template.
+  science; the pilot calibrates them per product.
+- **Why should a customer pay?** Because we price against measured avoided loss:
+  if the pilot does not show at least 3× the fee against an agreed baseline, the
+  case for the subscription is not made.
 - **Why use an LLM at all?** Only to explain. It cannot produce a number, may
   only rank feasible options, and the system runs end to end without it.
-- **What's next?** One cold-chain operator, one month, twenty pallets: on day one
-  we can tell them how much of their loss is refrigeration and how much is scheduling.
+- **What's next?** One anchor customer, 3–5 facilities, 12 months: on day one we
+  can tell them how much of their loss is refrigeration and how much is
+  scheduling, and by month 9 what the system recovered.
