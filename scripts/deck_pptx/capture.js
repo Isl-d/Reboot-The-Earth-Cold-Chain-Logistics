@@ -10,10 +10,11 @@ const DECK = path.resolve(__dirname, "../../docs/deck/index.html");
 const SCALE = 1.5;
 const PAD = 24;
 const ANIMATED = "[data-a],.draw,.grow,.rise,.wipe,.shrink";
+// Entrance keyframes that some elements start from bespoke CSS rules, not data-a.
+const ENTRANCE = ["up", "fade", "left", "right", "zoom"];
 
 const FREEZE = `
-  *,*::before,*::after{animation-duration:.001s!important;animation-delay:0s!important;
-    animation-iteration-count:1!important;transition:none!important}
+  *,*::before,*::after{transition:none!important}
   .progress,.hint,.notes,.overview{display:none!important}
   .slide{transform:none!important}
   html:has(body.cap-layer),body.cap-layer{background:transparent!important}
@@ -44,6 +45,15 @@ const FREEZE = `
   for (let n = 1; n <= count; n++) {
     await page.evaluate((n) => { location.hash = "#" + n; }, n);
     await page.waitForTimeout(250);
+    // Jump every animation to its end state; looping ones go back to rest.
+    await page.evaluate(() => {
+      document.getAnimations().forEach((a) => {
+        try {
+          if (a.effect.getComputedTiming().iterations === Infinity) a.cancel();
+          else a.finish();
+        } catch {}
+      });
+    });
     // Count-up numbers: jump to their final value and stop the tickers.
     await page.evaluate(() => {
       document.querySelectorAll(".slide.active [data-count]").forEach((el) => {
@@ -59,9 +69,19 @@ const FREEZE = `
     const dir = path.join(OUT, String(n).padStart(2, "0"));
     fs.mkdirSync(dir);
 
-    const info = await page.evaluate((ANIMATED) => {
+    const info = await page.evaluate(([ANIMATED, ENTRANCE]) => {
       const s = document.querySelector(".slide.active");
       const els = [...s.querySelectorAll(ANIMATED)];
+      // Elements whose entrance comes from a stylesheet rule rather than data-a.
+      const extra = new Map();
+      s.querySelectorAll("*").forEach((e) => {
+        if (e.matches(ANIMATED)) return;
+        const cs = getComputedStyle(e);
+        const names = cs.animationName.split(",").map((x) => x.trim());
+        const delays = cs.animationDelay.split(",").map((x) => parseFloat(x) * 1000);
+        const i = names.findIndex((n) => ENTRANCE.includes(n));
+        if (i >= 0) { els.push(e); extra.set(e, { kind: names[i], delay: delays[i % delays.length] }); }
+      });
       els.forEach((e, i) => { e.dataset.capId = i; e.classList.add("cap-skip"); });
       return {
         title: s.dataset.title,
@@ -71,9 +91,10 @@ const FREEZE = `
           const r = e.getBoundingClientRect();
           const cs = getComputedStyle(e);
           const inline = e.style.getPropertyValue("--d");
-          const d = +(inline || cs.getPropertyValue("--d") || 0);
+          const x = extra.get(e);
+          const d = x ? x.delay : +(inline || cs.getPropertyValue("--d") || 0);
           const dur = e.style.getPropertyValue("--dur");
-          const kind = e.classList.contains("draw") ? "draw"
+          const kind = x ? x.kind : e.classList.contains("draw") ? "draw"
             : e.classList.contains("wipe") ? "wipe"
             : e.classList.contains("grow") || e.classList.contains("shrink") ? "grow"
             : e.classList.contains("rise") ? "rise"
@@ -83,7 +104,7 @@ const FREEZE = `
                    alt: (e.textContent || "").replace(/\s+/g, " ").trim().slice(0, 200) };
         }),
       };
-    }, ANIMATED);
+    }, [ANIMATED, ENTRANCE]);
 
     // Background: everything that is not animated, on the real stage.
     await page.evaluate(() => document.body.classList.add("cap-bg"));

@@ -75,10 +75,11 @@ def effect(ids, spid, kind, delay, dur):
     """One entrance effect, started `delay` ms after the slide appears."""
     # (presetID, presetSubtype, default duration ms, body builder)
     if kind in ("draw", "wipe", "grow"):
-        pid, sub, d = 22, 8, dur or 1400
+        pid, sub = 22, 8
+        d = dur or {"draw": 1600, "wipe": 1800, "grow": 1400}[kind]
         body = effect_filter(ids, spid, "wipe(left)", d)
     elif kind == "rise":
-        pid, sub, d = 22, 4, dur or 1400
+        pid, sub, d = 22, 4, 2000
         body = effect_filter(ids, spid, "wipe(down)", d)
     elif kind == "left":
         pid, sub, d = 2, 8, 900
@@ -101,7 +102,7 @@ def effect(ids, spid, kind, delay, dur):
         body = move(ids, spid, "ppt_y", "#ppt_y+0.03", d) + effect_filter(ids, spid, "fade", d)
     return (
         f'<p:par><p:cTn id="{ids()}" presetID="{pid}" presetClass="entr" presetSubtype="{sub}" fill="hold" '
-        f'nodeType="withEffect"><p:stCondLst><p:cond delay="{int(delay)}"/></p:stCondLst><p:childTnLst>'
+        f'decel="100000" nodeType="withEffect"><p:stCondLst><p:cond delay="{int(delay)}"/></p:stCondLst><p:childTnLst>'
         f"{set_visible(ids, spid)}{body}</p:childTnLst></p:cTn></p:par>"
     )
 
@@ -152,7 +153,7 @@ def main():
                 Emu(round(L["x"] * EMU_PX)), Emu(round(L["y"] * EMU_PX)),
                 Emu(round(L["w"] * EMU_PX)), Emu(round(L["h"] * EMU_PX)),
             )
-            pic.name = f"{L['kind']} {L['id']:03d}"
+            pic.name = f"{L['id']:02d} {L['kind']} · {L['alt'][:30] or 'graphic'}"
             pic._element.nvPicPr.cNvPr.set("descr", L["alt"])
             fx.append(effect(ids, pic.shape_id, L["kind"], L["delay"], L["dur"]))
         sld = slide._element
