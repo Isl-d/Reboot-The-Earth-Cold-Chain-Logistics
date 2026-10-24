@@ -10,7 +10,8 @@
 AI cold-chain management & food-loss prevention.
 
 **Pitch deck:** [docs/deck/index.html](docs/deck/index.html) (open in a browser; PDF at
-[docs/deck/thermal-trace-pitch.pdf](docs/deck/thermal-trace-pitch.pdf)). Brand rules and logo files:
+[docs/deck/thermal-trace-pitch.pdf](docs/deck/thermal-trace-pitch.pdf); animated PowerPoint at
+[docs/deck/thermal-trace-pitch.pptx](docs/deck/thermal-trace-pitch.pptx), rebuilt with `python3 scripts/deck_pptx/build.py`). Brand rules and logo files:
 [docs/brand/](docs/brand/README.md).
 
 **Open source** under the [MIT licence](LICENSE). Built on open technology
