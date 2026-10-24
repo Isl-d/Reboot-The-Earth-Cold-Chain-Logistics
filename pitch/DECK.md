@@ -56,15 +56,16 @@ Commercial Reserve follows as a controlled extension. *(45 minutes is an
 example.)*
 
 **7. Six signals. Three numbers that matter.**
-**Temperature** (DS18B20, ±0.5 °C) at ceiling and floor, so a warm layer shows
-up instead of hiding in an average. **Humidity** (Sensirion SHT3x, ±2 % RH):
-with temperature it gives the dew point. **Shock and tilt** (3-axis MEMS),
+**Temperature** and **humidity** come from a real DHT11 node today (about
+±2 °C); the designed upgrade is DS18B20 probes at ceiling and floor, so a warm
+layer shows up instead of hiding in an average, and an SHT3x for humidity.
+**Shock and tilt** (3-axis MEMS) is simulated today and designed in hardware,
 because bruising from a dropped pallet is damage a thermometer never sees. Then
 the designed next layer: **gas** (metal-oxide, VOC and ethylene), **NIR**
 (700–2500 nm) for internal bruising, and an **RGB camera** for colour shift,
 mould and shelf count. They feed deterioration detection, Remaining Useful
-Time and thermal exposure. *(Temperature, humidity and shock flow through the
-pipeline today; gas, NIR and vision are designed, not built.)*
+Time and thermal exposure. *(Temperature and humidity flow from the real node today; shock is
+simulated; gas, NIR and vision are designed, not built.)*
 
 **8. Layers 1–2 · The label says 7 days. The trace says 4.5.**
 Thermal exposure `E_T = Σ max(0, T − T_safe)·Δt`; Arrhenius deterioration
@@ -101,16 +102,18 @@ optimizer picks; the AI corroborates and explains, and never invents a number.
 **Laya** (System 1, local, offline, Apache-2.0) answers typed questions in a
 single pass (condition, action, urgency, needs human review) and never
 generates text; it corroborates the deterministic decision and never overrides
-it. **DeepSeek V4.1 Flash** (System 2, a cloud model via OpenRouter) turns the
+it. Laya is a base model, so its confidence is shown as uncalibrated.
+**DeepSeek V4.1 Flash** (System 2, a cloud model via OpenRouter) turns the
 calculated facts into plain language, may only rank feasible options, and may
 move the spoilage estimate only within a fixed band. Around them, plain code,
-not AI: spoilage probability, anomaly detection, demand forecasting.
+not AI: the spoilage prior, anomaly detection and a demand baseline.
 
 **13. From managing biology to managing liquidity.**
 Legacy vs Thermal Trace. Goal: delay spoilage vs maximise yield. Asset view: a
 degrading object vs an asset with a live, priced value. Inventory rule: FEFO by
-printed date vs **LCRFO** (lowest Commercial Reserve, first out) by live
-physics. Intervention: passive alarms vs optimized routing and early markdowns.
+printed date vs **LCRFO** (planned: lowest Commercial Reserve, first out) by
+live physics. Intervention: passive alarms vs optimized routing today and early
+markdowns planned.
 Waste: an invisible operating tax vs a quantified, bounded value at risk.
 
 **14. Priced against verified value.**
