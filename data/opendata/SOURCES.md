@@ -3,17 +3,12 @@
 Every dataset this platform uses, what a refrigerated fleet needs it for, and
 the licence it comes under. Nothing proprietary is here.
 
-Regenerate with:
+The files here are a committed snapshot. The fetcher that produced them
+(`coldchain.opendata.fetch`) was deleted with the old `coldchain/` service;
+recover it from git history at `15650c9` to regenerate them.
 
-```bash
-python -m coldchain.opendata.fetch            # everything reachable
-python -m coldchain.opendata.fetch --offline  # no network attempts
-python -m coldchain.opendata.fetch --list     # this catalogue, from the code
-```
-
-`provenance.json` is written on every run and records, per source, whether the
-data actually arrived, when, how many rows, and under what licence. Check it
-before quoting a number.
+`provenance.json` records, per source, whether the data actually arrived, when,
+how many rows, and under what licence. Check it before quoting a number.
 
 ## Available with no network
 

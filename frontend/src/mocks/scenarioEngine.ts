@@ -1,5 +1,5 @@
 /*
-  Pure functions that stand in for the AI Engine (docs/PIPELINE.md) while
+  Pure functions that stand in for the AI Engine (backend/intelligence/) while
   VITE_USE_MOCKS=true. Every value here is a deliberately simple, documented
   demo formula — never presented as the official calculation, and never
   reachable when talking to the real backend. Each of the 6 simulator scenarios

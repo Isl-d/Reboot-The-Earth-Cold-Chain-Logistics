@@ -1,4 +1,4 @@
-"""Warehouse diversion optimization (Person 4 §7).
+"""Warehouse diversion optimization.
 
 Deterministic candidate enumeration and objective, exactly as the brief
 requires::

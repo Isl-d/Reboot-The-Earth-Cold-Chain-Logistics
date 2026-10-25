@@ -118,7 +118,7 @@ def healthz() -> dict:
 @app.get("/control", include_in_schema=False)
 def control_panel() -> FileResponse:
     """A standalone manual-control panel, deliberately separate from the app."""
-    return FileResponse(Path(__file__).resolve().parents[1] / "control" / "index.html")
+    return FileResponse(Path(__file__).resolve().parent / "control.html")
 
 
 @app.websocket("/ws/live")

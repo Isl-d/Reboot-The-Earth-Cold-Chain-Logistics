@@ -1,4 +1,4 @@
-"""Spoilage probability (Person 4 §4), LLM-assisted but code-guarded.
+"""Spoilage probability, LLM-assisted but code-guarded.
 
 A deterministic prior is computed from the exposure/deterioration features.
 The LLM may adjust that estimate only within ``settings.llm_probability_band``,

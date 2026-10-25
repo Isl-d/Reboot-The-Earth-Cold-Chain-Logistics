@@ -26,8 +26,8 @@ interface LiveSocketLike {
 const MAX_BACKOFF_MS = 10_000
 
 /**
- * Subscribes to /ws/live — the same stream as Person 1's /sensors/live (see
- * docs/PIPELINE.md "Resolved"), so this is the one subscription point any
+ * Subscribes to /ws/live — the stream Person 1's screens also use (see
+ * docs/API_CONTRACT.md §5), so this is the one subscription point any
  * screen can use for live telemetry. Reconnects with exponential backoff on
  * an unexpected close; a malformed message is dropped, not fatal.
  */

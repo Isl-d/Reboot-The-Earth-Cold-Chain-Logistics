@@ -1,4 +1,4 @@
-"""Anomaly detection (Person 4 §5) — statistical, deterministic, no ML.
+"""Anomaly detection — statistical, deterministic, no ML.
 
 A rolling z-score over the recent window flags an unusual temperature move;
 simple domain rules flag a cooling failure, an abnormal door pattern, a GPS

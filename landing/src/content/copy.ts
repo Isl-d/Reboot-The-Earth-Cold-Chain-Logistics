@@ -1,5 +1,5 @@
-// Every sentence on the page lives here. Source: pitch/DECK.md and README.md;
-// edit the pitch first, then mirror it here, so the deck and the site agree.
+// Every sentence on the page lives here, so the copy is edited in one place.
+// Facts must agree with README.md.
 
 export const APP_URL: string = import.meta.env.VITE_APP_URL ?? 'http://localhost:5173'
 export const REPO_URL = 'https://github.com/Isl-d/Reboot-The-Earth-Cold-Chain-Logistics'

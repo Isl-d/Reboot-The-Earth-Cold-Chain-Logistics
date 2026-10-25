@@ -1,4 +1,4 @@
-// The T102 refrigeration-failure story, as scripted in pitch/DEMO_SCRIPT.md.
+// The T102 refrigeration-failure story, as `make present` plays it.
 // A worked example, not a measurement: every section that shows it carries one
 // EXAMPLE tag. Never present these readings as MEASURED.
 // Food saved (kg / QAR) is deliberately absent: backend/intelligence/foodloss.py

@@ -9,10 +9,7 @@
 
 AI cold-chain management & food-loss prevention.
 
-**Pitch deck:** [docs/deck/index.html](docs/deck/index.html) (open in a browser; PDF at
-[docs/deck/thermal-trace-pitch.pdf](docs/deck/thermal-trace-pitch.pdf); animated PowerPoint at
-[docs/deck/thermal-trace-pitch.pptx](docs/deck/thermal-trace-pitch.pptx), rebuilt with `python3 scripts/deck_pptx/build.py`). Brand rules and logo files:
-[docs/brand/](docs/brand/README.md).
+Brand rules and logo files: [docs/brand/](docs/brand/README.md).
 
 **Open source** under the [MIT licence](LICENSE). Built on open technology
 (Mosquitto, PostgreSQL, Redis, FastAPI, React, an Apache-2.0 local model) and
@@ -40,8 +37,8 @@ Sensors say what is happening
    -> the food-loss engine measures the value of that action
 ```
 
-For the full component-by-component reference, the data/AI split, and the thesis
-behind it, see **[pitch/AI_COLD_STORAGE_LOGISTICS.md](pitch/AI_COLD_STORAGE_LOGISTICS.md)**.
+For where AI is and is not used, the constants, the fallbacks and the limits,
+see **[ARCHITECTURE.md §7](ARCHITECTURE.md#7-design-decisions-and-limits)**.
 
 ## One command
 
@@ -67,7 +64,9 @@ make stop
 Truck T102 carries 500 kg of fresh chicken (safe 0–4 °C). Cooling stops, the
 cargo warms, thermal exposure accumulates, risk climbs, an incident opens, the
 optimizer compares WH01/WH02/WH03, the decision engine recommends `DIVERT`, and
-the food-loss panel shows the kg and QAR saved. See [pitch/DEMO_SCRIPT.md](pitch/DEMO_SCRIPT.md).
+the food-loss panel shows the kg and QAR saved. `make present` plays the whole
+four-truck story on a timeline, and `make present-check` confirms the live feed
+is fresh first.
 
 ### Local development (no Docker)
 
@@ -122,11 +121,9 @@ See [ARCHITECTURE.md](ARCHITECTURE.md) for the full map and
 | `laya/` | Container for the local System-1 decision engine (`laya-serve`) |
 | `data/` | Reference CSVs (trucks, products, batches, warehouses, routes, inventory) + `opendata/` catalogue |
 | `tests/` | pytest suite, including the end-to-end demo test |
-| `legacy/` | Retired code kept for reference (`web/`, `simulator/`, `coldchain/`, `person2-frontend/`, old ColdGuard modules) |
-| `docs/` | thesis, API contract, domain model, design, person specs |
-| `firmware/`, `pitch/`, `example/`, `mdfile/` | Hardware, pitch deck, references |
-
-Anything in `legacy/` is dead; the canonical stack never imports it.
+| `docs/` | API contract, domain model, brand |
+| `firmware/` | The real sensor node (NodeMCU + DHT11) |
+| `scripts/` | `dev_no_broker.py` (whole pipeline in one process), `present.py` (the on-stage timeline) |
 
 ## Data flow
 
@@ -347,6 +344,6 @@ science, emissions, physics and operations, each with its licence, access mode
 (`offline` / `network`) and fetch status. `data/opendata/provenance.json`
 records what actually arrived; `data/opendata/SOURCES.md` is the human-readable
 catalogue. Literature product values are marked `verified=no` and must not be
-presented as certified. The original open-data fetcher lives under
-`legacy/coldchain/`; the canonical backend serves the catalogue and reference
-CSVs and does not depend on the fetcher.
+presented as certified. The original open-data fetcher was deleted with the old
+`coldchain/` service (recover it from git history at `15650c9`); the canonical
+backend serves the committed catalogue and reference CSVs.

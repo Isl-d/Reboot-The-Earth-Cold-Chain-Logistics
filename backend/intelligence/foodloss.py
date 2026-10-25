@@ -1,4 +1,4 @@
-"""Food-loss engine (Person 4 §10).
+"""Food-loss engine.
 
     FoodSaved = ExpectedLoss(without intervention) - ExpectedLoss(with intervention)
 

@@ -1,4 +1,4 @@
-"""The intelligence engine (Person 4 §1–§11).
+"""The intelligence engine.
 
     context → features → anomaly → spoilage → risk → optimization
             → decision → food-loss → unified response → store → WebSocket

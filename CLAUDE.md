@@ -3,8 +3,7 @@
 AI-powered cold-chain management & food-loss prevention system. Read
 [ARCHITECTURE.md](ARCHITECTURE.md) first; it is the single source of truth for
 the system shape. Wire shapes live in [docs/API_CONTRACT.md](docs/API_CONTRACT.md),
-objects in [docs/DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md), and the full
-component-by-component reference and thesis in [pitch/AI_COLD_STORAGE_LOGISTICS.md](pitch/AI_COLD_STORAGE_LOGISTICS.md).
+and objects in [docs/DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md).
 
 ## What runs
 
@@ -55,11 +54,10 @@ Shared contract files (change needs both owners): `docs/API_CONTRACT.md`,
 - **Every displayed value carries a provenance tag**: MEASURED, CALCULATED,
   PREDICTED, OPTIMIZED, AI-EXPLAINED, SYNTHETIC. Never present synthetic data as
   measured, or literature values as certified thresholds.
-- **One frontend.** `frontend/` is the app; `legacy/person2-frontend/` is its
-  historical source. Nothing in the canonical stack imports from `legacy/`.
-  `landing/` is a separate static marketing page, not a second app: no API
-  calls, imports nothing from `frontend/`, and its demo figures are labelled.
-- `backend/geo.py` is canonical (used by `processing.py`) — do not treat it as
-  legacy.
+- **One frontend.** `frontend/` is the app. `landing/` is a separate static
+  marketing page, not a second app: no API calls, imports nothing from
+  `frontend/`, and its demo figures are labelled.
+- **One backend.** `backend/` is the only backend; retired versions were
+  deleted and live only in git history (before commit `15650c9`).
 - Work in the canonical tree; prototype tunables go in `backend/config.py` as
   `CC_*`, never as scattered constants.

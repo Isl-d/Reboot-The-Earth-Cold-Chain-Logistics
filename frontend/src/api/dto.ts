@@ -153,7 +153,7 @@ export interface FoodLossAnalyticsDto {
   preventedLossPercent: number
   estimatedFinancialLoss: number
   estimatedFinancialLossPrevented: number
-  /** CO2 avoided — docs/PIPELINE.md Food Loss Engine output, kept optional since the spec's own example JSON omits it. */
+  /** CO2 avoided — food-loss engine output, kept optional since the spec's own example JSON omits it. */
   co2AvoidedKg?: number
 }
 
@@ -223,7 +223,7 @@ export interface FoodLossSeriesDto {
   byWarehouse: FoodLossBreakdownItemDto[]
 }
 
-/** /ws/live push message (same stream as Person 1's /sensors/live — see docs/PIPELINE.md "Resolved"). */
+/** /ws/live push message (the stream Person 1's screens also use — see docs/API_CONTRACT.md §5). */
 export interface LiveMessageDto {
   truckId: string
   sample: TelemetrySampleDto
@@ -232,8 +232,8 @@ export interface LiveMessageDto {
 /**
  * GET /api/trucks — simulation-config metadata (which trucks exist and what
  * they're carrying), for the Simulation screen's truck/batch selectors. Not
- * to be confused with Person 1's live `Truck` interface (GPS/telemetry) in
- * shared-types.ts — this is just picklist data.
+ * to be confused with the live truck state (GPS/telemetry) — this is just
+ * picklist data.
  */
 export interface SimTruckOptionDto {
   truckId: string

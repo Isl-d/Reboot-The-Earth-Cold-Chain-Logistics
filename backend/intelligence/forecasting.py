@@ -1,4 +1,4 @@
-"""Demand forecasting baseline (Person 4 §9).
+"""Demand forecasting baseline.
 
 A strong deterministic baseline first: spread the batch over its remaining
 shelf life and modulate by day of week. No training, no black box — documented

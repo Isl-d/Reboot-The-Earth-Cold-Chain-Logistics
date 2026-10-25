@@ -7,7 +7,7 @@ interface SegmentedControlProps<T extends string> {
   className?: string
 }
 
-// Today / Day / Week range control — borrowed from examples 2, 3, 5.
+// Today / Day / Week range control.
 export default function SegmentedControl<T extends string>({
   options,
   value,

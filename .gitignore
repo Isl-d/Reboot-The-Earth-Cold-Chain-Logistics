@@ -3,6 +3,8 @@ __pycache__/
 .venv/
 venv/
 .env
+.env*.local
+.vercel/
 .pytest_cache/
 node_modules/
 dist/
@@ -18,4 +20,3 @@ coldchain.db
 
 # Local slide exports stay out of the repo
 *.pptx
-!docs/deck/thermal-trace-pitch.pptx

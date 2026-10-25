@@ -1,4 +1,4 @@
-"""Combined risk score (Person 4 §3).
+"""Combined risk score.
 
 Blends thermal exposure, humidity exposure, product age, remaining shelf life,
 spoilage probability, route delay and anomaly severity. A single critical

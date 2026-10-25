@@ -9,14 +9,10 @@ venv
 node_modules
 dist
 .vite
-mdfile
 
 # Not needed inside the backend/simulator image (each has its own context).
-legacy
 frontend
 landing
-example
-pitch
 docs
 tests
 firmware
