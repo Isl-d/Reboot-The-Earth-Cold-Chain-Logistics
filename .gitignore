@@ -20,3 +20,4 @@ coldchain.db
 
 # Local slide exports stay out of the repo
 *.pptx
+!docs/deck/thermal-trace-pitch.pptx
