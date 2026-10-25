@@ -232,3 +232,19 @@ def test_a_failing_message_does_not_kill_the_feed(client, live, monkeypatch):
     msg = types.SimpleNamespace(topic="coldchain/trucks/T102/telemetry",
                                 payload=json.dumps(_wire()).encode())
     pipeline._on_message(None, None, msg)  # must not raise
+
+
+def test_route_geometry_is_the_route_table(client):
+    """The map draws the same waypoints the simulator drives (data/routes.csv)."""
+    features = client.get("/api/routes/geojson").json()["features"]
+    assert [f["properties"]["route_id"] for f in features] == ["R1", "R2", "R3", "R4"]
+    r1 = features[0]
+    assert r1["properties"]["name"] == "Hamad Port to Central Warehouse"
+    assert r1["geometry"]["type"] == "LineString"
+    assert r1["geometry"]["coordinates"][0] == [51.607, 25.007]  # GeoJSON is [lon, lat]
+
+
+def test_single_route_geometry(client):
+    body = client.get("/api/routes/R2/geojson").json()
+    assert body["features"][0]["properties"]["route_id"] == "R2"
+    assert client.get("/api/routes/R9/geojson").status_code == 404

@@ -165,6 +165,10 @@ Control — `coldchain/control/{truckId}` (or `.../all`) accepts
 `{"scenario":"...","speedMultiplier":1.0,"paused":false,"reset":false}`.
 `speedMultiplier` scales how fast the truck moves along its route.
 
+A real sensor node ([firmware/node/](firmware/node/README.md), NodeMCU + DHT11)
+publishes this same message as truck T101. Set `CC_REAL_TRUCKS=T101` so the
+simulator leaves that truck to the node.
+
 ## WebSocket `/ws/live`
 
 On connect the first frame is `HELLO` with the current fleet, then:

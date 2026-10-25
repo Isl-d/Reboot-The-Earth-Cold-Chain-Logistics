@@ -12,6 +12,7 @@ The story, on a timeline from the moment you run it:
     +20s  T102 chicken   REFRIGERATION_FAILURE   the emergency (the demo's hero)
     +40s  T103 milk      NORMAL                  driver closes the door; it recovers
           T101 chicken   NORMAL throughout       the healthy reference truck
+                                                 (or the real sensor node, firmware/node)
 
 So the Command Center shows triage, not one red dot: a delay the system does
 not panic about, a door incident that opened and resolved on its own, and one
@@ -121,27 +122,30 @@ def preflight(api: Api) -> None:
     say(f"  backend   ok (database={health.get('database')}, trucks={health.get('trucks')})")
 
     fleet = trucks(api)
-    oldest = max(age_s(t.get("lastUpdated")) for t in fleet.values())
+    stalest = max(fleet, key=lambda tid: age_s(fleet[tid].get("lastUpdated")))
+    oldest = age_s(fleet[stalest].get("lastUpdated"))
     if oldest > STALE_S:
-        die(f"the live feed is stale: truck readings are up to {oldest:.0f}s old.\n"
-            "      The backend is not ingesting telemetry. Restart the backend\n"
+        die(f"the live feed is stale: {stalest}'s last reading is {oldest:.0f}s old.\n"
+            "      If that truck is the real sensor node (CC_REAL_TRUCKS), check the\n"
+            "      node. Otherwise the backend is not ingesting telemetry: restart it\n"
             "      (`docker compose restart backend` or re-run `make dev-backend`)\n"
             "      and make sure exactly ONE simulator is running.")
     say(f"  telemetry live (oldest truck reading {oldest:.0f}s ago)")
 
     # One simulator ticks every ~3 s. Two simulators interleave their readings,
     # so the same truck reports twice as often and its temperature flips
-    # between two different stories. Sample the feed for a few seconds.
+    # between two different stories. Sample the feed for a few seconds. T102,
+    # the hero, is always simulated; T101 may be the real sensor node.
     seen: set[str] = set()
     end = time.time() + 9
     while time.time() < end:
-        seen.add(trucks(api)["T101"].get("lastUpdated") or "")
+        seen.add(trucks(api)["T102"].get("lastUpdated") or "")
         time.sleep(1)
     if len(seen) > 4:
-        say(f"  WARNING  T101 reported {len(seen)} times in 9s. Two simulators are\n"
+        say(f"  WARNING  T102 reported {len(seen)} times in 9s. Two simulators are\n"
             "           probably running; stop one or the trucks will flicker.")
     else:
-        say(f"  simulator ok ({len(seen)} readings from T101 in 9s)")
+        say(f"  simulator ok ({len(seen)} readings from T102 in 9s)")
 
 
 def reset(api: Api) -> None:

@@ -82,6 +82,11 @@ PostgreSQL + Redis → intelligence worker → predictions → REST + WebSocket 
 frontend. Simulation control flows the other way: frontend → REST →
 `/api/simulation/*` → MQTT control topic → simulator.
 
+**A real sensor node** (`firmware/node/`, NodeMCU + DHT11) can take one truck's
+place, T101 by default. It publishes the same message on the same topic, so
+nothing downstream changes; `CC_REAL_TRUCKS=T101` tells the simulator to leave
+that truck alone. `tests/test_firmware.py` holds the node to the contract.
+
 ## 3. Reasoning pipeline (Data → Food Loss → UI)
 
 Each stage maps to an exact file. Deterministic math is always in code; the LLM
@@ -177,13 +182,14 @@ backend/                   FastAPI app + data platform + intelligence.
 
 data/                      Reference CSVs seeded by backend & read by simulator.
   warehouses.csv trucks.csv products.csv product_batches.csv inventory.csv
-  routes.csv routes.geojson stores.csv
+  routes.csv stores.csv    (route waypoints also draw the map's route lines)
   opendata/                Licence catalogue + provenance, served by GET /api/opendata.
 scripts/                   dev_no_broker.py (whole pipeline, no broker/db) ·
                            present.py (the on-stage timeline, `make present`).
 tests/                     pytest suite (SQLite; Redis/MQTT closed; LLM mocked).
 frontend/                  The merged app: React 19 + Tailwind 4 + Leaflet.
                            Command center (Person 1) + intelligence screens.
+firmware/node/             NodeMCU + DHT11 sensor node; publishes as T101.
 laya/                      Container for Laya, the local System-1 decision engine.
   Dockerfile               python:3.12-slim + `laya[serve]`; preloads checkpoints.
 docker-compose.yml         mosquitto · timescaledb · redis · backend · simulator
