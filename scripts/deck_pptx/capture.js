@@ -6,7 +6,8 @@ const fs = require("fs");
 const path = require("path");
 
 const OUT = path.resolve(process.argv[2] || "layers");
-const DECK = path.resolve(__dirname, "../../docs/deck/index.html");
+// DECK=<file> renders another copy of the deck (e.g. a reordered one).
+const DECK = path.resolve(process.env.DECK || path.join(__dirname, "../../docs/deck/index.html"));
 const SCALE = 1.5;
 const PAD = 24;
 const ANIMATED = "[data-a],.draw,.grow,.rise,.wipe,.shrink";
