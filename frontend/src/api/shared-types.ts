@@ -1,5 +1,6 @@
 /*
-  Copied verbatim from docs/PERSON_1_COMMAND_CENTER.md §7 "API contract".
+  Copied verbatim from Person 1's original command-center API contract; the
+  live wire shapes are in docs/API_CONTRACT.md.
   Person 1 owns these interfaces — do not rename or restructure fields here.
   If Person 1's real contract changes, update this file to match, then fix
   whichever adapters in src/api/adapters/ consume it.

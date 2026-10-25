@@ -63,7 +63,7 @@ export function SafeLimitLine({ y, label }: { y: number; label?: string }) {
   )
 }
 
-// A shaded band marking a temperature excursion window — plan.md "Approved extras" #2.
+// A shaded band marking a temperature excursion window.
 export function ExcursionBand({ x1, x2 }: { x1: number | string; x2: number | string }) {
   return <ReferenceArea x1={x1} x2={x2} fill={CHART_COLORS.excursionFill} stroke={CHART_COLORS.excursion} strokeOpacity={0.3} />
 }

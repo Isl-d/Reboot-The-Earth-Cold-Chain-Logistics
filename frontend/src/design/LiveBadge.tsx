@@ -1,7 +1,7 @@
 import { clsx } from './clsx'
 import Pill from './Pill'
 
-// Pulsing LIVE indicator for the top bar — plan.md "Approved extras" #1.
+// Pulsing LIVE indicator for the top bar.
 export default function LiveBadge({ live = true, className }: { live?: boolean; className?: string }) {
   return (
     <Pill

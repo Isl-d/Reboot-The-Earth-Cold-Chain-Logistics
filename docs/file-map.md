@@ -64,8 +64,9 @@ contract see [API_CONTRACT.md](API_CONTRACT.md); for the objects see
 | `ARCHITECTURE.md` | architecture, layers, ownership |
 | `docs/API_CONTRACT.md` | exact JSON for every seam |
 | `docs/DOMAIN_MODEL.md` | objects and relationships |
-| `docs/DESIGN.md` · `DESIGN.md` | visual system |
-| `docs/PIPELINE.md` · `docs/PERSON_1_COMMAND_CENTER.md` · `docs/PERSON_2_FRONTEND_INTELLIGENCE.md` | person specs |
+| `DESIGN.md` | visual system |
+| `docs/PIPELINE.md` | target pipeline (vision vs. what is built) |
+| `mdfile/PERSON_4_BACKEND_AI_MATH_OPTIMIZATION.md` | the intelligence math spec cited by `backend/intelligence/` |
 | `pitch/DECK.md` · `pitch/DEMO_SCRIPT.md` | the presentation and the four-minute run |
 | `legacy/README.md` | what was retired and what replaced it |
 

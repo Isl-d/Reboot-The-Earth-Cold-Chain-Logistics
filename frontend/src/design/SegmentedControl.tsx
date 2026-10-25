@@ -7,7 +7,7 @@ interface SegmentedControlProps<T extends string> {
   className?: string
 }
 
-// Today / Day / Week range control — borrowed from examples 2, 3, 5 (plan.md "Approved extras").
+// Today / Day / Week range control — borrowed from examples 2, 3, 5.
 export default function SegmentedControl<T extends string>({
   options,
   value,

@@ -170,7 +170,7 @@ export async function getOptimizationCandidates(truckId: string, batchId: string
   return computeOptimizationResult(truckId, batchId)
 }
 
-// The spec's GET (read candidates) and POST evaluate (§ "Data you send") ask
+// The GET (read candidates) and POST evaluate endpoints ask
 // the optimizer the same question today, so this simply delegates — a future
 // backend that makes evaluate re-run with different inputs can diverge here.
 export const evaluateOptimization = getOptimizationCandidates
@@ -220,8 +220,8 @@ export async function getInventory(): Promise<InventoryBatchDto[]> {
     const spoilageProbability = Math.round(seededRange(`inv:${batch.id}:risk`, 0.05, 0.85) * 100) / 100
     const predictedDemandKg = Math.round(batch.quantityKg * seededRange(`inv:${batch.id}:demand`, 0.35, 0.75))
     const expiryDays = Math.round(seededRange(`inv:${batch.id}:expiry`, 1, 6))
-    // Only batches currently a truck's cargo get a truckId (docs/api-contracts.md
-    // §7) — most inventory sits at a store with no associated truck.
+    // Only batches currently a truck's cargo get a truckId (docs/API_CONTRACT.md
+    // §4.6) — most inventory sits at a store with no associated truck.
     const truck = TRUCKS.find((t) => t.batchId === batch.id)
     return {
       batchId: batch.id,

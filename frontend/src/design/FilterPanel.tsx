@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { clsx, FOCUS_RING } from './clsx'
 import Pill from './Pill'
 
-// Collapsible filter side panel — plan.md "Approved extras" #3, borrowed from example 4 (Emerson).
+// Collapsible filter side panel, borrowed from example 4 (Emerson).
 
 interface FilterGroupProps {
   title: string

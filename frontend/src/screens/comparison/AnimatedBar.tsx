@@ -7,8 +7,8 @@ interface AnimatedBarProps {
   trackClassName?: string
 }
 
-// Animates from 0 to the target width on mount/change — plan.md "Decisions"
-// → Scenario Comparison: "animated loss bars".
+// Animates from 0 to the target width on mount/change — the Scenario
+// Comparison's animated loss bars.
 export default function AnimatedBar({ percent, colorClassName, trackClassName }: AnimatedBarProps) {
   const [width, setWidth] = useState(0)
 

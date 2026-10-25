@@ -1,6 +1,6 @@
 /*
   Wire shapes — exactly what the backend sends today, per the example JSON in
-  docs/PERSON_2_FRONTEND_INTELLIGENCE.md. "DTO" = Data Transfer Object: the
+  docs/API_CONTRACT.md. "DTO" = Data Transfer Object: the
   shape as it arrives over the wire, before src/api/adapters/ turns it into
   the frontend model types in src/api/types.ts.
 
@@ -9,7 +9,7 @@
   consume the adapted model types and never import from here directly.
 */
 
-// ---- Simulation (§1) ----------------------------------------------------
+// ---- Simulation ----------------------------------------------------
 
 export type ScenarioId =
   | 'NORMAL'
@@ -35,7 +35,7 @@ export interface SimulationStateDto {
   startedAt: string
 }
 
-// ---- Mathematical Model (§2) ---------------------------------------------
+// ---- Mathematical Model ---------------------------------------------
 
 export interface ThermalExposureDto {
   safeTemperatureC: number
@@ -111,7 +111,7 @@ export interface ExplainDto {
   moderation?: { flagged?: boolean } | null
 }
 
-// ---- Optimization (§3) ---------------------------------------------------
+// ---- Optimization ---------------------------------------------------
 
 export interface OptimizationCandidateDto {
   warehouseId: string
@@ -141,7 +141,7 @@ export interface OptimizationEvaluateRequestDto {
   batchId: string
 }
 
-// ---- Food-loss analytics (§4) --------------------------------------------
+// ---- Food-loss analytics --------------------------------------------
 
 export interface FoodLossAnalyticsDto {
   period: string
@@ -157,7 +157,7 @@ export interface FoodLossAnalyticsDto {
   co2AvoidedKg?: number
 }
 
-// ---- Inventory (§5) --------------------------------------------------
+// ---- Inventory --------------------------------------------------
 
 export type InventoryAction = 'CONTINUE' | 'TRANSFER' | 'DISCOUNT' | 'PRIORITIZE_SALE' | 'REDISTRIBUTE' | (string & {})
 
@@ -172,16 +172,15 @@ export interface InventoryBatchDto {
   spoilageProbability: number
   recommendation: InventoryAction
   /**
-   * PROPOSED addition, not in the spec's example JSON — needed for the
-   * "Evaluate options" row action (POST /api/optimization/evaluate needs a
-   * truckId). Absent when the batch isn't currently associated with a
-   * truck; see docs/api-contracts.md §7.
+   * Needed for the "Evaluate options" row action (POST
+   * /api/optimization/evaluate needs a truckId). Absent when the batch isn't
+   * currently associated with a truck; see docs/API_CONTRACT.md §4.6.
    */
   truckId?: string
 }
 
-// ---- Scenario comparison (§6) --------------------------------------------
-// Not in the spec's example JSON — proposed in docs/api-contracts.md.
+// ---- Scenario comparison --------------------------------------------
+// docs/API_CONTRACT.md §4.7.
 
 export interface ScenarioComparisonDto {
   scenario: ScenarioId
@@ -191,9 +190,8 @@ export interface ScenarioComparisonDto {
   financialSavedQar: number
 }
 
-// ---- PROPOSED — not in the spec, drafted in docs/api-contracts.md --------
-// Every type below needs backend confirmation. Field names may change once
-// confirmed; only this file and the matching adapter should need edits.
+// ---- Telemetry, food-loss series, live stream, simulation trucks --------
+// Shapes per docs/API_CONTRACT.md §4, §5 and §6.
 
 /** GET /api/trucks/{id}/telemetry response item. */
 export interface TelemetrySampleDto {
@@ -205,7 +203,7 @@ export interface TelemetrySampleDto {
   doorOpen: boolean
 }
 
-/** GET /api/analytics/food-loss/series — the chart data §4's charts need beyond the single-period summary. */
+/** GET /api/analytics/food-loss/series — the chart data the food-loss charts need beyond the single-period summary. */
 export interface FoodLossTimePointDto {
   /** ISO 8601 date, one point per day. */
   date: string
