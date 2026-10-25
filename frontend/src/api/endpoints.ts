@@ -1,7 +1,6 @@
 /*
-  Every backend URL/path in one place — docs/PERSON_2_FRONTEND_INTELLIGENCE.md
-  "Data you receive" / "Data you send". If the backend renames a route, this
-  is the only file that needs to change.
+  Every backend URL/path in one place — docs/API_CONTRACT.md. If the backend
+  renames a route, this is the only file that needs to change.
 */
 
 export const endpoints = {

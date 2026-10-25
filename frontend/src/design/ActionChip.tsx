@@ -2,9 +2,9 @@ import { clsx } from './clsx'
 import Pill from './Pill'
 import type { BackendAction, SpecAction } from './types'
 
-// The 5 actions from docs/PERSON_2_FRONTEND_INTELLIGENCE.md §5, styled with
+// The 5 actions from backend/intelligence/inventory_opt.py, styled with
 // the Recommended provenance treatment. Any other backend action falls back
-// to a generic slate style (plan.md "Decisions" → Actions).
+// to a generic slate style.
 const SPEC_ACTION_LABEL: Record<SpecAction, string> = {
   CONTINUE: 'Continue',
   TRANSFER: 'Transfer',

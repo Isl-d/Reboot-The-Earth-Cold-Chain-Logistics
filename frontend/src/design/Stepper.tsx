@@ -1,5 +1,5 @@
-// Origin → destination stepper with ETA — plan.md "Decisions" → Optimization
-// trip visual (no map; maps are Person 1's scope).
+// Origin → destination stepper with ETA — the Optimization trip visual
+// (no map; maps are Person 1's scope).
 
 interface StepperProps {
   originLabel: string

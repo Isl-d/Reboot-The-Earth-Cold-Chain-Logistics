@@ -3,8 +3,8 @@ interface DemandBarProps {
   quantityKg: number
 }
 
-// Predicted demand as a share of on-hand quantity — plan.md "Decisions" →
-// Inventory row extras. Purely a ratio of two backend-supplied numbers.
+// Predicted demand as a share of on-hand quantity, shown on each Inventory
+// row. Purely a ratio of two backend-supplied numbers.
 export default function DemandBar({ predictedDemandKg, quantityKg }: DemandBarProps) {
   const percent = quantityKg > 0 ? Math.min(100, (predictedDemandKg / quantityKg) * 100) : 0
   return (

@@ -13,7 +13,7 @@ export const PROVENANCE_LABEL: Record<ProvenanceKind, string> = {
   finance: 'Finance-Validated',
 }
 
-// The 5 recommendation actions from docs/PERSON_2_FRONTEND_INTELLIGENCE.md §5.
+// The 5 recommendation actions from backend/intelligence/inventory_opt.py.
 export type SpecAction = 'CONTINUE' | 'TRANSFER' | 'DISCOUNT' | 'PRIORITIZE_SALE' | 'REDISTRIBUTE'
 
 // Any other action the backend may send (decision-engine actions from

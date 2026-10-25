@@ -24,7 +24,7 @@ interface KpiCardProps {
   trendTier?: StatusTier
 }
 
-// plan.md "Decisions" → KPI cards: big mono number + provenance badge + mini trend.
+// KPI card: big mono number + provenance badge + mini trend.
 export default function KpiCard({ label, value, unit, provenance, tip, compactProvenance, trend, trendTier }: KpiCardProps) {
   return (
     <Card className="p-4">

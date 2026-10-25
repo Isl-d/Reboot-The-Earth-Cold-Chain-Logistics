@@ -121,5 +121,5 @@ FOOD LOSS ENGINE                 FRONTEND
 | Optimization | Person 2 | Optimization |
 | Inventory | Person 2 | Inventory |
 | Food Loss | Person 2 | Food-Loss Analytics + Scenario Comparison |
-| Live Map, Fleet, Alerts | Person 1 | not built here (see PERSON_1_COMMAND_CENTER.md) |
+| Live Map, Fleet, Alerts | Person 1 | command center (`frontend/src/pages/`, `screens/map/`) |
 | Warehouse | most probably Person 1 (not certain) | not built here unless confirmed |

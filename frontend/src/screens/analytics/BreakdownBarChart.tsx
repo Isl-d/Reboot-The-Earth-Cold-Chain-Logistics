@@ -10,7 +10,7 @@ interface BreakdownBarChartProps {
   emptyMessage?: string
 }
 
-// Sorted horizontal bars — plan.md "Decisions" → Breakdown charts.
+// Sorted horizontal bars for the loss breakdowns.
 export default function BreakdownBarChart({ data, color, height, emptyMessage = 'No data yet.' }: BreakdownBarChartProps) {
   const sorted = [...data].sort((a, b) => b.lostKg - a.lostKg)
   const chartHeight = height ?? Math.max(160, sorted.length * 36)

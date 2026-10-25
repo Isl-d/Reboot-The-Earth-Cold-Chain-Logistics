@@ -58,7 +58,7 @@ export default function AnalyticsScreen() {
   )
 
   // "Saved food over time" and "Financial impact" aren't returned as their own
-  // series (docs/api-contracts.md doesn't define one) — derived only from
+  // series (docs/API_CONTRACT.md doesn't define one) — derived only from
   // backend-supplied numbers already fetched, never invented: per-day saved
   // food is predicted minus actual loss (where prevention worked), and the
   // financial chart is the two backend scalars placed side by side.

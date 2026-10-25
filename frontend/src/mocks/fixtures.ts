@@ -1,6 +1,6 @@
 /*
   Static reference data for the mock backend — several trucks, batches, and
-  Qatar warehouses, per plan.md "Decisions" → Data before backend. This is
+  Qatar warehouses, so screens can be built before the backend. This is
   demo-only fixture data; the real backend owns the actual fleet/inventory.
 */
 

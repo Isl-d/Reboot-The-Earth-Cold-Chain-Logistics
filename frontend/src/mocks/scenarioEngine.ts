@@ -2,8 +2,8 @@
   Pure functions that stand in for the AI Engine (docs/PIPELINE.md) while
   VITE_USE_MOCKS=true. Every value here is a deliberately simple, documented
   demo formula — never presented as the official calculation, and never
-  reachable when talking to the real backend. Each of the 6 scenarios from
-  docs/PERSON_2_FRONTEND_INTELLIGENCE.md §1 produces a distinct, believable
+  reachable when talking to the real backend. Each of the 6 simulator scenarios
+  produces a distinct, believable
   curve as a pure function of elapsed simulated minutes, so the mock layer
   needs no growing history buffer — any point in time can be recomputed.
 */
