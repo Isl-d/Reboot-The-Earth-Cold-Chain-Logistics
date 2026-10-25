@@ -1,6 +1,6 @@
 import { clsx } from '@/design/clsx'
 
-// docs/PIPELINE.md's architecture: Sensors → AI Engine → Decision → Action →
+// The pipeline at a glance: Sensors → AI Engine → Decision → Action →
 // Food Loss. Only the first two stages are backed by data this screen
 // actually fetches (telemetry, thermal exposure/deterioration/spoilage) —
 // Decision/Action/Food Loss belong to Optimization/Analytics, so they stay

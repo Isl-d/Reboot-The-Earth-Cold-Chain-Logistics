@@ -18,7 +18,7 @@ export function adaptFoodLossAnalytics(dto: FoodLossAnalyticsDto): FoodLossAnaly
       'estimatedFinancialLossPrevented',
       dto.estimatedFinancialLossPrevented,
     ),
-    // Optional — docs/PIPELINE.md Food Loss Engine output, absent from the spec's own example JSON.
+    // Optional — food-loss engine output, absent from the spec's own example JSON.
     co2AvoidedKg: typeof dto.co2AvoidedKg === 'number' ? dto.co2AvoidedKg : undefined,
   }
 }

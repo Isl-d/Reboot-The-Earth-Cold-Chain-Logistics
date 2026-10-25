@@ -3,8 +3,8 @@
 > Single source of truth for the system architecture. If this document and any
 > other file disagree, this document wins. Domain objects live in
 > [`docs/DOMAIN_MODEL.md`](docs/DOMAIN_MODEL.md); wire shapes live in
-> [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md); the full component-by-component
-> reference and thesis live in [`AI_COLD_STORAGE_LOGISTICS.md`](AI_COLD_STORAGE_LOGISTICS.md).
+> [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md); why the system is built this
+> way, and its limits, are in [§7](#7-design-decisions-and-limits).
 
 ## 1. What the system is
 
@@ -104,6 +104,10 @@ consumer. The single Person 3 → Person 4 seam is `backend/context.py`
 (`build_context`), used by both the worker and
 `GET /api/internal/context/{truckId}`.
 
+Inventory runs beside the chain: `forecasting.py` forecasts demand, and
+`inventory_opt.py` maps `ExpectedExcess = Inventory − ForecastDemand` to one of
+`CONTINUE`, `TRANSFER`, `DISCOUNT`, `PRIORITIZE_SALE` or `REDISTRIBUTE`.
+
 ### Two AI layers (System 1 / System 2)
 
 The deterministic core is the authority. Two AI layers sit around it:
@@ -146,6 +150,7 @@ backend/                   FastAPI app + data platform + intelligence.
   db.py                    Engine/session/health.
   seed.py                  Idempotent seed from data/*.csv.
   ws.py                    WebSocket connection manager + fan-out.
+  control.html             Standalone manual-control panel, served at /control.
   ingest/                  The only ingestion path.
     consumer.py            MQTT → validate → normalize → store → incidents → WS.
     validate.py            Shape/range/clock/device checks; reject reasons.
@@ -174,8 +179,8 @@ data/                      Reference CSVs seeded by backend & read by simulator.
   warehouses.csv trucks.csv products.csv product_batches.csv inventory.csv
   routes.csv routes.geojson stores.csv
   opendata/                Licence catalogue + provenance, served by GET /api/opendata.
-mosquitto/                 mosquitto.conf.
-scripts/                   dev_no_broker.py (whole pipeline, no broker/db).
+scripts/                   dev_no_broker.py (whole pipeline, no broker/db) ·
+                           present.py (the on-stage timeline, `make present`).
 tests/                     pytest suite (SQLite; Redis/MQTT closed; LLM mocked).
 frontend/                  The merged app: React 19 + Tailwind 4 + Leaflet.
                            Command center (Person 1) + intelligence screens.
@@ -183,46 +188,31 @@ laya/                      Container for Laya, the local System-1 decision engin
   Dockerfile               python:3.12-slim + `laya[serve]`; preloads checkpoints.
 docker-compose.yml         mosquitto · timescaledb · redis · backend · simulator
                            · frontend (:5173, proxying to backend :8000).
+                           The broker config is inline (`configs:`).
 Makefile                   Every on-stage command. `make demo` is the demo.
 requirements.txt .env.example
 ```
 
-## 5. Legacy / retired
+### Where a new file goes
 
-The original ColdGuard code **lives under `legacy/`** (see
-[`legacy/README.md`](legacy/README.md)). Nothing in the canonical stack
-(`backend/`, `sensor-simulator/`, `frontend/`, `scripts/`, `tests/`, `data/`)
-imports from it, and `make test` does not collect it. It is kept for reference,
-not to build on.
-
-| Path under `legacy/` | Why it is retired |
+| If it… | Put it in |
 |---|---|
-| `web/` | Earlier Vite frontend. Superseded by `frontend/` (merged Person 1 + Person 2). |
-| `simulator/sim.py` | Earlier single-file simulator. Superseded by `sensor-simulator/` reading the shared `data/*.csv`. |
-| `backend/agent.py` | Dead ColdGuard module. Superseded by `backend/intelligence/llm.py` (explainer). |
-| `backend/audit.py` | Dead ColdGuard module. Not needed for the demo. |
-| `backend/detector.py` | Superseded by `backend/ingest/incidents.py` + `backend/intelligence/anomaly.py`. |
-| `backend/freshness.py` | Superseded by `backend/intelligence/features.py` + `spoilage.py`. |
-| `backend/planner.py` | Superseded by `backend/intelligence/optimization.py` + `decision.py`. |
-| `backend/state.py` | Superseded by `backend/cache.py` + `backend/processing.py`. |
-| `backend/ingest.py` | Old ingest module (was shadowed by the `backend/ingest/` package). Superseded by the package. |
-| `backend/templates/track.html` | Server-rendered QR page. Dropped. |
-| `db/schema.sql` | Old reference DDL. Superseded by `backend/models.py` + `create_all`. |
-| `tests/`, `tests/traces/` | Tests for the above. Superseded by the canonical `tests/`. |
+| computes a number from telemetry | `backend/intelligence/` |
+| moves, stores, validates or serves data | `backend/ingest/`, `backend/routers/` |
+| is a new sensor or scenario | `sensor-simulator/` |
+| draws one thing on screen | `frontend/src/` |
+| is reference data | `data/` |
+| pins behaviour the demo depends on | `tests/` |
 
-The earlier `coldchain/` package has likewise been retired to `legacy/coldchain/`
-(it duplicated the Person 3 pipeline). Its open-data catalogue is the one part
-still used: those assets now live in `data/opendata/` and are served by
-`GET /api/opendata`. Nothing in the canonical stack imports `legacy/coldchain/`.
+## 5. Retired code
 
-> **Not legacy:** `backend/geo.py` is live — imported by
-> `backend/processing.py`, `backend/intelligence/features.py` and
-> `backend/intelligence/optimization.py`. Do not remove it.
-
-The standalone Person 2 app (root `src/` plus its Vite/Tailwind config) has
-likewise been retired to `legacy/person2-frontend/`: its intelligence screens
-are now merged into `frontend/` (React 19 · Tailwind 4 · Leaflet · Recharts),
-which is the single UI.
+Earlier versions were deleted once the current tree replaced them: the original
+ColdGuard backend, simulator and dashboard; the standalone `coldchain/` service;
+and the standalone Person 2 app, whose screens now live in `frontend/`. There is
+one backend (`backend/`), one simulator (`sensor-simulator/`) and one app
+(`frontend/`). Recover anything retired from git history at commit `15650c9`.
+The open-data catalogue from `coldchain/` lives on in `data/opendata/`, served
+by `GET /api/opendata`.
 
 ## 6. The one obvious way to run the demo
 
@@ -246,3 +236,71 @@ On-stage helpers: `make scenario SCENARIO=REFRIGERATION_FAILURE TRUCK=T102`,
 
 Offline variants: `make dev-nobroker` (whole pipeline in process, no broker/db/
 Docker), `make dev-backend`, `make dev-sim`, `make test`.
+
+## 7. Design decisions and limits
+
+### Where AI is used, and where it is not
+
+Deterministic code owns every number. A non-generative model may make the fast
+call; a generative model may only explain it, and can never introduce a number.
+
+| Task | Method | Why this method | File |
+|---|---|---|---|
+| Thermal exposure, deterioration, shelf life | Deterministic physics | Must be exact, reproducible and auditable | `features.py` |
+| Risk | Weighted blend with floors | Safety-critical; every factor is visible | `intelligence/risk.py` |
+| Anomaly | Rolling z-score + rules | Needs no labelled data, explainable, cheap enough for every tick | `anomaly.py` |
+| Spoilage | Deterministic prior | Gives a sane value with no model at all | `spoilage.py` |
+| Warehouse choice | Optimization | A cost objective must be solved, not narrated | `optimization.py` |
+| Demand | Lightweight statistical forecast | Enough for inventory advice, and explainable | `forecasting.py` |
+| Fast typed call + confidence | Laya (System 1) | Cannot emit free text, so cannot fabricate a number | `laya.py` |
+| Explanation | Explainer LLM (System 2) | Language is the one job where an LLM adds value, not risk | `llm.py` |
+
+The worker's stored and displayed numbers are always deterministic
+(`evaluate_truck` ignores `use_llm`). The explainer writes prose at
+`POST /api/ai/explain`; with no key or no provider it falls back to a template
+explanation over the same facts.
+
+### Constants
+
+- **Spoilage prior:** `0.4·(1 − e^(−3D)) + 0.6·(1 − e^(−E_T / E50))`, with
+  `E50 = 15 °C·min` (`backend/config.py`).
+- **Risk weights:** spoilage 0.30, thermal exposure 0.20, remaining shelf life
+  0.20, anomaly 0.15, route delay 0.10, humidity 0.05. Floors stop one strong
+  signal being averaged away: 4 °C above the safe maximum floors the score at
+  CRITICAL, 2 °C at HIGH (`backend/intelligence/risk.py`).
+- Product constants (`Ea`, safe range, humidity limit) in `data/products.csv`
+  are literature values; the reference set behind them,
+  `data/opendata/product_reference.csv`, is marked `verified=no`. A pilot
+  calibrates them per product.
+
+### Degrade, never crash
+
+| When | The system does this |
+|---|---|
+| Redis is unreachable | Runs the same cache in process (`backend/cache.py`) |
+| The TimescaleDB extension is absent | `sensor_readings` is a plain indexed table; behaviour is identical |
+| Laya is down | The `system1` block is absent; the pipeline is unchanged |
+| There is no explainer key or provider | Template explanation; every number is identical |
+| A reading fails validation | It is written to `ingest_rejects` with a reason, never dropped |
+
+The intelligence worker runs off the ingest hot path, so a slow model never
+stalls telemetry.
+
+### Deliberately not used
+
+Kubernetes, Kafka, separate microservices and object storage. None is needed at
+this scale, and each adds failure modes and cost. The intelligence engine is a
+module inside the one FastAPI process, separated by folder, not a service.
+
+### Limits
+
+- Food-science parameters are prototype calibrations, not certified thresholds.
+- The demo fleet and its telemetry are synthetic and labelled `SYNTHETIC`.
+- Laya's base checkpoints are near chance on decision schemas unlike their
+  training data, and over-confident. They corroborate the deterministic
+  decision, never override it, and their confidence is shown as uncalibrated
+  until fine-tuned on cold-chain decisions.
+- The explainer cannot move a number outside `CC_LLM_PROBABILITY_BAND` or pick
+  an infeasible warehouse.
+- No personal data is processed; the models see only structured operational
+  facts.

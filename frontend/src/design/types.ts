@@ -17,5 +17,5 @@ export const PROVENANCE_LABEL: Record<ProvenanceKind, string> = {
 export type SpecAction = 'CONTINUE' | 'TRANSFER' | 'DISCOUNT' | 'PRIORITIZE_SALE' | 'REDISTRIBUTE'
 
 // Any other action the backend may send (decision-engine actions from
-// docs/PIPELINE.md) renders with a generic style — see ActionChip.
+// backend/intelligence/decision.py) renders with a generic style — see ActionChip.
 export type BackendAction = SpecAction | (string & {})

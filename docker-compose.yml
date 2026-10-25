@@ -7,8 +7,9 @@ services:
   mosquitto:
     image: eclipse-mosquitto:2
     ports: ["1883:1883"]
-    volumes:
-      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+    configs:
+      - source: mosquitto_conf
+        target: /mosquitto/config/mosquitto.conf
     healthcheck:
       test: ["CMD", "mosquitto_sub", "-t", "$$SYS/#", "-C", "1", "-W", "3"]
       interval: 10s
@@ -139,3 +140,12 @@ services:
 volumes:
   db_data:
   laya_models:
+
+configs:
+  # Demo laptop only: anonymous listener, no persistence needed.
+  mosquitto_conf:
+    content: |
+      listener 1883 0.0.0.0
+      allow_anonymous true
+      persistence false
+      log_type all

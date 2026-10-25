@@ -1,4 +1,4 @@
-"""Inventory optimization (Person 4 §8).
+"""Inventory optimization.
 
     ExpectedExcess = Inventory - ForecastDemand
 

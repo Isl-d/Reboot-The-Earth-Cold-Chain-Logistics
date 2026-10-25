@@ -1,4 +1,4 @@
-"""Deterministic thermal-exposure and deterioration mathematics (Person 4 §1–2).
+"""Deterministic thermal-exposure and deterioration mathematics.
 
 Pure Python, no ML. These numbers are the facts the LLM is allowed to reason
 *about*; the LLM never computes or overrides them.

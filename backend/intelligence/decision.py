@@ -1,4 +1,4 @@
-"""Deterministic decision engine (Person 4 §11).
+"""Deterministic decision engine.
 
 Risk + shelf life + spoilage + optimization feasibility -> one action. The LLM
 writes the explanation; it never chooses the action.
