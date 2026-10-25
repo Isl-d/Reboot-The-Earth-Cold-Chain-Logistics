@@ -2,6 +2,7 @@
 
     python sensor-simulator/simulator.py --broker localhost --interval 3
     python sensor-simulator/simulator.py --dry-run --ticks 5
+    python sensor-simulator/simulator.py --real T101   # T101 comes from firmware/node
 
 Telemetry ->  coldchain/trucks/{truckId}/telemetry  (the schema Person 3 owns)
 Events    ->  coldchain/trucks/{truckId}/events
@@ -154,11 +155,19 @@ def main() -> None:
     ap.add_argument("--seed", type=int, default=7, help="fixed seed so every demo run is identical")
     ap.add_argument("--dry-run", action="store_true", help="print messages instead of publishing")
     ap.add_argument("--ticks", type=int, default=0, help="stop after N ticks (0 = forever)")
+    ap.add_argument("--real", default=os.environ.get("CC_REAL_TRUCKS", ""),
+                    help="comma-separated trucks a real sensor node publishes for; "
+                         "the simulator leaves them alone (env CC_REAL_TRUCKS)")
     args = ap.parse_args()
 
     rng = random.Random(args.seed)
     infos, _routes = load_trucks()
-    trucks = {i["id"]: Truck(i, rng) for i in infos}
+    real = {t.strip() for t in args.real.split(",") if t.strip()}
+    for truck_id in sorted(real - {i["id"] for i in infos}):
+        print(f"--real: no truck {truck_id} in data/trucks.csv", file=sys.stderr, flush=True)
+    for truck_id in sorted(real & {i["id"] for i in infos}):
+        print(f"leaving {truck_id} to its real sensor node", flush=True)
+    trucks = {i["id"]: Truck(i, rng) for i in infos if i["id"] not in real}
 
     client = None
     if not args.dry_run:

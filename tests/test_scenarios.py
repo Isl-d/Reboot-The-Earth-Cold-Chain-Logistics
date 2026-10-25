@@ -1,7 +1,11 @@
 """Scenario engine and the simulator's physical behaviour."""
 from __future__ import annotations
 
+import os
+import pathlib
 import random
+import subprocess
+import sys
 
 import fleet
 import scenarios
@@ -83,3 +87,15 @@ def test_pause_and_reset():
     assert t.clock == 0.0
     assert abs(t.air - INFO["ideal"]) < 1.0
     assert t.air != warmed
+
+
+def test_real_trucks_are_left_to_their_sensor_node():
+    sim = pathlib.Path(fleet.__file__).with_name("simulator.py")
+    out = subprocess.run(
+        [sys.executable, str(sim), "--dry-run", "--ticks", "1"],
+        env={**os.environ, "CC_REAL_TRUCKS": "T101"},
+        capture_output=True, text=True, timeout=60, check=True,
+    ).stdout
+    assert "leaving T101 to its real sensor node" in out
+    assert "coldchain/trucks/T101/" not in out
+    assert "coldchain/trucks/T102/telemetry" in out

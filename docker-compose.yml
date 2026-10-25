@@ -86,6 +86,8 @@ services:
     environment:
       CC_MQTT_HOST: mosquitto
       CC_READING_INTERVAL_S: "${CC_READING_INTERVAL_S:-3}"
+      # Trucks a real sensor node publishes for (firmware/node), e.g. T101.
+      CC_REAL_TRUCKS: "${CC_REAL_TRUCKS:-}"
     depends_on:
       mosquitto: {condition: service_started}
 

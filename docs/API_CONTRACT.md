@@ -858,7 +858,7 @@ in the router):
 - `GET /api/trucks` → `{ "trucks": [ … ] }` (wrapped; see 4.1)
 - `GET /api/warehouses` → `{ "warehouses": [ { id, name, latitude, longitude, capacityKg, availableCapacityKg, minTempC, maxTempC } ] }`
 - `GET /api/routes` → array of `{ id, name, origin, destination, distance_km, duration_min, waypoint_count }`
-- `GET /api/routes/geojson`, `GET /api/routes/{routeId}/geojson`, `GET /api/routes/{routeId}/trucks`
+- `GET /api/routes/geojson`, `GET /api/routes/{routeId}/geojson`, `GET /api/routes/{routeId}/trucks` (geometry is built from the `routes` table, seeded from `data/routes.csv`; LineString coordinates are `[lon, lat]`)
 - `GET /api/inventory` → `{ "inventory": [ … ] }`; `GET /api/inventory/{batchId}` → bare array (see 4.6)
 - `GET /api/incidents?status=OPEN&truckId=T102&limit=200` → array of incident wire objects; `GET /api/incidents/{id}`
 - `GET /api/trucks/{truckId}/telemetry?from=&to=&limit=500` → array of reading wire objects, oldest first (the newest `limit` readings in the window)
