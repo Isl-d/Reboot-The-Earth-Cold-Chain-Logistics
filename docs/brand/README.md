@@ -1,7 +1,7 @@
 # Thermal Trace — brand
 
 One name, one mark, one palette, used the same way in the dashboard
-(`frontend/`), the landing page (`landing/`) and the docs. The colour and type rules come from [DESIGN.md](../../DESIGN.md);
+(`frontend/`), the landing page (`landing/`) and the docs. The colour and type rules come from [DESIGN.md](../DESIGN.md);
 this page covers the name, the logo and the voice.
 
 ## Name

@@ -1,7 +1,7 @@
 # CLAUDE.md — repository guide
 
 AI-powered cold-chain management & food-loss prevention system. Read
-[ARCHITECTURE.md](ARCHITECTURE.md) first; it is the single source of truth for
+[ARCHITECTURE.md](docs/ARCHITECTURE.md) first; it is the single source of truth for
 the system shape. Wire shapes live in [docs/API_CONTRACT.md](docs/API_CONTRACT.md),
 and objects in [docs/DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md).
 

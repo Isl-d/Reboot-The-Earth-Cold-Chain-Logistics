@@ -38,7 +38,7 @@ Sensors say what is happening
 ```
 
 For where AI is and is not used, the constants, the fallbacks and the limits,
-see **[ARCHITECTURE.md §7](ARCHITECTURE.md#7-design-decisions-and-limits)**.
+see **[ARCHITECTURE.md §7](docs/ARCHITECTURE.md#7-design-decisions-and-limits)**.
 
 ## One command
 
@@ -107,7 +107,7 @@ frontend/                      REST + WebSocket               backend/          
 
 Layer discipline: `data/` → `backend/ingest/` → `backend/intelligence/` (condition →
 prediction → optimization → decision → food loss) → `backend/routers/` → `frontend/`.
-See [ARCHITECTURE.md](ARCHITECTURE.md) for the full map and
+See [ARCHITECTURE.md](docs/ARCHITECTURE.md) for the full map and
 [docs/DOMAIN_MODEL.md](docs/DOMAIN_MODEL.md) for the objects.
 
 ## Repository layout
@@ -338,7 +338,7 @@ All backend tunables are `CC_*` environment variables (see `.env.example`):
 | 3 | `backend/ingest/`, `backend/routers/` (data), storage, `sensor-simulator/`, `data/` |
 | 4 | `backend/intelligence/`, `backend/context.py`, `backend/opendata/`, intelligence routes |
 
-Full ownership and boundaries: [ARCHITECTURE.md](ARCHITECTURE.md).
+Full ownership and boundaries: [ARCHITECTURE.md](docs/ARCHITECTURE.md).
 
 ## Open data
 

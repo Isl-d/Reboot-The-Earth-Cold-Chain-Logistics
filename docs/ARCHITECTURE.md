@@ -2,8 +2,8 @@
 
 > Single source of truth for the system architecture. If this document and any
 > other file disagree, this document wins. Domain objects live in
-> [`docs/DOMAIN_MODEL.md`](docs/DOMAIN_MODEL.md); wire shapes live in
-> [`docs/API_CONTRACT.md`](docs/API_CONTRACT.md); why the system is built this
+> [`docs/DOMAIN_MODEL.md`](DOMAIN_MODEL.md); wire shapes live in
+> [`docs/API_CONTRACT.md`](API_CONTRACT.md); why the system is built this
 > way, and its limits, are in [§7](#7-design-decisions-and-limits).
 
 ## 1. What the system is
