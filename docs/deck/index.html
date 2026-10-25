@@ -3353,6 +3353,11 @@
         data-title="The anatomy of value"
         data-notes="This is the spine of the product: four layers, each built on the one below. &lt;p&gt;Layer 1, the Thermal Trace, is ground truth: a continuous, timestamped memory of temperature and stress. Layer 2, the Thermal Reserve, is the physical budget left before quality is compromised. Layer 3, the Commercial Reserve, is the economic runway: how much of that remaining life can still be turned into money, CR = Qr × Pr × Vr. Layer 4, the Decision Reserve, is the window left to act before the good options disappear.&lt;/p&gt;&lt;p&gt;Safety rules stay deterministic at layers 1 and 2. Commercial optimisation runs inside them, never around them.&lt;/p&gt;"
       >
+        <div class="source">
+          <span class="tag t-simulated dashed" data-a="fade" style="--d: 200"
+            >Layer 3 designed · staged in the pilot</span
+          >
+        </div>
         <div class="eyebrow" data-a="fade">
           <span class="n">05</span><span class="rule"></span>The product
         </div>
@@ -3405,7 +3410,7 @@
             <div class="layer" data-a="right" style="--d: 950">
               <div class="lh">
                 Layer 3 · Commercial Reserve
-                <span class="tag t-predicted">Predicted</span>
+                <span class="tag t-simulated dashed">Designed</span>
               </div>
               <p>The economic runway: value that can still be realised.</p>
               <div class="cr">CR = Q<sub>r</sub> × P<sub>r</sub> × V<sub>r</sub></div>
@@ -3439,7 +3444,7 @@
       >
         <div class="source">
           <span class="tag t-illustrative dashed" data-a="fade" style="--d: 200"
-            >Countdown · example</span
+            >Countdown · example · Commercial Reserve designed</span
           >
         </div>
         <div class="eyebrow" data-a="fade">
@@ -3513,11 +3518,12 @@
                 margin-top: 14px;
               "
             >
-              DS18B20 · ±0.5 °C
+              DHT11 today · DS18B20 next
             </div>
             <p style="margin-top: 12px; font-size: 21px; line-height: 1.36">
-              Ceiling and floor, so a warm layer shows up instead of hiding in
-              an average.
+              The demo node reads one point. Ceiling and floor probes are the
+              next step, so a warm layer shows up instead of hiding in an
+              average.
             </p>
           </div>
           <div class="pv" data-a style="--d: 370; padding: 22px 24px 24px">
@@ -3529,16 +3535,16 @@
                 margin-top: 14px;
               "
             >
-              Sensirion SHT3x · ±2 % RH
+              DHT11 today · SHT3x next
             </div>
             <p style="margin-top: 12px; font-size: 21px; line-height: 1.36">
-              With temperature it gives the dew point: whether an open door wets
-              the cartons.
+              Rising humidity shows whether an open door is wetting the
+              cartons.
             </p>
           </div>
           <div class="pv" data-a style="--d: 440; padding: 22px 24px 24px">
-            <span class="tag t-measured" style="font-size: 17px"
-              >Shock &amp; tilt</span
+            <span class="tag t-simulated dashed" style="font-size: 17px"
+              >Shock &amp; tilt · simulated</span
             >
             <div
               style="
@@ -3547,7 +3553,7 @@
                 margin-top: 14px;
               "
             >
-              3-axis MEMS accelerometer
+              3-axis MEMS · designed
             </div>
             <p style="margin-top: 12px; font-size: 21px; line-height: 1.36">
               Bruising from a dropped pallet is damage a thermometer never sees.
@@ -3621,8 +3627,9 @@
           >
         </div>
         <p class="small" data-a style="--d: 1000; margin-top: 14px">
-          The first three flow through the pipeline today; the rest are the
-          designed next layer. All publish the same message, so adding one
+          Temperature and humidity flow from a real sensor node today (DHT11,
+          about ±2 °C); shock is simulated and the rest are the designed next
+          layer. All publish the same message, so adding one
           changes nothing downstream.
         </p>
       </section>
@@ -3843,6 +3850,11 @@
         data-title="Layer 3 · Two clocks"
         data-notes="Safe is not the same as sellable, and this is where most systems stop thinking. &lt;p&gt;The Thermal Reserve is the physical clock. It asks whether the food can still be eaten, it runs from production through transport to the shelf-life boundary, and its job is to protect physical life.&lt;/p&gt;&lt;p&gt;The Commercial Reserve is the commercial clock. It asks whether the food can still earn its value. It runs from arrival through customer exposure to sell-through and replenishment, and its job is to protect economic life.&lt;/p&gt;&lt;p&gt;Health creates the possibility of selling; demand creates the possibility of realising value. Commercial Reserve lives where the two meet: the quantity that can realistically be sold, times the probability it sells in time, times the expected value per unit. These are estimates with uncertainty; food-safety release always stays with authorised people.&lt;/p&gt;"
       >
+        <div class="source">
+          <span class="tag t-simulated dashed" data-a="fade" style="--d: 200"
+            >Commercial Reserve · designed, staged in the pilot</span
+          >
+        </div>
         <div class="eyebrow" data-a="fade">
           <span class="n">09</span><span class="rule"></span>Layer 3 · Two clocks
         </div>
@@ -3908,7 +3920,7 @@
       >
         <div class="source">
           <span class="tag t-illustrative dashed" data-a="fade" style="--d: 200"
-            >Illustrative value curve</span
+            >Illustrative value curve · designed</span
           >
         </div>
         <div class="eyebrow" data-a="fade">
@@ -4117,7 +4129,8 @@
             <p>
               Answers typed questions in a single pass: condition, recommended
               action, urgency, needs human review. Open source (Apache-2.0),
-              runs on the laptop.
+              runs on the laptop. Base model: its confidence is shown as
+              uncalibrated.
             </p>
             <div class="guard">
               <svg style="color: var(--p-predicted-fg)">
@@ -4145,9 +4158,9 @@
         </div>
         <div class="models" data-a style="--d: 750">
           <span class="lbl">Plain code, not AI</span>
-          <span class="chip">Spoilage probability</span
+          <span class="chip">Spoilage prior</span
           ><span class="chip">Anomaly detection</span
-          ><span class="chip">Demand forecasting</span>
+          ><span class="chip">Demand baseline</span>
         </div>
       </section>
 
@@ -4186,13 +4199,14 @@
               <td>Inventory rule</td>
               <td>FEFO: first expired, first out, by printed date</td>
               <td class="us">
-                LCRFO: lowest Commercial Reserve, first out, by live physics
+                LCRFO (planned): lowest Commercial Reserve, first out, by live
+                physics
               </td>
             </tr>
             <tr>
               <td>Intervention</td>
               <td>Passive temperature alarms</td>
-              <td class="us">Optimized routing and early markdowns</td>
+              <td class="us">Optimized routing today; early markdowns planned</td>
             </tr>
             <tr>
               <td>Waste</td>
