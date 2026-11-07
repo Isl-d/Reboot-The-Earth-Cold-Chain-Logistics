@@ -35,9 +35,9 @@ export default function ActionChip({ action, className }: ActionChipProps) {
   return (
     <Pill
       className={clsx(
-        'px-2.5 text-label-ui',
+        'px-2 text-label-code',
         known
-          ? 'bg-provenance-recommended-fill border-provenance-recommended-border text-provenance-recommended-fg'
+          ? 'bg-provenance-recommended-fill border-provenance-recommended-border text-on-fill'
           : 'bg-status-offline-tint border-status-offline-border text-status-offline-fg',
         className,
       )}

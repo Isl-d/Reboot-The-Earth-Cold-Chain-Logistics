@@ -26,7 +26,7 @@ export default function MiniTrend({ data, tier = 'offline', height = 32 }: MiniT
           type="monotone"
           dataKey="value"
           stroke={STROKE[tier]}
-          strokeWidth={1.5}
+          strokeWidth={2}
           dot={false}
           isAnimationActive={false}
         />

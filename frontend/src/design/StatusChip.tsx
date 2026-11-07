@@ -1,8 +1,8 @@
 import { clsx } from './clsx'
-import Pill, { PillDot } from './Pill'
+import Pill from './Pill'
 import type { StatusTier } from './types'
 
-// DESIGN.md → Colors → Telemetry Status Semantics
+// Telemetry status semantics: lime safe, gold warning, coral critical.
 const LABEL: Record<StatusTier, string> = {
   safe: 'Safe',
   warning: 'Warning',
@@ -10,20 +10,13 @@ const LABEL: Record<StatusTier, string> = {
   offline: 'Offline',
 }
 
+// Kept as a fully static map — a template-built class name would be
+// invisible to Tailwind's JIT scanner.
 const CLASSES: Record<StatusTier, string> = {
-  safe: 'bg-status-safe-tint border-status-safe-border text-status-safe-fg',
-  warning: 'bg-status-warning-tint border-status-warning-border text-status-warning-fg',
-  critical: 'bg-status-critical-tint border-status-critical-border text-status-critical-fg',
+  safe: 'bg-status-safe-tint border-status-safe-border text-on-fill',
+  warning: 'bg-status-warning-tint border-status-warning-border text-on-fill',
+  critical: 'bg-status-critical-tint border-status-critical-border text-on-fill',
   offline: 'bg-status-offline-tint border-status-offline-border text-status-offline-fg',
-}
-
-// Dot color kept as a fully static map — a template-built class name
-// (e.g. `bg-status-${tier}`) would be invisible to Tailwind's JIT scanner.
-const DOT_CLASSES: Record<StatusTier, string> = {
-  safe: 'bg-status-safe',
-  warning: 'bg-status-warning',
-  critical: 'bg-status-critical',
-  offline: 'bg-status-offline',
 }
 
 interface StatusChipProps {
@@ -34,10 +27,5 @@ interface StatusChipProps {
 }
 
 export default function StatusChip({ tier, label, className }: StatusChipProps) {
-  return (
-    <Pill className={clsx('px-2.5 text-label-ui', CLASSES[tier], className)}>
-      <PillDot className={DOT_CLASSES[tier]} />
-      {label ?? LABEL[tier]}
-    </Pill>
-  )
+  return <Pill className={clsx('px-2 text-label-code', CLASSES[tier], className)}>{label ?? LABEL[tier]}</Pill>
 }

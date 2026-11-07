@@ -8,7 +8,7 @@ interface ModalProps {
   children: ReactNode
 }
 
-// DESIGN.md → modal: elevated tone, 6px radius, no shadow.
+// QAI modal: framed box with an ink header bar.
 export default function Modal({ open, onClose, title, children }: ModalProps) {
   if (!open) return null
   return (
@@ -21,20 +21,20 @@ export default function Modal({ open, onClose, title, children }: ModalProps) {
         aria-modal="true"
         aria-label={title}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg rounded-lg border border-line bg-elevated p-6"
+        className="tt-box w-full max-w-lg"
       >
-        <div className="flex items-center justify-between">
-          <h2 className="text-headline-md text-navy">{title}</h2>
+        <div className="tt-hd tt-tone-ink">
+          <h2 className="m-0 text-headline-sm">{title}</h2>
           <button
             type="button"
             onClick={onClose}
             aria-label="Close"
-            className={clsx(FOCUS_RING, 'rounded-sm text-muted hover:text-navy')}
+            className={clsx(FOCUS_RING, 'rounded-sm px-1 text-lg leading-none opacity-80 hover:opacity-100')}
           >
             ×
           </button>
         </div>
-        <div className="mt-4">{children}</div>
+        <div className="p-5">{children}</div>
       </div>
     </div>
   )

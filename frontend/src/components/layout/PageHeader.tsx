@@ -1,38 +1,39 @@
 import type { ReactNode } from 'react'
 
 /**
- * The 44px Tactical Slate topbar every page shares, so command-center and
- * intelligence routes line up: same height, gutter, title style and divider.
- * `leading` sits before the title (e.g. a back link), `meta` after it,
+ * The navy page band every page shares (the QAI hero, compacted for a
+ * working screen): mono caps eyebrow, bold title, then meta and controls.
+ * Wrap one word of `title` in <em> for the maroon highlight.
+ * `leading` sits before the title (e.g. a back link), `meta` under it,
  * `children` on the right.
  */
 export function PageHeader({
   title,
+  eyebrow = 'Thermal Trace',
   leading,
   meta,
   children,
 }: {
   title: ReactNode
+  /** Mono caps line above the title, e.g. "Operate" or "Analyse". */
+  eyebrow?: ReactNode
   leading?: ReactNode
   meta?: ReactNode
   children?: ReactNode
 }) {
   return (
-    <header className="flex h-11 shrink-0 items-center justify-between gap-4 border-b border-border bg-base px-4">
-      <div className="flex min-w-0 items-center gap-3">
+    <header className="flex shrink-0 flex-wrap items-center justify-between gap-x-6 gap-y-3 border-b-[3px] border-ink bg-band px-4 py-3 text-on-band tablet:px-5">
+      <div className="flex min-w-0 items-center gap-4">
         {leading}
-        {leading && <span className="h-3.5 w-px bg-border" aria-hidden="true" />}
-        {/* Brand prefix on every page, so the product name reads the same
-            everywhere (docs/brand/README.md). */}
-        <h1 className="m-0 truncate text-[11px] font-semibold uppercase tracking-[0.14em] text-text-primary">
-          <span className="text-text-secondary">Thermal Trace</span>
-          <span className="px-2 text-text-secondary" aria-hidden="true">/</span>
-          {title}
-        </h1>
-        {meta && <span className="h-3.5 w-px bg-border" aria-hidden="true" />}
-        {meta}
+        <div className="min-w-0">
+          <span className="tt-caps block text-fill-sky">{eyebrow}</span>
+          <h1 className="tt-title m-0 truncate text-[24px] font-extrabold leading-[1.1] tracking-[-0.02em] tablet:text-[28px]">
+            {title}
+          </h1>
+          {meta && <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px] opacity-85">{meta}</div>}
+        </div>
       </div>
-      {children && <div className="flex shrink-0 items-center gap-2">{children}</div>}
+      {children && <div className="flex shrink-0 flex-wrap items-center gap-2">{children}</div>}
     </header>
   )
 }

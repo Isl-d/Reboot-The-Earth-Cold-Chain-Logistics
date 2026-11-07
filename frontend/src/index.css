@@ -1,38 +1,68 @@
-@import url("https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700;9..40,800&family=JetBrains+Mono:wght@400;500;700&display=swap");
 @import "tailwindcss";
 
+/* ── Thermal Trace · QAI design language ──────────────────────────
+   The same visual system as the team's QAI Connect space: sand canvas with a
+   dot grid, paper boxes framed in 3px ink with a hard offset shadow, mono caps
+   labels, flat pastel header bars. Values below are the DARK theme; the light
+   theme overrides them in [data-theme="light"] further down.
+
+   Colour roles (keep gold rare):
+     maroon  brand accent: logo tile, title highlight, primary button
+     sky     measured data, the map
+     lime    safe / done / the result row
+     lilac   LAYLA and anything AI-explained
+     coral   HIGH risk     deep red  CRITICAL risk
+     sun     MEDIUM risk and finance only, nowhere decorative */
 @theme {
-  --color-base: #0c1825;
-  --color-surface: #162338;
-  --color-elevated: #1e3048;
-  --color-primary: #00c8e0;
-  --color-primary-dim: #0090a8;
-  --color-text-primary: #c9d6e8;
-  --color-text-secondary: #8fa8c8;
-  --color-risk-low: #22d4b0;
-  --color-risk-medium: #fbbf24;
-  --color-risk-high: #fb923c;
-  --color-risk-critical: #f87171;
-  --color-border: #2d4160;
-  /* Ink for text/glyphs sitting on a filled accent (cyan button, risk fill). */
-  --color-on-accent: #0c1825;
+  --color-base: #10172a;
+  --color-surface: #18223a;
+  --color-elevated: #22304f;
+  --color-primary: #e8789c;
+  --color-primary-dim: #d0587f;
+  --color-text-primary: #eef0f5;
+  --color-text-secondary: #a7b2c9;
+  --color-risk-low: #b6e36a;
+  --color-risk-medium: #e3c477;
+  --color-risk-high: #f2836b;
+  --color-risk-critical: #ff6b81;
+  --color-border: #33425f;
+  /* Ink for text/glyphs sitting on a filled accent (primary button, risk fill). */
+  --color-on-accent: #10172a;
 
-  --font-sans: "IBM Plex Sans", system-ui, sans-serif;
-  --font-mono: "IBM Plex Mono", monospace;
+  /* Frames, hard shadows and the dark header band. */
+  --color-ink: #c8d1e5;
+  --color-shadow: #05080f;
+  --color-band: #0a0f1d;
+  --color-on-band: #f5f2e9;
 
-  --text-display: 32px;
-  --text-h1: 24px;
+  /* Flat pastel fills for header bars, stat tiles and chips. Text on any of
+     them is always --color-on-fill (navy ink) in both themes. */
+  --color-fill-sky: #8eaadd;
+  --color-fill-lime: #a9d65f;
+  --color-fill-sun: #d8b964;
+  --color-fill-coral: #ee7a61;
+  --color-fill-lilac: #b7a3de;
+  --color-fill-maroon: #b8395f;
+  --color-fill-critical: #c0304a;
+  --color-on-fill: #1e2a44;
+
+  --font-sans: "DM Sans", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, monospace;
+
+  --text-display: 34px;
+  --text-h1: 26px;
   --text-h2: 18px;
   --text-h3: 15px;
   --text-body: 14px;
   --text-sm: 12px;
   --text-label: 11px;
-  --text-mono-lg: 20px;
+  --text-mono-lg: 22px;
   --text-mono-md: 14px;
   --text-mono-sm: 12px;
 
-  --radius-sm: 2px;
-  --radius-md: 4px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
   --radius-lg: 6px;
 
   --animate-slide-in-up: slide-in-up 0.35s ease-out both;
@@ -40,39 +70,36 @@
   --animate-ring: ring 0.6s ease-in-out;
   --animate-glow-critical: glow-critical 2s ease-in-out infinite;
 
-  /* Provenance marks (DESIGN.md has no provenance palette; hues are the
-     dataviz skill's validated categorical slots, stepped for the dark
-     surface). Light-mode steps are below in [data-theme="light"]. */
-  --color-provenance-measured-dot: #3987e5;
-  --color-provenance-measured-fg: #8fb8f2;
-  --color-provenance-calculated-dot: #d55181;
-  --color-provenance-calculated-fg: #eb9dbb;
-  --color-provenance-predicted-dot: #9085e9;
-  --color-provenance-predicted-fg: #bdb5f5;
-  --color-provenance-recommended-dot: #2fa84f;
-  --color-provenance-recommended-fg: #7cd494;
-  --color-provenance-finance-dot: #c98500;
-  --color-provenance-finance-fg: #e8b85a;
+  /* Provenance dots: one hue per kind, stepped per theme (light below). */
+  --color-provenance-measured-dot: #8eaadd;
+  --color-provenance-measured-fg: #b4c8ee;
+  --color-provenance-calculated-dot: #e8789c;
+  --color-provenance-calculated-fg: #f2a6bf;
+  --color-provenance-predicted-dot: #b7a3de;
+  --color-provenance-predicted-fg: #d0c3ee;
+  --color-provenance-recommended-dot: #a9d65f;
+  --color-provenance-recommended-fg: #c6e894;
+  --color-provenance-finance-dot: #d8b964;
+  --color-provenance-finance-fg: #e8d193;
 
-  /* Intelligence-screen type scale, mapped onto the DESIGN.md scale:
-     headline-xl→display, -lg→h1, -md→h2, -sm→h3, telemetry-xl→stat-value. */
-  --text-headline-xl: 32px;
-  --text-headline-xl--line-height: 1.1;
+  /* Intelligence-screen type scale. */
+  --text-headline-xl: 34px;
+  --text-headline-xl--line-height: 1.05;
   --text-headline-xl--letter-spacing: -0.02em;
-  --text-headline-xl--font-weight: 700;
-  --text-headline-lg: 24px;
-  --text-headline-lg--line-height: 1.2;
-  --text-headline-lg--letter-spacing: -0.01em;
-  --text-headline-lg--font-weight: 600;
+  --text-headline-xl--font-weight: 800;
+  --text-headline-lg: 26px;
+  --text-headline-lg--line-height: 1.1;
+  --text-headline-lg--letter-spacing: -0.015em;
+  --text-headline-lg--font-weight: 800;
   --text-headline-md: 18px;
   --text-headline-md--line-height: 1.25;
   --text-headline-md--letter-spacing: -0.01em;
-  --text-headline-md--font-weight: 600;
+  --text-headline-md--font-weight: 700;
   --text-headline-sm: 15px;
   --text-headline-sm--line-height: 1.3;
-  --text-headline-sm--font-weight: 600;
-  --text-body-lg: 15px;
-  --text-body-lg--line-height: 1.5;
+  --text-headline-sm--font-weight: 700;
+  --text-body-lg: 16px;
+  --text-body-lg--line-height: 1.55;
   --text-body-lg--font-weight: 400;
   --text-body-md: 14px;
   --text-body-md--line-height: 1.5;
@@ -80,26 +107,26 @@
   --text-body-sm: 12px;
   --text-body-sm--line-height: 1.4;
   --text-body-sm--font-weight: 400;
-  --text-telemetry-xl: 24px;
+  --text-telemetry-xl: 26px;
   --text-telemetry-xl--line-height: 1.1;
   --text-telemetry-xl--letter-spacing: -0.01em;
-  --text-telemetry-xl--font-weight: 600;
+  --text-telemetry-xl--font-weight: 700;
   --text-telemetry-md: 14px;
   --text-telemetry-md--line-height: 1.25;
-  --text-telemetry-md--font-weight: 500;
+  --text-telemetry-md--font-weight: 700;
   --text-label-code: 11px;
   --text-label-code--line-height: 1;
-  --text-label-code--letter-spacing: 0.06em;
-  --text-label-code--font-weight: 500;
+  --text-label-code--letter-spacing: 0.1em;
+  --text-label-code--font-weight: 700;
   --text-label-ui: 11px;
   --text-label-ui--line-height: 1.2;
-  --text-label-ui--letter-spacing: 0.06em;
-  --text-label-ui--font-weight: 500;
+  --text-label-ui--letter-spacing: 0.08em;
+  --text-label-ui--font-weight: 700;
 
-  /* DESIGN.md → Elevation & Depth: tonal stepping only, no drop shadows. */
-  --shadow-level1: none;
-  --shadow-level2: none;
-  --shadow-level3: none;
+  /* Hard offset shadows, no blur (QAI). */
+  --shadow-level1: 3px 3px 0 0 var(--color-shadow);
+  --shadow-level2: 5px 5px 0 0 var(--color-shadow);
+  --shadow-level3: 7px 7px 0 0 var(--color-shadow);
 
   --breakpoint-tablet: 768px;
   --breakpoint-desktop: 1280px;
@@ -111,97 +138,113 @@
   }
 }
 
-/* ── Intelligence-screen tokens → Strategic Ops palette ─────────
-   The Person 2 screens were built on a separate light design system. Their
-   token names are kept (so screens need no rewrite) but every one now
-   resolves to a DESIGN.md colour, so they follow the dark/light theme with
-   the rest of the app. `inline` makes utilities reference the target
+/* ── Intelligence-screen token aliases ─────────────────────────
+   The Person 2 screens use these names; each resolves to a token above so
+   they follow the theme. `inline` makes utilities reference the target
    variable directly, so the [data-theme] overrides apply. */
 @theme inline {
   --color-canvas: var(--color-base);
   --color-card: var(--color-surface);
   --color-line: var(--color-border);
   --color-line-strong: var(--color-border-strong);
-  --color-line-heavy: var(--color-text-secondary);
+  --color-line-heavy: var(--color-ink);
   --color-muted: var(--color-text-secondary);
   --color-navy: var(--color-text-primary);
   --color-sky: var(--color-primary);
   --color-sky-tint: var(--color-elevated);
 
-  /* Status tiers: DESIGN.md badges are an elevated tonal fill with coloured
-     text, never a coloured background. */
+  /* Status tiers: chips are a flat pastel fill, ink border, navy text. The
+     -fg tokens stay readable as plain text on a surface. */
   --color-status-safe: var(--color-risk-low);
-  --color-status-safe-tint: var(--color-elevated);
-  --color-status-safe-border: color-mix(in srgb, var(--color-risk-low) 45%, transparent);
+  --color-status-safe-tint: var(--color-fill-lime);
+  --color-status-safe-border: var(--color-on-fill);
   --color-status-safe-fg: var(--color-risk-low);
   --color-status-warning: var(--color-risk-medium);
-  --color-status-warning-tint: var(--color-elevated);
-  --color-status-warning-border: color-mix(in srgb, var(--color-risk-medium) 45%, transparent);
+  --color-status-warning-tint: var(--color-fill-sun);
+  --color-status-warning-border: var(--color-on-fill);
   --color-status-warning-fg: var(--color-risk-medium);
   --color-status-critical: var(--color-risk-critical);
-  --color-status-critical-tint: var(--color-elevated);
-  --color-status-critical-border: color-mix(in srgb, var(--color-risk-critical) 45%, transparent);
+  --color-status-critical-tint: var(--color-fill-coral);
+  --color-status-critical-border: var(--color-on-fill);
   --color-status-critical-fg: var(--color-risk-critical);
   --color-status-offline: var(--color-text-secondary);
   --color-status-offline-tint: var(--color-elevated);
-  --color-status-offline-border: var(--color-border);
+  --color-status-offline-border: var(--color-border-strong);
   --color-status-offline-fg: var(--color-text-secondary);
 
-  --color-provenance-measured-fill: var(--color-elevated);
-  --color-provenance-measured-border: color-mix(in srgb, var(--color-provenance-measured-dot) 45%, transparent);
-  --color-provenance-calculated-fill: var(--color-elevated);
-  --color-provenance-calculated-border: color-mix(in srgb, var(--color-provenance-calculated-dot) 45%, transparent);
-  --color-provenance-predicted-fill: var(--color-elevated);
-  --color-provenance-predicted-border: color-mix(in srgb, var(--color-provenance-predicted-dot) 45%, transparent);
-  --color-provenance-recommended-fill: var(--color-elevated);
-  --color-provenance-recommended-border: color-mix(in srgb, var(--color-provenance-recommended-dot) 45%, transparent);
-  --color-provenance-finance-fill: var(--color-elevated);
-  --color-provenance-finance-border: color-mix(in srgb, var(--color-provenance-finance-dot) 45%, transparent);
+  --color-provenance-measured-fill: var(--color-fill-sky);
+  --color-provenance-measured-border: var(--color-on-fill);
+  --color-provenance-calculated-fill: var(--color-surface);
+  --color-provenance-calculated-border: var(--color-ink);
+  --color-provenance-predicted-fill: var(--color-fill-lilac);
+  --color-provenance-predicted-border: var(--color-on-fill);
+  --color-provenance-recommended-fill: var(--color-fill-lime);
+  --color-provenance-recommended-border: var(--color-on-fill);
+  --color-provenance-finance-fill: var(--color-fill-sun);
+  --color-provenance-finance-border: var(--color-on-fill);
 
   --shadow-focus-halo: 0 0 0 2px var(--color-base), 0 0 0 4px var(--color-primary);
 }
 
 :root {
   /* One step above the structural border, for inputs and hovered panels. */
-  --color-border-strong: #3d5476;
+  --color-border-strong: #4a5b7d;
   /* Route lines on the fleet map: three categorical hues, none shared with the
-     risk colours on the truck markers (validated all-pairs, both themes). */
-  --color-route-1: #3987e5;
-  --color-route-2: #d55181;
-  --color-route-3: #c98500;
+     risk colours on the truck markers. */
+  --color-route-1: #8eaadd;
+  --color-route-2: #e8789c;
+  --color-route-3: #b7a3de;
+  /* Dot grid on the canvas. */
+  --color-dot: rgba(200, 209, 229, 0.08);
 }
 
 /* ── Light mode overrides ──────────────────────────────────── */
 [data-theme="light"] {
-  --color-border-strong: #9fb1c8;
-  --color-route-1: #2a78d6;
-  --color-route-2: #c2336f;
-  --color-route-3: #b87800;
-  --color-provenance-measured-dot: #2a78d6;
-  --color-provenance-measured-fg: #1d5aa6;
-  --color-provenance-calculated-dot: #c2336f;
-  --color-provenance-calculated-fg: #9d1b55;
-  --color-provenance-predicted-dot: #4a3aa7;
-  --color-provenance-predicted-fg: #3b2d8a;
-  --color-provenance-recommended-dot: #008300;
-  --color-provenance-recommended-fg: #0a6a1f;
-  --color-provenance-finance-dot: #b87800;
-  --color-provenance-finance-fg: #8a5300;
-  /* Light steps of the same hues, each chosen to hold WCAG AA (≥4.5:1) as
-     text on base, surface AND elevated — the dark values already do. */
-  --color-base: #eef2f7;
-  --color-surface: #ffffff;
-  --color-elevated: #e3e9f2;
-  --color-primary: #007388;
-  --color-primary-dim: #005e70;
-  --color-text-primary: #0d1b2a;
-  --color-text-secondary: #3d5a80;
-  --color-border: #c3cfdd;
-  --color-risk-low: #007064;
-  --color-risk-medium: #8f5f00;
-  --color-risk-high: #a8460a;
-  --color-risk-critical: #b91c1c;
+  --color-border-strong: #b5ad97;
+  --color-route-1: #3a6fc4;
+  --color-route-2: #7a1d3c;
+  --color-route-3: #6b4fb0;
+  --color-dot: rgba(30, 42, 68, 0.12);
+
+  --color-provenance-measured-dot: #3a6fc4;
+  --color-provenance-measured-fg: #2a559c;
+  --color-provenance-calculated-dot: #7a1d3c;
+  --color-provenance-calculated-fg: #7a1d3c;
+  --color-provenance-predicted-dot: #6b4fb0;
+  --color-provenance-predicted-fg: #553c94;
+  --color-provenance-recommended-dot: #3d6b12;
+  --color-provenance-recommended-fg: #3d6b12;
+  --color-provenance-finance-dot: #9a7212;
+  --color-provenance-finance-fg: #7d5c0c;
+
+  /* Sand canvas, paper boxes, navy ink. Text tones hold WCAG AA on base,
+     surface and elevated. */
+  --color-base: #f5f2e9;
+  --color-surface: #fbf9f3;
+  --color-elevated: #efeadc;
+  --color-primary: #7a1d3c;
+  --color-primary-dim: #5e1530;
+  --color-text-primary: #1e2a44;
+  --color-text-secondary: #4f5a73;
+  --color-border: #d6cfbd;
+  --color-risk-low: #3d6b12;
+  --color-risk-medium: #8a6510;
+  --color-risk-high: #b5482b;
+  --color-risk-critical: #9b1c31;
   --color-on-accent: #ffffff;
+
+  --color-ink: #1e2a44;
+  --color-shadow: #1e2a44;
+  --color-band: #1e2a44;
+  --color-on-band: #fbf9f3;
+
+  --color-fill-sky: #9db8e6;
+  --color-fill-lime: #b6e36a;
+  --color-fill-sun: #e3c477;
+  --color-fill-coral: #f2836b;
+  --color-fill-lilac: #c9b6e8;
+  --color-fill-maroon: #7a1d3c;
+  --color-fill-critical: #9b1c31;
 }
 
 *, *::before, *::after { box-sizing: border-box; }
@@ -220,22 +263,183 @@ body {
 
 #root { height: 100%; display: flex; }
 
-/* Native controls (checkboxes, select menus, scrollbars) follow the theme
-   instead of rendering as light-mode widgets on a dark panel. */
+/* Native controls (checkboxes, select menus, scrollbars) follow the theme. */
 :root { color-scheme: dark; }
 [data-theme="light"] { color-scheme: light; }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary); }
 
-/* Leaflet zoom / attribution controls in the tonal system. */
+/* ── QAI building blocks ───────────────────────────────────────
+   Plain classes so inline-styled screens and Tailwind screens share one look.
+   Prefer the <Box> component (design/Box.tsx); use these where a component
+   does not fit. */
+
+/* The page canvas: base tone with the 22px dot grid. */
+.tt-canvas {
+  background-color: var(--color-base);
+  background-image: radial-gradient(var(--color-dot) 1px, transparent 1px);
+  background-size: 22px 22px;
+}
+
+/* A framed box: paper, 3px ink border, 6px radius, hard offset shadow. */
+.tt-box {
+  background: var(--color-surface);
+  border: 3px solid var(--color-ink);
+  border-radius: 6px;
+  box-shadow: 5px 5px 0 0 var(--color-shadow);
+  min-width: 0;
+  overflow: hidden;
+}
+.tt-box-sm { box-shadow: 3px 3px 0 0 var(--color-shadow); }
+
+/* The header bar of a box: bold title left, caps meta right, ink rule below.
+   Set a tone with one of the .tt-tone-* classes. */
+.tt-hd {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 8px 14px;
+  border-bottom: 3px solid var(--color-ink);
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.3;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+.tt-tone-sky    { background: var(--color-fill-sky);    color: var(--color-on-fill); }
+.tt-tone-lime   { background: var(--color-fill-lime);   color: var(--color-on-fill); }
+.tt-tone-sun    { background: var(--color-fill-sun);    color: var(--color-on-fill); }
+.tt-tone-coral  { background: var(--color-fill-coral);  color: var(--color-on-fill); }
+.tt-tone-lilac  { background: var(--color-fill-lilac);  color: var(--color-on-fill); }
+.tt-tone-maroon { background: var(--color-fill-maroon); color: #fbf9f3; }
+.tt-tone-critical { background: var(--color-fill-critical); color: #fbf9f3; }
+.tt-tone-ink    { background: var(--color-band);        color: var(--color-on-band); }
+.tt-tone-paper  { background: var(--color-surface);     color: var(--color-text-primary); }
+
+/* Mono uppercase label. */
+.tt-caps {
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* Title highlight: <em> inside a heading gets the maroon block. */
+.tt-title em {
+  font-style: normal;
+  background: var(--color-fill-maroon);
+  color: #fbf9f3;
+  padding: 0 0.12em;
+}
+
+/* Small bordered chip, e.g. "LAYLA" or a model tag. */
+.tt-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 2px solid var(--color-on-fill);
+  border-radius: 6px;
+  padding: 1px 8px;
+  font: 700 11px/1.5 var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+/* Live dot: pulsing lime. */
+.tt-live-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-fill-lime);
+  animation: tt-pulse 0.9s infinite alternate;
+}
+
+/* Press-down: hard shadow that collapses on click. */
+.tt-press {
+  border: 3px solid var(--color-ink);
+  border-radius: 6px;
+  box-shadow: 3px 3px 0 0 var(--color-shadow);
+  transition: transform 0.12s, box-shadow 0.12s;
+}
+.tt-press:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 0 var(--color-shadow); }
+.tt-press:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: none; }
+
+/* Numbered pipeline step (Data → Condition → … → Food loss). */
+.tt-step-n {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border: 3px solid var(--color-ink);
+  border-radius: 6px;
+  font: 700 14px var(--font-mono);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  flex-shrink: 0;
+}
+.tt-step-n.is-done { background: var(--color-fill-lime); color: var(--color-on-fill); }
+.tt-step-n.is-run  { background: var(--color-fill-sky);  color: var(--color-on-fill); animation: tt-pulse 0.7s infinite alternate; }
+
+/* Blinking caret for typed-out LAYLA text. */
+.tt-caret {
+  display: inline-block;
+  width: 8px;
+  height: 1em;
+  background: currentColor;
+  vertical-align: middle;
+  animation: tt-blink 0.8s steps(1) infinite;
+}
+
+/* Dark JSON / code block. */
+.tt-pre {
+  margin: 6px 0 0;
+  background: var(--color-band);
+  color: #d7e3ff;
+  border-radius: 6px;
+  padding: 10px;
+  font: 12px/1.45 var(--font-mono);
+  overflow: auto;
+  max-height: 180px;
+}
+
+/* Table header row in ink. Apply to <thead> or <tr>. */
+.tt-thead th {
+  font: 700 11px var(--font-mono);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  background: var(--color-band);
+  color: var(--color-on-band);
+  text-align: left;
+  padding: 8px 12px;
+}
+
+@keyframes tt-pulse { to { transform: scale(1.08); } }
+@keyframes tt-blink { 50% { opacity: 0; } }
+@keyframes tt-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* ── Leaflet controls in the QAI frame ─────────────────────── */
 .leaflet-bar a,
 .leaflet-bar a:hover {
-  background: var(--color-elevated) !important;
+  background: var(--color-surface) !important;
   color: var(--color-text-primary) !important;
-  border-color: var(--color-border) !important;
+  border-color: var(--color-ink) !important;
+  font-weight: 800;
 }
-.leaflet-bar { border: 1px solid var(--color-border) !important; border-radius: 2px !important; box-shadow: none !important; }
+.leaflet-bar {
+  border: 3px solid var(--color-ink) !important;
+  border-radius: 6px !important;
+  box-shadow: 3px 3px 0 0 var(--color-shadow) !important;
+  overflow: hidden;
+}
 .leaflet-control-attribution {
-  background: color-mix(in srgb, var(--color-base) 80%, transparent) !important;
+  background: color-mix(in srgb, var(--color-surface) 85%, transparent) !important;
   color: var(--color-text-secondary) !important;
 }
 .leaflet-control-attribution a { color: var(--color-primary) !important; }
@@ -256,9 +460,10 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
   60%     { transform: rotate(-9deg); }
   80%     { transform: rotate(9deg); }
 }
+/* Critical highlight: the hard shadow turns red and nudges, no glow. */
 @keyframes glow-critical {
-  0%,100% { box-shadow: 0 0 0 0 rgba(248,113,113,0); }
-  50%     { box-shadow: 0 0 16px 4px rgba(248,113,113,0.3); }
+  0%,100% { box-shadow: 5px 5px 0 0 var(--color-fill-critical); }
+  50%     { box-shadow: 7px 7px 0 0 var(--color-fill-critical); }
 }
 @keyframes pulse-ring {
   0%   { transform: scale(1);   opacity: 0.6; }
@@ -279,22 +484,26 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
   transition: filter 0.3s ease;
 }
 [data-theme="light"] .leaflet-container .leaflet-tile-pane {
-  filter: none;
+  filter: saturate(0.75) sepia(0.12);
 }
 [data-theme="light"] .leaflet-container {
-  background: #e8eff8 !important;
+  background: #ece6d6 !important;
 }
 
-/* Leaflet popup dark styling */
-.leaflet-popup-content-wrapper {
-  background: var(--color-elevated) !important;
+/* Leaflet popups and tooltips as small QAI boxes. */
+.leaflet-popup-content-wrapper,
+.leaflet-tooltip {
+  background: var(--color-surface) !important;
   color: var(--color-text-primary) !important;
-  border: 1px solid var(--color-border) !important;
-  border-radius: 4px !important;
-  box-shadow: none !important;
+  border: 3px solid var(--color-ink) !important;
+  border-radius: 6px !important;
+  box-shadow: 3px 3px 0 0 var(--color-shadow) !important;
+  font-family: var(--font-sans);
 }
+.leaflet-tooltip::before { display: none; }
 .leaflet-popup-tip {
-  background: var(--color-elevated) !important;
+  background: var(--color-surface) !important;
+  border: 3px solid var(--color-ink);
 }
 .leaflet-popup-content { margin: 10px 14px !important; }
 
@@ -303,12 +512,16 @@ input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary)
   background: transparent !important;
   border: none !important;
   box-shadow: none !important;
-  font-family: var(--font-sans);
+  font-family: var(--font-mono);
   font-size: 10px;
-  font-weight: 500;
+  font-weight: 700;
   letter-spacing: 0.04em;
   white-space: nowrap;
   pointer-events: none;
   /* Halo in the page's own base colour, so labels read on dark and light tiles. */
   text-shadow: 0 0 3px var(--color-base), 0 0 6px var(--color-base);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
 }

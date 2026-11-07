@@ -1,32 +1,43 @@
+export type StatTone = 'paper' | 'sky' | 'lime' | 'sun' | 'coral' | 'lilac'
+
 interface Props {
   label: string
   value: string | number
   unit?: string
+  /** Alarm state: critical fill and a red hard shadow. */
   highlight?: boolean
   dim?: boolean
+  /** QAI stat-tile fill. Gold ('sun') only for warning or finance. */
+  tone?: StatTone
 }
 
-export function StatCard({ label, value, unit, highlight, dim }: Props) {
+const TONE: Record<StatTone, string> = {
+  paper: 'bg-surface text-text-primary',
+  sky: 'bg-fill-sky text-on-fill',
+  lime: 'bg-fill-lime text-on-fill',
+  sun: 'bg-fill-sun text-on-fill',
+  coral: 'bg-fill-coral text-on-fill',
+  lilac: 'bg-fill-lilac text-on-fill',
+}
+
+// QAI stat tile: coloured fill, mono caps label, big mono number.
+export function StatCard({ label, value, unit, highlight, dim, tone = 'paper' }: Props) {
   return (
     <div
-      className={`bg-surface border rounded-md p-3 flex flex-col gap-1 [animation:slide-in-up_0.4s_ease-out_both] transition-all duration-300 ${
-        highlight
-          ? 'border-risk-critical [animation:glow-critical_2s_ease-in-out_infinite]'
-          : 'border-border hover:border-primary/40'
+      className={`tt-box tt-box-sm flex flex-col gap-1 p-3 [animation:slide-in-up_0.4s_ease-out_both] ${
+        highlight ? 'bg-fill-coral text-on-fill [animation:glow-critical_2s_ease-in-out_infinite]' : TONE[tone]
       }`}
     >
-      <span className="text-[11px] font-medium tracking-[0.06em] uppercase text-text-secondary">
-        {label}
-      </span>
+      <span className="tt-caps">{label}</span>
       <div className="flex items-baseline gap-1.5">
         <span
-          className={`font-mono text-[22px] font-semibold leading-none [animation:count-up_0.5s_ease-out_both] ${
-            highlight ? 'text-risk-critical' : dim ? 'text-text-secondary' : 'text-text-primary'
+          className={`font-mono text-[26px] font-bold leading-none tabular-nums [animation:count-up_0.5s_ease-out_both] ${
+            dim ? 'opacity-60' : ''
           }`}
         >
           {value}
         </span>
-        {unit && <span className="text-[11px] text-text-secondary font-mono">{unit}</span>}
+        {unit && <span className="font-mono text-[12px] font-bold opacity-75">{unit}</span>}
       </div>
     </div>
   )

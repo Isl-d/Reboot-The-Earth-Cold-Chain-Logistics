@@ -7,13 +7,12 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: Variant
 }
 
-// DESIGN.md → Components: Signal Cyan is the only primary fill; secondary is
-// the surface tone with cyan text; destructive is Critical Rose with
-// Tactical Slate text.
+// QAI buttons: 3px ink frame with a hard shadow that collapses on press.
+// Primary is the maroon fill; secondary is paper; destructive is critical red.
 const VARIANT_CLASSES: Record<Variant, string> = {
-  primary: 'bg-primary text-on-accent hover:bg-primary-dim',
-  secondary: 'bg-surface text-primary border border-border hover:bg-elevated',
-  destructive: 'bg-risk-critical text-on-accent hover:opacity-90',
+  primary: 'bg-fill-maroon text-[#fbf9f3]',
+  secondary: 'bg-surface text-text-primary hover:bg-elevated',
+  destructive: 'bg-fill-critical text-[#fbf9f3]',
 }
 
 export default function Button({ variant = 'primary', className, ...props }: ButtonProps) {
@@ -21,8 +20,8 @@ export default function Button({ variant = 'primary', className, ...props }: But
     <button
       className={clsx(
         FOCUS_RING,
-        'inline-flex items-center justify-center gap-2 rounded-sm px-4 py-2',
-        'text-label-ui uppercase font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-50',
+        'tt-press inline-flex min-h-10 items-center justify-center gap-2 px-4 py-1.5',
+        'text-body-md font-bold disabled:cursor-not-allowed disabled:opacity-50',
         VARIANT_CLASSES[variant],
         className,
       )}

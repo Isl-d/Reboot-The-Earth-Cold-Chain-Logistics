@@ -6,9 +6,9 @@ export default function LiveBadge({ live = true, className }: { live?: boolean; 
   return (
     <Pill
       className={clsx(
-        'px-2.5 text-label-code uppercase',
+        'px-2 text-label-code',
         live
-          ? 'border-status-safe-border bg-status-safe-tint text-status-safe-fg'
+          ? 'border-status-safe-border bg-status-safe-tint text-on-fill'
           : 'border-status-offline-border bg-status-offline-tint text-status-offline-fg',
         className,
       )}

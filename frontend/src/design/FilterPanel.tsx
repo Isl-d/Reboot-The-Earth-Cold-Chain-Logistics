@@ -13,7 +13,7 @@ interface FilterGroupProps {
 export function FilterGroup({ title, children, defaultOpen = true }: FilterGroupProps) {
   const [open, setOpen] = useState(defaultOpen)
   return (
-    <div className="border-b border-line py-3 first:pt-0 last:border-b-0">
+    <div className="border-b-2 border-line py-3 first:pt-0 last:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
@@ -29,7 +29,7 @@ export function FilterGroup({ title, children, defaultOpen = true }: FilterGroup
 
 export function FilterPanel({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <div className={clsx('rounded-md border border-line bg-card p-4', className)}>{children}</div>
+    <div className={clsx('tt-box tt-box-sm p-4', className)}>{children}</div>
   )
 }
 
@@ -41,7 +41,7 @@ export function FilterChip({
   onRemove: () => void
 }) {
   return (
-    <Pill className="border-line bg-sky-tint px-2.5 text-label-ui text-sky">
+    <Pill className="border-ink bg-fill-sky px-2 text-label-code text-on-fill">
       {label}
       <button
         type="button"

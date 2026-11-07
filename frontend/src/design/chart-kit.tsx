@@ -9,6 +9,8 @@ import { ReferenceArea, ReferenceLine, Tooltip } from 'recharts'
 export const CHART_COLORS = {
   grid: 'var(--color-border)',
   axis: 'var(--color-text-secondary)',
+  /** Axis lines and frames: the 2px ink rule. */
+  ink: 'var(--color-ink)',
   measured: 'var(--color-provenance-measured-dot)',
   calculated: 'var(--color-provenance-calculated-dot)',
   predicted: 'var(--color-provenance-predicted-dot)',
@@ -20,13 +22,17 @@ export const CHART_COLORS = {
 export const AXIS_STYLE = {
   fontFamily: 'var(--font-mono)',
   fontSize: 11,
+  fontWeight: 700,
   fill: CHART_COLORS.axis,
 }
 
-// Crosshair tooltip content — DESIGN.md tooltip: elevated tone, 2px radius.
+/** Pass to XAxis/YAxis `axisLine` for the QAI 2px ink axis. */
+export const AXIS_LINE = { stroke: CHART_COLORS.ink, strokeWidth: 2 }
+
+// Crosshair tooltip content — a small QAI box.
 export function ChartTooltip({ children }: { children: ReactNode }) {
   return (
-    <div className="rounded-sm border border-line bg-elevated px-3 py-2 text-body-sm text-navy">
+    <div className="tt-box tt-box-sm px-3 py-2 text-body-sm text-navy">
       {children}
     </div>
   )
@@ -35,11 +41,12 @@ export function ChartTooltip({ children }: { children: ReactNode }) {
 export function CrosshairTooltip(props: ComponentProps<typeof Tooltip>) {
   return (
     <Tooltip
-      cursor={{ stroke: CHART_COLORS.axis, strokeDasharray: '3 3' }}
+      cursor={{ stroke: CHART_COLORS.ink, strokeWidth: 2, strokeDasharray: '4 4' }}
       contentStyle={{
-        background: 'var(--color-elevated)',
-        border: '1px solid var(--color-border)',
-        borderRadius: 2,
+        background: 'var(--color-surface)',
+        border: '3px solid var(--color-ink)',
+        borderRadius: 6,
+        boxShadow: '3px 3px 0 0 var(--color-shadow)',
         fontFamily: 'var(--font-sans)',
         fontSize: 12,
         color: 'var(--color-text-primary)',
@@ -57,8 +64,9 @@ export function SafeLimitLine({ y, label }: { y: number; label?: string }) {
     <ReferenceLine
       y={y}
       stroke={CHART_COLORS.safeLine}
-      strokeDasharray="4 4"
-      label={label ? { value: label, position: 'insideTopLeft', fill: CHART_COLORS.safeLine, fontSize: 11 } : undefined}
+      strokeWidth={2}
+      strokeDasharray="6 4"
+      label={label ? { value: label, position: 'insideTopLeft', fill: CHART_COLORS.safeLine, fontSize: 11, fontWeight: 700 } : undefined}
     />
   )
 }

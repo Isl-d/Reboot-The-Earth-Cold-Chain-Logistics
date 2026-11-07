@@ -1,22 +1,24 @@
 // The Thermal Trace mark, the same glyph as landing/public/favicon.svg (landing
-// imports nothing from here, so the path is duplicated, not shared). Drawn
-// inline in theme tokens so it follows dark/light mode; the favicon file keeps
-// the fixed dark tile for browser tabs.
-export function BrandMark({ size = 32, className }: { size?: number; className?: string }) {
+// imports nothing from here, so the path is duplicated, not shared). Rendered
+// as the QAI logo tile: maroon fill, 3px ink frame, hard offset shadow.
+export function BrandMark({ size = 36, className }: { size?: number; className?: string }) {
   return (
-    <svg
-      viewBox="0 0 32 32"
-      width={size}
-      height={size}
-      fill="none"
-      stroke="var(--color-primary)"
-      strokeWidth={2.4}
-      strokeLinecap="round"
+    <span
       aria-hidden="true"
-      className={className}
+      className={`inline-grid shrink-0 place-items-center rounded-md border-[3px] border-ink bg-fill-maroon shadow-level1 ${className ?? ''}`}
+      style={{ width: size, height: size }}
     >
-      <rect width="32" height="32" rx="6" fill="var(--color-surface)" stroke="var(--color-border)" strokeWidth={1} />
-      <path d="M16 5v22M6.5 10.5l19 11M6.5 21.5l19-11M13 7l3 3 3-3M13 25l3-3 3 3" />
-    </svg>
+      <svg
+        viewBox="0 0 32 32"
+        width={size * 0.62}
+        height={size * 0.62}
+        fill="none"
+        stroke="#fbf9f3"
+        strokeWidth={3}
+        strokeLinecap="round"
+      >
+        <path d="M16 5v22M6.5 10.5l19 11M6.5 21.5l19-11M13 7l3 3 3-3M13 25l3-3 3 3" />
+      </svg>
+    </span>
   )
 }

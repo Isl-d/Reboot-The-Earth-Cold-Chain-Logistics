@@ -35,14 +35,14 @@ export default function ScenarioPicker({ value, onChange, disabled }: ScenarioPi
             aria-pressed={selected}
             className={clsx(
               FOCUS_RING,
-              'rounded-sm border p-2 text-left transition-colors disabled:cursor-not-allowed disabled:opacity-50',
-              selected ? 'border-sky bg-sky-tint' : 'border-line bg-card hover:border-line-strong hover:bg-sky-tint',
+              'tt-press p-2 text-left disabled:cursor-not-allowed disabled:opacity-50',
+              selected ? 'bg-fill-sky text-on-fill' : 'bg-surface',
             )}
           >
-            <div className={clsx('text-body-sm font-semibold', selected ? 'text-sky' : 'text-navy')}>
+            <div className={clsx('text-body-sm font-semibold', selected ? 'text-on-fill' : 'text-navy')}>
               {scenario.label}
             </div>
-            <div className="text-body-sm text-muted">{scenario.description}</div>
+            <div className={clsx('text-body-sm', selected ? 'text-on-fill opacity-80' : 'text-muted')}>{scenario.description}</div>
           </button>
         )
       })}
