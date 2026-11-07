@@ -369,7 +369,7 @@ export default function SimulationScreen() {
         className="col-span-4 tablet:col-span-8 desktop:col-span-7"
         bodyClassName="p-4"
       >
-        <div className="grid h-full auto-rows-fr grid-cols-1 gap-3 min-[420px]:grid-cols-2 tablet:grid-cols-3">
+        <div className="grid h-full auto-rows-fr grid-cols-2 gap-3 tablet:grid-cols-3">
           <KpiCard
             label="Thermal exposure"
             value={thermalExposure.data ? thermalExposure.data.thermalExposure.toFixed(1) : '—'}

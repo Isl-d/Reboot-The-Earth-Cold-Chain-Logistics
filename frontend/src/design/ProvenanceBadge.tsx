@@ -3,13 +3,16 @@ import Pill from './Pill'
 import { PROVENANCE_LABEL, type ProvenanceKind } from './types'
 
 // Data provenance chips: one flat fill per kind (sky measured, paper
-// calculated, lilac predicted, lime recommended, gold finance), navy text.
+// calculated, lilac predicted and AI-explained, lime recommended, gold
+// finance, dashed paper synthetic), navy text.
 const VARIANT_CLASSES: Record<ProvenanceKind, string> = {
   measured: 'bg-provenance-measured-fill border-provenance-measured-border text-on-fill',
   calculated: 'bg-provenance-calculated-fill border-provenance-calculated-border text-text-primary',
   predicted: 'bg-provenance-predicted-fill border-provenance-predicted-border text-on-fill',
   recommended: 'bg-provenance-recommended-fill border-provenance-recommended-border text-on-fill',
   finance: 'bg-provenance-finance-fill border-provenance-finance-border text-on-fill',
+  'ai-explained': 'bg-fill-lilac border-on-fill text-on-fill',
+  synthetic: 'border-dashed border-ink bg-surface text-text-secondary',
 }
 
 const DOT_CLASSES: Record<ProvenanceKind, string> = {
@@ -18,6 +21,8 @@ const DOT_CLASSES: Record<ProvenanceKind, string> = {
   predicted: 'bg-provenance-predicted-dot',
   recommended: 'bg-provenance-recommended-dot',
   finance: 'bg-provenance-finance-dot',
+  'ai-explained': 'bg-fill-lilac',
+  synthetic: 'bg-surface',
 }
 
 interface ProvenanceBadgeProps {

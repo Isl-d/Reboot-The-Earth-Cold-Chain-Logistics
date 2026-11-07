@@ -41,7 +41,15 @@ import DataLayerDebug from './DataLayerDebug'
 // Dev-only design reference. Every value on this page is a static sample.
 
 const STATUS_TIERS: StatusTier[] = ['safe', 'warning', 'critical', 'offline']
-const PROVENANCE_KINDS: ProvenanceKind[] = ['measured', 'calculated', 'predicted', 'recommended', 'finance']
+const PROVENANCE_KINDS: ProvenanceKind[] = [
+  'measured',
+  'calculated',
+  'predicted',
+  'recommended',
+  'ai-explained',
+  'finance',
+  'synthetic',
+]
 const ACTIONS = ['CONTINUE', 'TRANSFER', 'DISCOUNT', 'PRIORITIZE_SALE', 'REDISTRIBUTE', 'QUARANTINE'] as const
 const SAMPLE_TREND = [4.1, 4.3, 4.0, 4.6, 5.1, 4.9, 5.4, 5.2, 5.8]
 
@@ -73,7 +81,9 @@ const KPI_TONES: Array<{ tone: KpiTone; label: string; value: string; unit: stri
   { tone: 'lilac', label: 'Spoilage', value: '12.4', unit: '%', provenance: 'predicted' },
   { tone: 'lime', label: 'Saved', value: '428', unit: 'kg', provenance: 'recommended' },
   { tone: 'coral', label: 'Lost', value: '91', unit: 'kg', provenance: 'calculated' },
-  { tone: 'sun', label: 'Loss prevented', value: '4,548', unit: 'QAR', provenance: 'finance' },
+  { tone: 'critical', label: 'Critical trucks', value: '1', unit: 'truck', provenance: 'calculated' },
+  { tone: 'sun', label: 'Prevented', value: '4,548', unit: 'QAR', provenance: 'finance' },
+  { tone: 'paper', label: 'Demo temp', value: '6.1', unit: '°C', provenance: 'synthetic' },
 ]
 
 const SAMPLE_BARS = [
@@ -149,9 +159,9 @@ export default function StyleGuideScreen() {
 
       {/* KPI tiles */}
       <Box title="Stat tiles" meta="<KpiCard tone> · max one gold" className={FULL} bodyClassName="p-4">
-        <div className="grid grid-cols-2 gap-3 tablet:grid-cols-3 desktop:grid-cols-6">
+        <div className="grid grid-cols-2 gap-3 tablet:grid-cols-4">
           {KPI_TONES.map((k) => (
-            <KpiCard key={k.tone} label={k.label} value={k.value} unit={k.unit} provenance={k.provenance} tone={k.tone} />
+            <KpiCard key={k.label} label={k.label} value={k.value} unit={k.unit} provenance={k.provenance} tone={k.tone} />
           ))}
         </div>
         <div className="mt-3 grid grid-cols-1 gap-3 tablet:grid-cols-2">
@@ -221,7 +231,7 @@ export default function StyleGuideScreen() {
           </div>
         </div>
         <div>
-          <Label>Provenance (full, then compact dot)</Label>
+          <Label>Provenance: 7 kinds (full, then compact dot)</Label>
           <div className="flex flex-wrap items-center gap-2">
             {PROVENANCE_KINDS.map((kind) => (
               <ProvenanceBadge key={kind} kind={kind} />
@@ -289,7 +299,7 @@ export default function StyleGuideScreen() {
           tone="lilac"
           meta={
             <>
-              <ProvenanceBadge kind="predicted" compact /> AI-explained
+              <ProvenanceBadge kind="ai-explained" />
             </>
           }
           bodyClassName="p-4"

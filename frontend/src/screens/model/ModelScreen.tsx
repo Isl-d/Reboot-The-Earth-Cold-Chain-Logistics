@@ -36,7 +36,8 @@ import PipelineStrip from './PipelineStrip'
 import { riskLabelFromProbability, riskTierFromProbability } from '@/lib/risk'
 
 const FULL = 'col-span-4 tablet:col-span-8 desktop:col-span-12'
-const TILE = 'col-span-2 tablet:col-span-4 desktop:col-span-3'
+// One per row on phones: the shared KpiCard's provenance pill needs the width.
+const TILE = 'col-span-4 tablet:col-span-4 desktop:col-span-3'
 
 // Spoilage tile fill by the backend probability's tier: lime safe, gold
 // elevated (the MEDIUM band), coral high.

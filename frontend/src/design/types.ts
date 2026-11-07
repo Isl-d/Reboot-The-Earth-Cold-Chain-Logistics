@@ -3,7 +3,7 @@
 
 export type StatusTier = 'safe' | 'warning' | 'critical' | 'offline'
 
-export type ProvenanceKind = 'measured' | 'calculated' | 'predicted' | 'recommended' | 'finance'
+export type ProvenanceKind = 'measured' | 'calculated' | 'predicted' | 'recommended' | 'finance' | 'ai-explained' | 'synthetic'
 
 export const PROVENANCE_LABEL: Record<ProvenanceKind, string> = {
   measured: 'Measured',
@@ -11,6 +11,8 @@ export const PROVENANCE_LABEL: Record<ProvenanceKind, string> = {
   predicted: 'Predicted',
   recommended: 'Recommended',
   finance: 'Finance-Validated',
+  'ai-explained': 'AI-Explained',
+  synthetic: 'Synthetic',
 }
 
 // The 5 recommendation actions from backend/intelligence/inventory_opt.py.

@@ -26,7 +26,7 @@ export default function Steps({ items, className }: { items: StepItem[]; classNa
         >
           <span className={clsx('tt-step-n', item.state === 'done' && 'is-done', item.state === 'run' && 'is-run')}>{i + 1}</span>
           <div className="min-w-0">
-            <b className="text-body-md">{item.label}</b>
+            <b className="text-body-md font-extrabold">{item.label}</b>
             {item.tag && (
               <span className="ml-2 rounded border-2 border-ink bg-surface px-1.5 font-mono text-[11px] font-bold">{item.tag}</span>
             )}

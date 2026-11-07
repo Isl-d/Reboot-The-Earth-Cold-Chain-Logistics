@@ -1,4 +1,4 @@
-import { useMemo } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { useFoodLossAnalytics, useFoodLossSeries } from '@/api/hooks'
 import type { FoodLossBreakdownItem } from '@/api/types'
@@ -19,6 +19,21 @@ import ChartEmpty from './ChartEmpty'
 
 function formatDate(ms: number): string {
   return new Date(ms).toLocaleDateString([], { month: 'short', day: 'numeric' })
+}
+
+// Below the tablet breakpoint the stat tiles are too narrow for full
+// provenance pills, so they show the compact dot (label still on hover).
+function useNarrow(): boolean {
+  const query = '(max-width: 767px)'
+  const [narrow, setNarrow] = useState(() => window.matchMedia?.(query).matches ?? false)
+  useEffect(() => {
+    const mq = window.matchMedia?.(query)
+    if (!mq) return
+    const onChange = () => setNarrow(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return narrow
 }
 
 function applyFilter(items: FoodLossBreakdownItem[], included: Set<string>): FoodLossBreakdownItem[] {
@@ -116,14 +131,15 @@ export default function AnalyticsScreen() {
 
   const fmt = (n: number | undefined) => (n !== undefined ? n.toLocaleString() : '—')
   const a = analytics.data
+  const narrow = useNarrow()
 
   return (
     <>
       {/* KPIs: mass flows (5) then rates and money (4). Coral is loss, lime is saved; Lost stays paper so its red trend reads. */}
       <div className="col-span-4 grid grid-cols-2 gap-3 tablet:col-span-8 tablet:grid-cols-3 desktop:col-span-12 desktop:grid-cols-5">
-        <KpiCard label="Transported" value={fmt(a?.transportedKg)} unit="kg" provenance="calculated" />
-        <KpiCard label="At risk" value={fmt(a?.atRiskKg)} unit="kg" provenance="calculated" />
-        <KpiCard
+        <KpiCard compactProvenance={narrow} label="Transported" value={fmt(a?.transportedKg)} unit="kg" provenance="calculated" />
+        <KpiCard compactProvenance={narrow} label="At risk" value={fmt(a?.atRiskKg)} unit="kg" provenance="calculated" />
+        <KpiCard compactProvenance={narrow}
           label="Lost"
           value={fmt(a?.lostKg)}
           unit="kg"
@@ -131,14 +147,16 @@ export default function AnalyticsScreen() {
           trend={series.data?.overTime.map((p) => p.lostKg)}
           trendTier="critical"
         />
-        <KpiCard label="Saved" tone="lime" value={fmt(a?.savedKg)} unit="kg" provenance="calculated" />
-        <KpiCard label="CO₂ avoided" value={fmt(a?.co2AvoidedKg)} unit="kg" provenance="calculated" />
+        <KpiCard compactProvenance={narrow} label="Saved" tone="lime" value={fmt(a?.savedKg)} unit="kg" provenance="calculated" />
+        <div className="col-span-2 tablet:col-span-1">
+          <KpiCard compactProvenance={narrow} label="CO₂ avoided" value={fmt(a?.co2AvoidedKg)} unit="kg" provenance="calculated" />
+        </div>
       </div>
       <div className="col-span-4 grid grid-cols-2 gap-3 tablet:col-span-8 desktop:col-span-12 desktop:grid-cols-4">
-        <KpiCard label="Loss rate" tone="coral" value={a ? a.lossRatePercent.toFixed(2) : '—'} unit="%" provenance="calculated" />
-        <KpiCard label="Prevented loss" tone="lime" value={a ? a.preventedLossPercent.toFixed(2) : '—'} unit="%" provenance="calculated" />
-        <KpiCard label="Financial loss" value={fmt(a?.estimatedFinancialLoss)} unit="QAR" provenance="finance" />
-        <KpiCard label="Loss prevented" value={fmt(a?.estimatedFinancialLossPrevented)} unit="QAR" provenance="finance" />
+        <KpiCard compactProvenance={narrow} label="Loss rate" tone="coral" value={a ? a.lossRatePercent.toFixed(2) : '—'} unit="%" provenance="calculated" />
+        <KpiCard compactProvenance={narrow} label="Prevented loss" tone="lime" value={a ? a.preventedLossPercent.toFixed(2) : '—'} unit="%" provenance="calculated" />
+        <KpiCard compactProvenance={narrow} label="Financial loss" value={fmt(a?.estimatedFinancialLoss)} unit="QAR" provenance="finance" />
+        <KpiCard compactProvenance={narrow} label="Loss prevented" value={fmt(a?.estimatedFinancialLossPrevented)} unit="QAR" provenance="finance" />
       </div>
 
       {/* Filters */}

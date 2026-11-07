@@ -4,7 +4,7 @@ import MiniTrend from './MiniTrend'
 import ProvenanceBadge from './ProvenanceBadge'
 import type { ProvenanceKind, StatusTier } from './types'
 
-export type KpiTone = 'paper' | 'sky' | 'lime' | 'sun' | 'coral' | 'lilac'
+export type KpiTone = 'paper' | 'sky' | 'lime' | 'sun' | 'coral' | 'lilac' | 'critical'
 
 interface KpiCardProps {
   label: string
@@ -32,6 +32,7 @@ const TONE: Record<KpiTone, string> = {
   sun: 'bg-fill-sun text-on-fill',
   coral: 'bg-fill-coral text-on-fill',
   lilac: 'bg-fill-lilac text-on-fill',
+  critical: 'bg-fill-critical text-[#fbf9f3]',
 }
 
 // QAI stat tile: mono caps label, big mono number, provenance badge.
@@ -57,7 +58,7 @@ export default function KpiCard({ label, value, unit, provenance, tip, compactPr
       </div>
       {trend && trend.length > 1 && (
         <div className="mt-2">
-          <MiniTrend data={trend} tier={trendTier} />
+          <MiniTrend data={trend} tier={trendTier} color={filled ? 'currentColor' : undefined} />
         </div>
       )}
     </div>

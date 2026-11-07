@@ -15,9 +15,11 @@ interface MiniTrendProps {
   data: number[]
   tier?: StatusTier
   height?: number
+  /** Overrides the tier colour, e.g. the on-fill ink on a coloured tile. */
+  color?: string
 }
 
-export default function MiniTrend({ data, tier = 'offline', height = 32 }: MiniTrendProps) {
+export default function MiniTrend({ data, tier = 'offline', height = 32, color }: MiniTrendProps) {
   const points = data.map((value, index) => ({ index, value }))
   return (
     <ResponsiveContainer width="100%" height={height}>
@@ -25,7 +27,7 @@ export default function MiniTrend({ data, tier = 'offline', height = 32 }: MiniT
         <Line
           type="monotone"
           dataKey="value"
-          stroke={STROKE[tier]}
+          stroke={color ?? STROKE[tier]}
           strokeWidth={2}
           dot={false}
           isAnimationActive={false}

@@ -294,7 +294,7 @@ export default function OptimizationScreen() {
           className="col-span-4 tablet:col-span-8 desktop:col-span-7"
           bodyClassName="p-4"
         >
-          <pre className="tt-pre m-0">min  transport cost + food-loss cost + delay cost</pre>
+          <pre className="tt-pre m-0 whitespace-pre-wrap">min  transport cost + food-loss cost + delay cost</pre>
 
           <ul className="mt-3">
             {constraints.map((c) => (

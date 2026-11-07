@@ -19,12 +19,13 @@ interface Props {
 export default function KpiTile({ label, value, unit, tone = 'paper', provenance, sub, className }: Props) {
   return (
     <div className={clsx('tt-box flex flex-col gap-1.5 p-3 [animation:slide-in-up_0.35s_ease-out_both]', TILE_FILL[tone], className)}>
-      <div className="flex items-start justify-between gap-2">
+      {/* Phones: badge above the label so a 2-up tile never squeezes either. */}
+      <div className="flex flex-col-reverse items-start gap-1 tablet:flex-row tablet:justify-between tablet:gap-2">
         <span className="tt-caps leading-tight">{label}</span>
         <span className="shrink-0">{provenance}</span>
       </div>
       <div className="flex flex-wrap items-baseline gap-x-1.5 font-mono tabular-nums">
-        <span className="text-[30px] font-bold leading-none tracking-[-0.02em] tablet:text-[34px]">{value}</span>
+        <span className="text-[26px] font-bold leading-none tracking-[-0.02em] tablet:text-[34px]">{value}</span>
         {unit && <span className="text-[13px] font-bold opacity-75">{unit}</span>}
       </div>
       {sub && <div className="font-mono text-[11px] font-bold leading-snug opacity-80">{sub}</div>}

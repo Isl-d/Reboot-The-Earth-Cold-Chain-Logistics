@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react'
-import { Box, TypedText } from '../../design'
+import { Box, ProvenanceBadge, TypedText } from '../../design'
 
 interface Props {
   /** Backend explanation text. Null or empty shows `empty`. */
@@ -26,7 +26,7 @@ export default function LaylaAssessment({ text, chips, source, empty, children, 
       meta={
         <>
           {chips}
-          <span className="tt-chip">AI-explained</span>
+          <ProvenanceBadge kind="ai-explained" />
         </>
       }
       bodyClassName="flex flex-col gap-3 p-4"

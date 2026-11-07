@@ -121,7 +121,7 @@ export default function InventoryScreen() {
         meta={`${filteredRows.length} of ${rows.length} batches`}
         className="col-span-4 tablet:col-span-8 desktop:col-span-9"
       >
-        <div className="overflow-x-auto">
+        <div className="relative overflow-x-auto">
           <table className="w-full min-w-[900px] border-collapse text-body-md">
             <thead className="tt-thead">
               <tr>
