@@ -1,21 +1,17 @@
 import { useMemo } from 'react'
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Legend, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, LabelList, ResponsiveContainer, XAxis, YAxis } from 'recharts'
 import { useFoodLossAnalytics, useFoodLossSeries } from '@/api/hooks'
 import type { FoodLossBreakdownItem } from '@/api/types'
 import {
+  AXIS_LINE,
   AXIS_STYLE,
-  Card,
+  Box,
   CHART_COLORS,
   CrosshairTooltip,
   FilterChip,
   FilterGroup,
-  FilterPanel,
   KpiCard,
-  Table,
-  Td,
-  Th,
-  Thead,
-  Tr,
+  ProvenanceBadge,
 } from '@/design'
 import { filterBySelection, useMultiSelect } from '@/lib/useMultiSelect'
 import BreakdownBarChart from './BreakdownBarChart'
@@ -37,7 +33,7 @@ export default function AnalyticsScreen() {
     ? 'Could not load the food-loss series.'
     : series.isLoading
       ? 'Loading…'
-      : 'No loss recorded yet — run a scenario to populate.'
+      : 'No loss recorded yet. Run a scenario to populate.'
   const filterEmptyText = series.isLoading ? 'Loading…' : 'No options yet.'
 
   const productFilter = useMultiSelect()
@@ -68,8 +64,8 @@ export default function AnalyticsScreen() {
   }))
   const financialBars = analytics.data
     ? [
-        { label: 'Financial loss', valueQar: analytics.data.estimatedFinancialLoss, color: CHART_COLORS.excursion },
-        { label: 'Financial loss prevented', valueQar: analytics.data.estimatedFinancialLossPrevented, color: CHART_COLORS.safeLine },
+        { label: 'Lost', valueQar: analytics.data.estimatedFinancialLoss, color: 'var(--color-fill-coral)' },
+        { label: 'Prevented', valueQar: analytics.data.estimatedFinancialLossPrevented, color: 'var(--color-fill-lime)' },
       ]
     : []
 
@@ -94,71 +90,74 @@ export default function AnalyticsScreen() {
     ...[...causeFilter.selected].map((l) => ({ label: `Cause: ${l}`, remove: () => causeFilter.remove(l) })),
   ]
 
+
+  const filterGroups = [
+    { title: 'Product', items: series.data?.byProduct ?? [], filter: productFilter },
+    { title: 'Warehouse', items: series.data?.byWarehouse ?? [], filter: warehouseFilter },
+    { title: 'Cause', items: series.data?.byCause ?? [], filter: causeFilter },
+  ]
+
+  const breakdowns = [
+    { title: 'Loss by cause', data: byCause },
+    { title: 'Loss by product', data: byProduct },
+    { title: 'Loss by warehouse', data: byWarehouse },
+  ]
+
+  const dateAxis = {
+    dataKey: 'dateMs',
+    type: 'number' as const,
+    domain: ['dataMin', 'dataMax'] as [string, string],
+    tickFormatter: formatDate,
+    tick: AXIS_STYLE,
+    axisLine: AXIS_LINE,
+    tickLine: false,
+    minTickGap: 32,
+  }
+
+  const fmt = (n: number | undefined) => (n !== undefined ? n.toLocaleString() : '—')
+  const a = analytics.data
+
   return (
     <>
-      {/* KPIs — mass flows (5) then rates & money (4); each row fills the width so no empty slot is left */}
-      <div className="col-span-4 tablet:col-span-8 desktop:col-span-12 grid grid-cols-2 gap-2 tablet:grid-cols-3 desktop:grid-cols-5">
-        <KpiCard label="Transported" value={analytics.data ? analytics.data.transportedKg.toLocaleString() : '—'} unit="kg" provenance="calculated" />
-        <KpiCard label="At risk" value={analytics.data ? analytics.data.atRiskKg.toLocaleString() : '—'} unit="kg" provenance="calculated" />
+      {/* KPIs: mass flows (5) then rates and money (4). Coral is loss, lime is saved; Lost stays paper so its red trend reads. */}
+      <div className="col-span-4 grid grid-cols-2 gap-3 tablet:col-span-8 tablet:grid-cols-3 desktop:col-span-12 desktop:grid-cols-5">
+        <KpiCard label="Transported" value={fmt(a?.transportedKg)} unit="kg" provenance="calculated" />
+        <KpiCard label="At risk" value={fmt(a?.atRiskKg)} unit="kg" provenance="calculated" />
         <KpiCard
           label="Lost"
-          value={analytics.data ? analytics.data.lostKg.toLocaleString() : '—'}
+          value={fmt(a?.lostKg)}
           unit="kg"
           provenance="calculated"
           trend={series.data?.overTime.map((p) => p.lostKg)}
           trendTier="critical"
         />
-        <KpiCard label="Saved" value={analytics.data ? analytics.data.savedKg.toLocaleString() : '—'} unit="kg" provenance="calculated" />
-        <KpiCard label="CO₂ avoided" value={analytics.data?.co2AvoidedKg !== undefined ? analytics.data.co2AvoidedKg.toLocaleString() : '—'} unit="kg" provenance="calculated" />
+        <KpiCard label="Saved" tone="lime" value={fmt(a?.savedKg)} unit="kg" provenance="calculated" />
+        <KpiCard label="CO₂ avoided" value={fmt(a?.co2AvoidedKg)} unit="kg" provenance="calculated" />
       </div>
-      <div className="col-span-4 tablet:col-span-8 desktop:col-span-12 grid grid-cols-2 gap-2 desktop:grid-cols-4">
-        <KpiCard label="Loss rate" value={analytics.data ? analytics.data.lossRatePercent.toFixed(2) : '—'} unit="%" provenance="calculated" />
-        <KpiCard label="Prevented loss" value={analytics.data ? analytics.data.preventedLossPercent.toFixed(2) : '—'} unit="%" provenance="calculated" />
-        <KpiCard
-          label="Financial loss"
-          value={analytics.data ? `QAR ${analytics.data.estimatedFinancialLoss.toLocaleString()}` : '—'}
-          provenance="finance"
-        />
-        <KpiCard
-          label="Financial loss prevented"
-          value={analytics.data ? `QAR ${analytics.data.estimatedFinancialLossPrevented.toLocaleString()}` : '—'}
-          provenance="finance"
-        />
+      <div className="col-span-4 grid grid-cols-2 gap-3 tablet:col-span-8 desktop:col-span-12 desktop:grid-cols-4">
+        <KpiCard label="Loss rate" tone="coral" value={a ? a.lossRatePercent.toFixed(2) : '—'} unit="%" provenance="calculated" />
+        <KpiCard label="Prevented loss" tone="lime" value={a ? a.preventedLossPercent.toFixed(2) : '—'} unit="%" provenance="calculated" />
+        <KpiCard label="Financial loss" value={fmt(a?.estimatedFinancialLoss)} unit="QAR" provenance="finance" />
+        <KpiCard label="Loss prevented" value={fmt(a?.estimatedFinancialLossPrevented)} unit="QAR" provenance="finance" />
       </div>
 
       {/* Filters */}
-      <div className="col-span-4 tablet:col-span-8 desktop:col-span-3 desktop:self-start">
-        <FilterPanel>
-          <FilterGroup title="Product">
-            {(series.data?.byProduct ?? []).length === 0 && <p className="text-body-sm text-muted">{filterEmptyText}</p>}
-            {(series.data?.byProduct ?? []).map((p) => (
-              <label key={p.label} className="flex items-center gap-2 text-body-sm">
-                <input type="checkbox" checked={productFilter.selected.has(p.label)} onChange={() => productFilter.toggle(p.label)} />
-                {p.label}
-              </label>
-            ))}
-          </FilterGroup>
-          <FilterGroup title="Warehouse">
-            {(series.data?.byWarehouse ?? []).length === 0 && <p className="text-body-sm text-muted">{filterEmptyText}</p>}
-            {(series.data?.byWarehouse ?? []).map((w) => (
-              <label key={w.label} className="flex items-center gap-2 text-body-sm">
-                <input type="checkbox" checked={warehouseFilter.selected.has(w.label)} onChange={() => warehouseFilter.toggle(w.label)} />
-                {w.label}
-              </label>
-            ))}
-          </FilterGroup>
-          <FilterGroup title="Cause">
-            {(series.data?.byCause ?? []).length === 0 && <p className="text-body-sm text-muted">{filterEmptyText}</p>}
-            {(series.data?.byCause ?? []).map((c) => (
-              <label key={c.label} className="flex items-center gap-2 text-body-sm">
-                <input type="checkbox" checked={causeFilter.selected.has(c.label)} onChange={() => causeFilter.toggle(c.label)} />
-                {c.label}
-              </label>
-            ))}
-          </FilterGroup>
-        </FilterPanel>
+      <div className="col-span-4 flex flex-col gap-3 tablet:col-span-8 desktop:col-span-3 desktop:self-start">
+        <Box title="Filters" meta={activeChips.length > 0 ? `${activeChips.length} active` : 'all'} bodyClassName="p-4">
+          {filterGroups.map((g) => (
+            <FilterGroup key={g.title} title={g.title}>
+              {g.items.length === 0 && <p className="text-body-sm text-text-secondary">{filterEmptyText}</p>}
+              {g.items.map((item) => (
+                <label key={item.label} className="flex items-center gap-2 text-body-sm">
+                  <input type="checkbox" checked={g.filter.selected.has(item.label)} onChange={() => g.filter.toggle(item.label)} />
+                  {item.label}
+                </label>
+              ))}
+            </FilterGroup>
+          ))}
+        </Box>
         {activeChips.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2">
             {activeChips.map((chip) => (
               <FilterChip key={chip.label} label={chip.label} onRemove={chip.remove} />
             ))}
@@ -166,124 +165,187 @@ export default function AnalyticsScreen() {
         )}
       </div>
 
-      <div className="col-span-4 tablet:col-span-8 desktop:col-span-9 grid grid-cols-1 gap-2">
-        {/* Food loss over time — actual vs predicted */}
-        <Card className="p-4">
-          <h2 className="mb-2 text-headline-sm text-navy">Food Loss Over Time — Predicted vs Actual</h2>
+      <div className="col-span-4 grid grid-cols-1 gap-4 tablet:col-span-8 desktop:col-span-9">
+        {/* Food loss over time: predicted vs actual */}
+        <Box
+          title="Food loss over time"
+          tone="coral"
+          meta={
+            <>
+              <span className="hidden tablet:inline">predicted vs actual · kg</span>
+              <ProvenanceBadge kind="calculated" compact />
+            </>
+          }
+          bodyClassName="p-4"
+        >
           {series.data && series.data.overTime.length > 0 ? (
-            <ResponsiveContainer width="100%" height={220}>
-              <AreaChart data={series.data.overTime} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
-                <XAxis dataKey="dateMs" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatDate} tick={AXIS_STYLE} stroke={CHART_COLORS.grid} />
-                <YAxis tick={AXIS_STYLE} stroke={CHART_COLORS.grid} unit=" kg" width={76} />
-                <CrosshairTooltip labelFormatter={(ms) => formatDate(Number(ms))} />
-                <Legend wrapperStyle={{ fontSize: 12 }} />
-                <Area type="monotone" dataKey="predictedLostKg" name="Predicted" stroke={CHART_COLORS.predicted} fill={CHART_COLORS.predicted} fillOpacity={0.08} strokeDasharray="4 4" isAnimationActive={false} />
-                <Area type="monotone" dataKey="lostKg" name="Actual" stroke={CHART_COLORS.excursion} fill={CHART_COLORS.excursion} fillOpacity={0.15} isAnimationActive={false} />
-              </AreaChart>
-            </ResponsiveContainer>
+            <>
+              <div className="mb-2 flex flex-wrap gap-4">
+                <span className="tt-caps flex items-center gap-1.5">
+                  <span className="h-0 w-5 border-t-[3px] border-dashed" style={{ borderColor: CHART_COLORS.predicted }} aria-hidden />
+                  Predicted
+                </span>
+                <span className="tt-caps flex items-center gap-1.5">
+                  <span className="h-3 w-4 rounded-[3px] border-2 border-ink bg-fill-coral" aria-hidden />
+                  Actual
+                </span>
+              </div>
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart data={series.data.overTime} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                  <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="2 4" vertical={false} />
+                  <XAxis {...dateAxis} ticks={series.data.overTime.map((p) => p.dateMs)} />
+                  <YAxis tick={AXIS_STYLE} axisLine={AXIS_LINE} tickLine={false} unit=" kg" width={64} />
+                  <CrosshairTooltip labelFormatter={(ms) => formatDate(Number(ms))} />
+                  <Area
+                    type="monotone"
+                    dataKey="lostKg"
+                    name="Actual"
+                    stroke={CHART_COLORS.ink}
+                    strokeWidth={2}
+                    fill="var(--color-fill-coral)"
+                    fillOpacity={0.85}
+                    isAnimationActive={false}
+                  />
+                  <Area
+                    type="monotone"
+                    dataKey="predictedLostKg"
+                    name="Predicted"
+                    stroke={CHART_COLORS.predicted}
+                    strokeWidth={2.5}
+                    fill="none"
+                    strokeDasharray="6 4"
+                    isAnimationActive={false}
+                  />
+                </AreaChart>
+              </ResponsiveContainer>
+            </>
           ) : (
             <ChartEmpty height={220} message={seriesEmptyText} />
           )}
-        </Card>
+        </Box>
 
-        <div className="grid grid-cols-1 gap-2 tablet:grid-cols-3">
-          <Card className="p-4">
-            <h2 className="text-headline-sm text-navy">Loss by Cause</h2>
-            <div className="mt-2">
-              <BreakdownBarChart data={byCause} emptyMessage={seriesEmptyText} color={CHART_COLORS.excursion} />
-            </div>
-          </Card>
-          <Card className="p-4">
-            <h2 className="text-headline-sm text-navy">Loss by Product</h2>
-            <div className="mt-2">
-              <BreakdownBarChart data={byProduct} emptyMessage={seriesEmptyText} color={CHART_COLORS.measured} />
-            </div>
-          </Card>
-          <Card className="p-4">
-            <h2 className="text-headline-sm text-navy">Loss by Warehouse</h2>
-            <div className="mt-2">
-              <BreakdownBarChart data={byWarehouse} emptyMessage={seriesEmptyText} color={CHART_COLORS.calculated} />
-            </div>
-          </Card>
+        <div className="grid grid-cols-1 gap-4 tablet:grid-cols-3">
+          {breakdowns.map((b) => (
+            <Box key={b.title} title={b.title} meta="kg lost" small bodyClassName="p-3">
+              <BreakdownBarChart data={b.data} emptyMessage={seriesEmptyText} color="var(--color-fill-coral)" />
+            </Box>
+          ))}
         </div>
 
-        <div className="grid grid-cols-1 gap-2 tablet:grid-cols-2">
-          <Card className="p-4">
-            <h2 className="text-headline-sm text-navy">Food Saved Over Time</h2>
-            <p className="mb-2 text-body-sm text-muted">Predicted loss minus actual loss, per day</p>
+        <div className="grid grid-cols-1 gap-4 tablet:grid-cols-2">
+          <Box title="Food saved over time" tone="lime" meta="predicted minus actual" bodyClassName="p-4">
             {savedOverTime.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
                 <AreaChart data={savedOverTime} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
-                  <CartesianGrid stroke={CHART_COLORS.grid} vertical={false} />
-                  <XAxis dataKey="dateMs" type="number" domain={['dataMin', 'dataMax']} tickFormatter={formatDate} tick={AXIS_STYLE} stroke={CHART_COLORS.grid} />
-                  <YAxis tick={AXIS_STYLE} stroke={CHART_COLORS.grid} unit=" kg" width={76} />
+                  <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="2 4" vertical={false} />
+                  <XAxis {...dateAxis} ticks={savedOverTime.map((p) => p.dateMs)} />
+                  <YAxis tick={AXIS_STYLE} axisLine={AXIS_LINE} tickLine={false} unit=" kg" width={64} />
                   <CrosshairTooltip labelFormatter={(ms) => formatDate(Number(ms))} formatter={(value) => [`${value} kg`, 'Saved']} />
-                  <Area type="monotone" dataKey="savedKg" stroke={CHART_COLORS.safeLine} fill={CHART_COLORS.safeLine} fillOpacity={0.15} isAnimationActive={false} />
+                  <Area
+                    type="monotone"
+                    dataKey="savedKg"
+                    stroke={CHART_COLORS.ink}
+                    strokeWidth={2}
+                    fill="var(--color-fill-lime)"
+                    fillOpacity={0.9}
+                    isAnimationActive={false}
+                  />
                 </AreaChart>
               </ResponsiveContainer>
             ) : (
               <ChartEmpty height={180} message={seriesEmptyText} />
             )}
-          </Card>
+          </Box>
 
-          <Card className="p-4">
-            <h2 className="text-headline-sm text-navy">Financial Impact</h2>
-            <p className="mb-2 text-body-sm text-muted">Estimated loss vs loss prevented, QAR</p>
+          <Box
+            title="Financial impact"
+            tone="sun"
+            meta={
+              <>
+                QAR <ProvenanceBadge kind="finance" compact />
+              </>
+            }
+            bodyClassName="p-4"
+          >
             {financialBars.length > 0 ? (
               <ResponsiveContainer width="100%" height={180}>
-                <BarChart data={financialBars} layout="vertical" margin={{ top: 8, right: 16, left: 8, bottom: 8 }}>
-                  <CartesianGrid stroke={CHART_COLORS.grid} horizontal={false} />
-                  <XAxis type="number" tick={AXIS_STYLE} stroke={CHART_COLORS.grid} unit=" QAR" />
-                  <YAxis type="category" dataKey="label" tick={AXIS_STYLE} stroke={CHART_COLORS.grid} width={150} />
-                  <CrosshairTooltip formatter={(value) => [`QAR ${value}`, 'Amount']} />
-                  <Bar dataKey="valueQar" radius={[0, 3, 3, 0]} isAnimationActive={false}>
+                <BarChart data={financialBars} margin={{ top: 24, right: 8, left: 0, bottom: 0 }} barCategoryGap="28%">
+                  <CartesianGrid stroke={CHART_COLORS.grid} strokeDasharray="2 4" vertical={false} />
+                  <XAxis dataKey="label" tick={AXIS_STYLE} axisLine={AXIS_LINE} tickLine={false} />
+                  <YAxis tick={AXIS_STYLE} axisLine={AXIS_LINE} tickLine={false} width={64} />
+                  <CrosshairTooltip
+                    cursor={{ fill: 'var(--color-elevated)' }}
+                    formatter={(value) => [`QAR ${Number(value).toLocaleString()}`, 'Amount']}
+                  />
+                  <Bar dataKey="valueQar" stroke={CHART_COLORS.ink} strokeWidth={2} radius={[4, 4, 0, 0]} animationDuration={700}>
                     {financialBars.map((b) => (
                       <Cell key={b.label} fill={b.color} />
                     ))}
+                    <LabelList
+                      dataKey="valueQar"
+                      position="top"
+                      formatter={(v: unknown) => Number(v).toLocaleString()}
+                      style={{ ...AXIS_STYLE, fill: 'var(--color-text-primary)' }}
+                    />
                   </Bar>
                 </BarChart>
               </ResponsiveContainer>
             ) : (
-              <ChartEmpty height={180} message={analytics.isError ? 'Could not load analytics.' : analytics.isLoading ? 'Loading…' : 'No data yet.'} />
+              <ChartEmpty
+                height={180}
+                message={analytics.isError ? 'Could not load analytics.' : analytics.isLoading ? 'Loading…' : 'No data yet.'}
+              />
             )}
-          </Card>
+          </Box>
         </div>
       </div>
 
       {/* Detail table */}
-      <Card className="col-span-4 tablet:col-span-8 desktop:col-span-12 p-4">
-        <h2 className="text-headline-sm text-navy">Breakdown Detail</h2>
-        <div className="mt-2">
-          {detailRows.length === 0 ? (
+      <Box title="Breakdown detail" meta={`${detailRows.length} rows`} className="col-span-4 tablet:col-span-8 desktop:col-span-12">
+        {detailRows.length === 0 ? (
+          <div className="p-4">
             <ChartEmpty height={96} message={seriesEmptyText} />
-          ) : (
-          <Table>
-            <Thead>
-              <tr>
-                <Th>Dimension</Th>
-                <Th>Label</Th>
-                <Th className="text-right">Lost</Th>
-                <Th className="text-right">% of dimension total</Th>
-              </tr>
-            </Thead>
-            <tbody>
-              {detailRows
-                .slice()
-                .sort((a, b) => b.lostKg - a.lostKg)
-                .map((row) => (
-                  <Tr key={`${row.dimension}-${row.label}`}>
-                    <Td>{row.dimension}</Td>
-                    <Td>{row.label}</Td>
-                    <Td numeric>{row.lostKg} kg</Td>
-                    <Td numeric>{((row.lostKg / totalsByDimension[row.dimension]) * 100).toFixed(1)}%</Td>
-                  </Tr>
-                ))}
-            </tbody>
-          </Table>
-          )}
-        </div>
-      </Card>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[520px] border-collapse text-body-md">
+              <thead className="tt-thead">
+                <tr>
+                  <th>Dimension</th>
+                  <th>Label</th>
+                  <th className="text-right">Lost</th>
+                  <th className="text-right">Share of dimension</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detailRows
+                  .slice()
+                  .sort((x, y) => y.lostKg - x.lostKg)
+                  .map((row) => {
+                    const share = (row.lostKg / totalsByDimension[row.dimension]) * 100
+                    return (
+                      <tr key={`${row.dimension}-${row.label}`} className="border-b-2 border-line last:border-b-0 hover:bg-elevated">
+                        <td className="px-3 py-2">
+                          <span className="tt-chip">{row.dimension}</span>
+                        </td>
+                        <td className="px-3 py-2 font-bold">{row.label}</td>
+                        <td className="whitespace-nowrap px-3 py-2 text-right font-mono tabular-nums">{row.lostKg} kg</td>
+                        <td className="px-3 py-2">
+                          <span className="flex items-center justify-end gap-2">
+                            <span className="hidden h-3 w-24 overflow-hidden rounded-[3px] border-2 border-ink bg-elevated tablet:block" aria-hidden>
+                              <span className="block h-full bg-fill-coral" style={{ width: `${share}%` }} />
+                            </span>
+                            <span className="w-14 text-right font-mono tabular-nums">{share.toFixed(1)}%</span>
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Box>
     </>
   )
 }

@@ -1,9 +1,7 @@
-import { CartesianGrid, Line, LineChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { CartesianGrid, Line, LineChart, ReferenceArea, ReferenceLine, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { CHART_COLORS, CrosshairTooltip } from '../../design'
 import type { TelemetryPoint } from '../../types'
-
-function fmt(ts: string) {
-  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
+import { clock, GRID, MARGIN, refLabel, RISK, tint, X_AXIS, Y_AXIS } from './style'
 
 interface Props {
   data: TelemetryPoint[]
@@ -12,18 +10,44 @@ interface Props {
   fill?: boolean
 }
 
+// Measured temperature (sky) inside the batch's safe band (faint lime), with
+// the safe max as a dashed red rule. The band always stays in view.
 export function TemperatureChart({ data, safeMinTempC = 0, safeMaxTempC = 4, fill }: Props) {
-  const chartData = data.map((p) => ({ time: fmt(p.timestamp), temp: p.temperatureC }))
+  const chartData = data.map((p) => ({ time: clock(p.timestamp), temp: p.temperatureC }))
   return (
-    <ResponsiveContainer width="100%" height={fill ? '100%' : 180}>
-      <LineChart data={chartData} margin={{ top: 8, right: 24, left: 4, bottom: 0 }}>
-        <CartesianGrid strokeDasharray="2 4" stroke="var(--color-border)" vertical={false} />
-        <XAxis dataKey="time" tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'IBM Plex Mono' }} tickLine={false} axisLine={{ stroke: 'var(--color-border)' }} interval="preserveStartEnd" minTickGap={24} />
-        <YAxis tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'IBM Plex Mono' }} tickLine={false} axisLine={false} unit="°C" width={36} />
-        <Tooltip contentStyle={{ background: 'var(--color-elevated)', border: '1px solid var(--color-border)', borderRadius: 4, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--color-text-primary)' }} formatter={(v) => [`${Number(v).toFixed(1)}°C`, 'Temp']} labelStyle={{ color: 'var(--color-text-secondary)' }} />
-        <ReferenceLine y={safeMaxTempC} stroke="var(--color-risk-critical)" strokeDasharray="4 3" strokeWidth={1.5} label={{ value: `MAX ${safeMaxTempC}°C`, fill: 'var(--color-risk-critical)', fontSize: 9 }} />
-        <ReferenceLine y={safeMinTempC} stroke="var(--color-risk-low)" strokeDasharray="4 3" strokeWidth={1.5} label={{ value: `MIN ${safeMinTempC}°C`, fill: 'var(--color-risk-low)', fontSize: 9 }} />
-        <Line type="monotone" dataKey="temp" stroke="var(--color-primary)" strokeWidth={2.5} dot={false} activeDot={{ r: 5, fill: 'var(--color-primary)', stroke: 'var(--color-base)', strokeWidth: 2 }} isAnimationActive animationDuration={1400} animationEasing="ease-out" />
+    <ResponsiveContainer width="100%" height={fill ? '100%' : 200}>
+      <LineChart data={chartData} margin={MARGIN}>
+        <CartesianGrid {...GRID} />
+        <ReferenceArea y1={safeMinTempC} y2={safeMaxTempC} fill={tint(RISK.low, 12)} strokeOpacity={0} ifOverflow="extendDomain" />
+        <XAxis dataKey="time" {...X_AXIS} />
+        <YAxis {...Y_AXIS} unit="°C" width={46} domain={['auto', 'auto']} />
+        <ReferenceLine
+          y={safeMaxTempC}
+          stroke={RISK.critical}
+          strokeDasharray="6 4"
+          strokeWidth={2}
+          ifOverflow="extendDomain"
+          label={refLabel(`MAX ${safeMaxTempC}°C`, RISK.critical, 'insideBottomRight')}
+        />
+        <ReferenceLine
+          y={safeMinTempC}
+          stroke={RISK.low}
+          strokeDasharray="6 4"
+          strokeWidth={2}
+          ifOverflow="extendDomain"
+          label={refLabel(`MIN ${safeMinTempC}°C`, RISK.low, 'insideBottomLeft')}
+        />
+        <CrosshairTooltip formatter={(v) => [`${Number(v).toFixed(1)}°C`, 'Temperature']} />
+        <Line
+          type="monotone"
+          dataKey="temp"
+          stroke={CHART_COLORS.measured}
+          strokeWidth={2}
+          dot={false}
+          activeDot={{ r: 5, fill: CHART_COLORS.measured, stroke: CHART_COLORS.ink, strokeWidth: 2 }}
+          isAnimationActive
+          animationDuration={900}
+        />
       </LineChart>
     </ResponsiveContainer>
   )

@@ -1,6 +1,8 @@
 import type { ScatterPointItem } from 'recharts/types/cartesian/Scatter'
-import { ResponsiveContainer, Scatter, ScatterChart, Tooltip, XAxis, YAxis } from 'recharts'
+import { ResponsiveContainer, Scatter, ScatterChart, XAxis, YAxis } from 'recharts'
+import { CHART_COLORS, CrosshairTooltip } from '../../design'
 import type { TelemetryPoint } from '../../types'
+import { X_AXIS, Y_AXIS } from './style'
 
 interface ChartPoint {
   lon: number
@@ -8,20 +10,21 @@ interface ChartPoint {
   idx: number
 }
 
-function TruckDot(props: ScatterPointItem & { idx?: number; payload?: ChartPoint; totalPoints?: number }) {
+// Trail in measured sky, fading in from the oldest fix; the live position is
+// a larger ink-ringed dot (red would read as CRITICAL).
+function TruckDot(props: ScatterPointItem & { payload?: ChartPoint; totalPoints?: number }) {
   const { cx = 0, cy = 0, payload, totalPoints = 1 } = props
   const idx = payload?.idx ?? 0
   const isLast = idx === totalPoints - 1
-  return (
-    <circle
-      cx={cx}
-      cy={cy}
-      r={isLast ? 5 : 2.5}
-      // Trail in neutral ink, live position in Signal Cyan (red would read as CRITICAL).
-      fill={isLast ? 'var(--color-primary)' : 'var(--color-text-secondary)'}
-      opacity={isLast ? 1 : 0.5 + (idx / totalPoints) * 0.5}
-    />
-  )
+  if (isLast) {
+    return (
+      <g>
+        <circle cx={cx} cy={cy} r={8} fill={CHART_COLORS.measured} fillOpacity={0.3} />
+        <circle cx={cx} cy={cy} r={5} fill={CHART_COLORS.measured} stroke={CHART_COLORS.ink} strokeWidth={2} />
+      </g>
+    )
+  }
+  return <circle cx={cx} cy={cy} r={2.5} fill={CHART_COLORS.measured} opacity={0.35 + (idx / totalPoints) * 0.65} />
 }
 
 export function GpsTrajectoryChart({ data, fill }: { data: TelemetryPoint[]; fill?: boolean }) {
@@ -32,52 +35,35 @@ export function GpsTrajectoryChart({ data, fill }: { data: TelemetryPoint[]; fil
   }))
 
   return (
-    <ResponsiveContainer width="100%" height={fill ? '100%' : 180}>
-      <ScatterChart margin={{ top: 8, right: 24, left: 4, bottom: 12 }}>
+    <ResponsiveContainer width="100%" height={fill ? '100%' : 200}>
+      <ScatterChart margin={{ top: 14, right: 18, left: 2, bottom: 4 }}>
         <XAxis
           dataKey="lon"
           type="number"
-          name="Longitude"
+          name="Lon"
           domain={['auto', 'auto']}
-          tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'var(--font-mono)' }}
-          tickLine={false}
-          axisLine={{ stroke: 'var(--color-border)' }}
-          tickFormatter={(v: number) => v.toFixed(3)}
-          label={{ value: 'LON', fill: 'var(--color-text-secondary)', fontSize: 9, position: 'insideBottomRight', offset: -4 }}
+          {...X_AXIS}
+          interval={0}
+          tickCount={4}
+          tickFormatter={(v: number) => v.toFixed(2)}
         />
         <YAxis
           dataKey="lat"
           type="number"
-          name="Latitude"
+          name="Lat"
           domain={['auto', 'auto']}
-          tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'var(--font-mono)' }}
-          tickLine={false}
-          axisLine={false}
-          tickFormatter={(v: number) => v.toFixed(3)}
-          width={60}
-          label={{ value: 'LAT', fill: 'var(--color-text-secondary)', fontSize: 9, angle: -90, position: 'insideLeft' }}
+          {...Y_AXIS}
+          tickCount={4}
+          tickFormatter={(v: number) => v.toFixed(2)}
+          width={46}
         />
-        <Tooltip
-          contentStyle={{
-            background: 'var(--color-elevated)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '2px',
-            fontSize: 11,
-            fontFamily: 'var(--font-mono)',
-            color: 'var(--color-text-primary)',
-          }}
-          cursor={{ stroke: 'var(--color-border)' }}
-          formatter={(v) => [Number(v).toFixed(4), '']}
-        />
+        <CrosshairTooltip formatter={(v, name) => [Number(v).toFixed(4), String(name)]} />
         <Scatter
           data={chartData}
-          fill="var(--color-text-secondary)"
-          opacity={0.7}
-          shape={(props) => (
-            <TruckDot
-              {...(props as ScatterPointItem & { payload?: ChartPoint })}
-              totalPoints={chartData.length}
-            />
+          fill={CHART_COLORS.measured}
+          isAnimationActive={false}
+          shape={(props: unknown) => (
+            <TruckDot {...(props as ScatterPointItem & { payload?: ChartPoint })} totalPoints={chartData.length} />
           )}
         />
       </ScatterChart>

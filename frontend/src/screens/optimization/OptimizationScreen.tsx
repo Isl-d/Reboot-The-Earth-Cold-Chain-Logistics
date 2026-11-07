@@ -12,20 +12,26 @@ import {
 } from '@/api/hooks'
 import {
   ActionChip,
+  Box,
+  Breakdown,
   Button,
-  Card,
   InfoTip,
   ProvenanceBadge,
   Select,
   StatusChip,
   Stepper,
-  Table,
-  Td,
-  Th,
-  Thead,
-  Tr,
+  type BreakdownRow,
 } from '@/design'
+import { clsx } from '@/design/clsx'
 import type { OptimizationNavState } from '@/lib/navigation'
+
+const TH = 'whitespace-nowrap'
+const TD = 'px-3 py-2.5 align-middle'
+const NUM = 'whitespace-nowrap text-right font-mono tabular-nums'
+
+function qar(value: number): string {
+  return `QAR ${value.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+}
 
 export default function OptimizationScreen() {
   // Arriving from a row action elsewhere (e.g. Inventory's "Evaluate
@@ -119,135 +125,186 @@ export default function OptimizationScreen() {
   const unmetLabels = constraints.filter((c) => c.ok === false).map((c) => c.label)
   const allFeasible = constraints.length > 0 && constraints.every((c) => c.ok !== false)
 
+  const candidates = optimization.data?.candidates ?? []
+  const showObjective = candidates.some((c) => c.objective !== undefined)
+
+  // The selected option's cost terms, exactly as the backend returned them.
+  // Terms the backend did not send are left out rather than guessed.
+  const costRows: BreakdownRow[] = selected
+    ? [
+        { code: 'TC', label: 'Transport cost', value: qar(selected.transportCost) },
+        ...(selected.foodLossCost !== undefined
+          ? [{ code: 'FL', label: 'Food-loss cost', value: qar(selected.foodLossCost), sign: '+ ' }]
+          : []),
+        ...(selected.delayCost !== undefined
+          ? [{ code: 'DC', label: 'Delay cost', value: qar(selected.delayCost), sign: '+ ' }]
+          : []),
+      ]
+    : []
+
   return (
     <>
-      <Card className="col-span-4 tablet:col-span-8 desktop:col-span-12 p-4">
-        <div className="flex flex-wrap items-center gap-3">
-          <span className="text-label-ui uppercase text-muted">Truck</span>
-          <Select
-            className="w-64"
-            value={truckId}
-            onChange={(e) => {
-              setTruckId(e.target.value)
-              setBatchIdOverride(undefined)
-            }}
-            options={trucksQuery.data?.map((t) => ({ value: t.truckId, label: t.label })) ?? [{ value: '', label: 'Loading…' }]}
-          />
-          {batchInfo && (
-            <span className="text-body-sm text-muted">
-              {batchId} — {batchInfo.product} ({batchInfo.quantityKg} kg)
-            </span>
-          )}
-          <Button
-            variant="secondary"
-            className="ml-auto"
-            disabled={!truckId || !batchId || evaluate.isPending}
-            onClick={() => evaluate.mutate({ truckId, batchId })}
-          >
-            {evaluate.isPending ? 'Evaluating…' : 'Re-evaluate'}
-          </Button>
-        </div>
+      {/* Truck + batch */}
+      <Box
+        title="Truck and batch"
+        meta="backend · optimize"
+        className="col-span-4 tablet:col-span-8 desktop:col-span-12"
+        bodyClassName="flex flex-wrap items-center gap-3 p-4"
+      >
+        <Select
+          aria-label="Truck"
+          className="w-full tablet:w-64"
+          value={truckId}
+          onChange={(e) => {
+            setTruckId(e.target.value)
+            setBatchIdOverride(undefined)
+          }}
+          options={trucksQuery.data?.map((t) => ({ value: t.truckId, label: t.label })) ?? [{ value: '', label: 'Loading…' }]}
+        />
+        {batchInfo && (
+          <span className="flex flex-wrap items-center gap-2">
+            <span className="tt-chip">{batchId}</span>
+            <span className="text-body-md font-bold">{batchInfo.product}</span>
+            <span className="font-mono text-body-sm text-text-secondary">{batchInfo.quantityKg} kg</span>
+          </span>
+        )}
+        <Button
+          variant="secondary"
+          className="w-full tablet:ml-auto tablet:w-auto"
+          disabled={!truckId || !batchId || evaluate.isPending}
+          onClick={() => evaluate.mutate({ truckId, batchId })}
+        >
+          {evaluate.isPending ? 'Evaluating…' : 'Re-evaluate'}
+        </Button>
         {evaluate.data && (
-          <p className="mt-2 text-body-sm text-muted">
+          <p className="w-full font-mono text-[12px] text-text-secondary">
             Re-evaluated on demand · objective{' '}
-            <span className="font-mono tabular-nums text-navy">{evaluate.data.objectiveValue.toFixed(2)}</span>
+            <span className="font-bold text-text-primary">{evaluate.data.objectiveValue.toFixed(2)}</span>
             {evaluate.data.selectedWarehouseId ? ` · selected ${evaluate.data.selectedWarehouseId}` : ''}
           </p>
         )}
-        {evaluate.isError && (
-          <p className="mt-2 text-body-sm text-risk-critical">Re-evaluate failed — try again.</p>
-        )}
-      </Card>
+        {evaluate.isError && <p className="w-full text-body-sm font-bold text-risk-critical">Re-evaluate failed. Try again.</p>}
+      </Box>
 
       {/* Candidates */}
-      <Card className="col-span-4 tablet:col-span-8 desktop:col-span-12 p-4">
-        <h2 className="flex items-center gap-2 text-headline-sm text-navy">
-          Candidate Destinations
-          <InfoTip title="Candidate destinations">
-            Every warehouse the optimizer considered, with its ETA, capacity, temperature
-            compatibility and expected loss. Feasible rows meet all constraints; the
-            selected row minimises transport + food-loss + delay cost.
-          </InfoTip>
-        </h2>
+      <Box
+        title={
+          <span className="inline-flex items-center gap-2">
+            Candidate destinations
+            <InfoTip title="Candidate destinations">
+              Every warehouse the optimizer considered, with its ETA, capacity, temperature compatibility and expected
+              loss. Feasible rows meet all constraints; the selected row minimises transport + food-loss + delay cost.
+            </InfoTip>
+          </span>
+        }
+        meta={candidates.length > 0 ? `${candidates.length} candidates` : 'no data'}
+        className="col-span-4 overflow-visible tablet:col-span-8 desktop:col-span-12"
+      >
         {!optimization.data ? (
-          <p className="mt-3 text-body-sm text-muted">Select a truck to see candidate warehouses.</p>
+          <p className="p-4 text-body-sm text-text-secondary">Select a truck to see candidate warehouses.</p>
         ) : (
-          <div className="mt-3">
-            <Table>
-              <Thead>
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[760px] border-collapse text-body-md">
+              <thead className="tt-thead">
                 <tr>
-                  <Th>Warehouse</Th>
-                  <Th className="text-right">ETA</Th>
-                  <Th className="text-right">Capacity</Th>
-                  <Th>Temp Compatible</Th>
-                  <Th className="text-right">Expected Loss</Th>
-                  <Th className="text-right">Transport Cost</Th>
-                  <Th>Feasible</Th>
+                  <th className={TH}>Warehouse</th>
+                  <th className={clsx(TH, 'text-right')}>ETA</th>
+                  <th className={clsx(TH, 'text-right')}>Capacity</th>
+                  <th className={TH}>Temp ok</th>
+                  <th className={clsx(TH, 'text-right')}>Exp. loss</th>
+                  <th className={clsx(TH, 'text-right')}>Transport</th>
+                  {showObjective && <th className={clsx(TH, 'text-right')}>Objective</th>}
+                  <th className={TH}>Feasible</th>
                 </tr>
-              </Thead>
+              </thead>
               <tbody>
-                {optimization.data.candidates.map((c) => (
-                  <Tr key={c.warehouseId} statusTier={!c.feasible ? 'critical' : c.selected ? 'safe' : undefined}>
-                    <Td>
-                      <span className="flex items-center gap-2">
-                        {c.warehouseId}
-                        {c.selected && <ProvenanceBadge kind="recommended" compact />}
+                {candidates.map((c) => (
+                  <tr
+                    key={c.warehouseId}
+                    className={clsx(
+                      'border-b-2 border-line last:border-b-0',
+                      c.selected ? 'bg-fill-lime font-bold text-on-fill' : 'hover:bg-elevated',
+                      !c.feasible && !c.selected && 'text-text-secondary',
+                    )}
+                  >
+                    <td className={TD}>
+                      <span className="flex items-center gap-2 whitespace-nowrap">
+                        <span className="font-mono">{c.warehouseId}</span>
+                        {c.name && <span className="hidden font-normal tablet:inline">{c.name}</span>}
+                        {c.selected && (
+                          <span className="inline-flex items-center gap-1 rounded-md border-2 border-on-fill bg-surface px-1.5 font-mono text-[10px] font-bold uppercase tracking-[0.06em] text-text-primary">
+                            <ProvenanceBadge kind="recommended" compact />
+                            Recommended
+                          </span>
+                        )}
                       </span>
-                    </Td>
-                    <Td numeric>{c.etaMinutes} min</Td>
-                    <Td numeric>{c.capacityKg !== undefined ? `${c.capacityKg} kg` : '—'}</Td>
-                    <Td>
+                    </td>
+                    <td className={clsx(TD, NUM)}>{c.etaMinutes} min</td>
+                    <td className={clsx(TD, NUM)}>{c.capacityKg !== undefined ? `${c.capacityKg} kg` : '—'}</td>
+                    <td className={TD}>
                       {c.temperatureCompatible === undefined ? (
                         <StatusChip tier="offline" label="N/A" />
                       ) : (
                         <StatusChip tier={c.temperatureCompatible ? 'safe' : 'critical'} label={c.temperatureCompatible ? 'Yes' : 'No'} />
                       )}
-                    </Td>
-                    <Td numeric>{c.expectedLossPercent.toFixed(1)}%</Td>
-                    <Td numeric>QAR {c.transportCost.toLocaleString()}</Td>
-                    <Td>
+                    </td>
+                    <td className={clsx(TD, NUM)}>{c.expectedLossPercent.toFixed(1)}%</td>
+                    <td className={clsx(TD, NUM)}>{qar(c.transportCost)}</td>
+                    {showObjective && <td className={clsx(TD, NUM)}>{c.objective !== undefined ? c.objective.toFixed(2) : '—'}</td>}
+                    <td className={TD}>
                       <StatusChip tier={c.feasible ? 'safe' : 'critical'} label={c.feasible ? 'Feasible' : 'Not feasible'} />
-                    </Td>
-                  </Tr>
+                    </td>
+                  </tr>
                 ))}
               </tbody>
-            </Table>
+            </table>
           </div>
         )}
-      </Card>
+      </Box>
 
-      {/* Route */}
+      {/* Recommended route + cost terms */}
       {selected && selectedTruck && (
-        <Card className="col-span-4 tablet:col-span-8 desktop:col-span-4 p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-headline-sm text-navy">Selected Route</h2>
+        <Box
+          title={`Recommended: ${selected.warehouseId}`}
+          tone="lime"
+          meta={<ProvenanceBadge kind="recommended" />}
+          className="col-span-4 tablet:col-span-8 desktop:col-span-5"
+        >
+          <div className="flex items-center justify-between gap-3 px-4 pt-4">
+            <span className="tt-caps text-text-secondary">Route</span>
             <ActionChip action="TRANSFER" />
           </div>
-          <div className="mt-4">
+          <div className="px-4 pb-4 pt-3">
             <Stepper originLabel={selectedTruck.truckId} destinationLabel={selected.warehouseId} etaMinutes={selected.etaMinutes} />
           </div>
-          <p className="mt-4 text-body-sm text-muted">
-            Selected by optimization engine to minimize transport cost, food-loss cost, and delay cost.
-          </p>
-        </Card>
+          <div className="border-t-[3px] border-ink">
+            <Breakdown
+              rows={costRows}
+              total={{ code: 'J', label: 'Objective (min)', value: optimization.data!.objectiveValue.toFixed(2) }}
+            />
+          </div>
+        </Box>
       )}
 
       {/* Objective + constraints */}
       {selected && (
-        <Card className="col-span-4 tablet:col-span-8 desktop:col-span-8 p-4">
-          <h2 className="text-headline-sm text-navy">Mathematical Objective</h2>
-          <p className="mt-1 font-mono text-body-md text-navy">min transport cost + food-loss cost + delay cost</p>
-          <p className="mt-1 text-body-sm text-muted">
-            Objective value: <span className="font-mono tabular-nums text-navy">{optimization.data!.objectiveValue.toFixed(2)}</span>
-          </p>
+        <Box
+          title="Objective and constraints"
+          meta={`${metLabels.length}/${constraints.length} met`}
+          className="col-span-4 tablet:col-span-8 desktop:col-span-7"
+          bodyClassName="p-4"
+        >
+          <pre className="tt-pre m-0">min  transport cost + food-loss cost + delay cost</pre>
 
-          <h3 className="mt-4 text-label-ui uppercase text-muted">Constraints</h3>
-          <ul className="mt-2 space-y-2">
+          <ul className="mt-3">
             {constraints.map((c) => (
-              <li key={c.label} className="flex items-center justify-between gap-3 border-b border-line py-1.5 last:border-b-0">
-                <span className="text-body-sm text-navy">{c.label}</span>
+              <li
+                key={c.label}
+                className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 border-b-2 border-line py-2 last:border-b-0"
+              >
+                <span className="text-body-md font-bold">{c.label}</span>
                 <span className="flex items-center gap-2">
-                  <span className="text-body-sm text-muted">{c.detail}</span>
+                  <span className="font-mono text-[12px] text-text-secondary">{c.detail}</span>
                   <StatusChip
                     tier={c.ok === undefined ? 'offline' : c.ok ? 'safe' : 'critical'}
                     label={c.ok === undefined ? 'Unknown' : c.ok ? 'Met' : 'Not met'}
@@ -257,104 +314,117 @@ export default function OptimizationScreen() {
             ))}
           </ul>
 
-          <h3 className="mt-4 text-label-ui uppercase text-muted">
-            {allFeasible ? `Why ${selected.warehouseId} is feasible` : `Why ${selected.warehouseId} was selected anyway`}
-          </h3>
-          {allFeasible ? (
-            <p className="mt-1 text-body-sm text-navy">
-              {selected.warehouseId} meets every constraint: {metLabels.join(', ')}.
-            </p>
-          ) : (
-            <p className="mt-1 text-body-sm text-navy">
-              No candidate met every constraint. {selected.warehouseId} was still the optimizer's best-scoring option,
-              despite failing: <span className="text-status-critical-fg">{unmetLabels.join(', ')}</span>
-              {metLabels.length > 0 && <> (it does meet: {metLabels.join(', ')})</>}.
-            </p>
-          )}
-        </Card>
+          <div
+            className={clsx(
+              'mt-3 rounded-md border-[3px] border-ink p-3 text-on-fill',
+              allFeasible ? 'bg-fill-lime' : 'bg-fill-coral',
+            )}
+          >
+            <span className="tt-caps block">
+              {allFeasible ? `Why ${selected.warehouseId} is feasible` : `Why ${selected.warehouseId} was picked anyway`}
+            </span>
+            {allFeasible ? (
+              <p className="mt-1 text-body-sm">
+                {selected.warehouseId} meets every constraint: {metLabels.join(', ')}.
+              </p>
+            ) : (
+              <p className="mt-1 text-body-sm">
+                No candidate met every constraint. {selected.warehouseId} was still the best-scoring option, despite
+                failing: <b>{unmetLabels.join(', ')}</b>
+                {metLabels.length > 0 && <> (it does meet: {metLabels.join(', ')})</>}.
+              </p>
+            )}
+          </div>
+        </Box>
       )}
 
-      {/* Execution — where intelligence acts, not just advises */}
+      {/* Execution: where intelligence acts, not just advises */}
       {selected && (
-        <Card className="col-span-4 tablet:col-span-8 desktop:col-span-12 p-4">
-          <div className="flex items-center justify-between">
-            <h2 className="text-headline-sm text-navy">Execution</h2>
-            <ProvenanceBadge kind="recommended" />
-          </div>
-          <p className="mt-1 text-body-sm text-muted">
-            The optimizer&apos;s recommendation becomes an action: dispatched, recorded and auditable.
-            Auto-pilot executes the engine&apos;s own recommendation when risk is HIGH or CRITICAL.
-          </p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <Button
-              disabled={!truckId || !allFeasible || executeAction.isPending}
-              onClick={() =>
-                executeAction.mutate({
-                  truckId,
-                  batchId,
-                  action: 'DIVERT',
-                  destinationId: selected.warehouseId,
-                  source: 'operator',
-                })
-              }
-            >
-              {executeAction.isPending ? 'Executing…' : `Execute DIVERT → ${selected.warehouseId}`}
-            </Button>
-            <Button
-              variant="secondary"
-              disabled={!truckId || executeAction.isPending}
-              onClick={() => executeAction.mutate({ truckId, action: 'ACKNOWLEDGE', source: 'operator' })}
-            >
-              Acknowledge incidents
-            </Button>
-            <Button
-              variant="secondary"
-              disabled={!truckId || autoPilot.isPending}
-              onClick={() => autoPilot.mutate(truckId)}
-            >
-              {autoPilot.isPending ? 'Running…' : 'Auto-pilot: execute recommendation'}
-            </Button>
-          </div>
+        <Box
+          title="Execution"
+          tone="ink"
+          meta={<ProvenanceBadge kind="recommended" />}
+          className="col-span-4 tablet:col-span-8 desktop:col-span-12"
+        >
+          <div className="p-4">
+            <p className="text-body-sm text-text-secondary">
+              The recommendation becomes an action: dispatched, recorded and auditable. Auto-pilot executes the
+              engine&apos;s own recommendation when risk is HIGH or CRITICAL.
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <Button
+                disabled={!truckId || !allFeasible || executeAction.isPending}
+                onClick={() =>
+                  executeAction.mutate({
+                    truckId,
+                    batchId,
+                    action: 'DIVERT',
+                    destinationId: selected.warehouseId,
+                    source: 'operator',
+                  })
+                }
+              >
+                {executeAction.isPending ? 'Executing…' : `Execute DIVERT → ${selected.warehouseId}`}
+              </Button>
+              <Button
+                variant="secondary"
+                disabled={!truckId || executeAction.isPending}
+                onClick={() => executeAction.mutate({ truckId, action: 'ACKNOWLEDGE', source: 'operator' })}
+              >
+                Acknowledge incidents
+              </Button>
+              <Button variant="secondary" disabled={!truckId || autoPilot.isPending} onClick={() => autoPilot.mutate(truckId)}>
+                {autoPilot.isPending ? 'Running…' : 'Auto-pilot: execute recommendation'}
+              </Button>
+            </div>
 
-          {executeAction.data && (
-            <p className="mt-3 text-body-sm text-navy">
-              Executed <span className="font-mono">{executeAction.data.action}</span>
-              {executeAction.data.destinationId ? ` → ${executeAction.data.destinationId}` : ''} ({executeAction.data.id})
-            </p>
-          )}
-          {autoPilot.data && (
-            <p className="mt-3 text-body-sm text-muted">
-              Auto-pilot:{' '}
-              {autoPilot.data.executed
-                ? `executed ${autoPilot.data.action}`
-                : autoPilot.data.reason}
-            </p>
-          )}
+            {(executeAction.data || autoPilot.data) && (
+              <div className="mt-3 flex flex-col gap-1.5">
+                {executeAction.data && (
+                  <p className="rounded-md border-2 border-ink bg-fill-lime px-3 py-1.5 font-mono text-[12px] font-bold text-on-fill">
+                    Executed {executeAction.data.action}
+                    {executeAction.data.destinationId ? ` → ${executeAction.data.destinationId}` : ''} · {executeAction.data.id}
+                  </p>
+                )}
+                {autoPilot.data && (
+                  <p className="font-mono text-[12px] text-text-secondary">
+                    Auto-pilot: {autoPilot.data.executed ? `executed ${autoPilot.data.action}` : autoPilot.data.reason}
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
 
           {actionsQuery.data && actionsQuery.data.length > 0 && (
-            <>
-              <h3 className="mt-4 text-label-ui uppercase text-muted">Recent actions</h3>
-              <ul className="mt-2 space-y-1">
-                {actionsQuery.data.slice(0, 5).map((a) => (
-                  <li
-                    key={a.id}
-                    className="flex items-center justify-between gap-3 border-b border-line py-1.5 text-body-sm last:border-b-0"
-                  >
-                    <span className="text-navy">
-                      {a.action}
-                      {a.destinationId ? ` → ${a.destinationId}` : ''}
-                    </span>
-                    <span className="flex items-center gap-2 text-muted">
-                      <ActionChip action={a.action} />
-                      <span>{a.source}</span>
-                      <span className="font-mono">{a.createdAt ?? ''}</span>
-                    </span>
-                  </li>
-                ))}
-              </ul>
-            </>
+            <div className="overflow-x-auto border-t-[3px] border-ink">
+              <table className="w-full min-w-[520px] border-collapse text-body-md">
+                <thead className="tt-thead">
+                  <tr>
+                    <th>Recent actions</th>
+                    <th>Type</th>
+                    <th>Source</th>
+                    <th className="text-right">When</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {actionsQuery.data.slice(0, 5).map((a) => (
+                    <tr key={a.id} className="border-b-2 border-line last:border-b-0 hover:bg-elevated">
+                      <td className={clsx(TD, 'font-bold')}>
+                        {a.action}
+                        {a.destinationId ? ` → ${a.destinationId}` : ''}
+                      </td>
+                      <td className={TD}>
+                        <ActionChip action={a.action} />
+                      </td>
+                      <td className={clsx(TD, 'font-mono text-[12px] uppercase')}>{a.source}</td>
+                      <td className={clsx(TD, NUM, 'text-[12px] text-text-secondary')}>{a.createdAt ?? ''}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </Card>
+        </Box>
       )}
     </>
   )

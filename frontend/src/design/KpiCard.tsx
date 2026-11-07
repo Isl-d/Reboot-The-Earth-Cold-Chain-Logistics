@@ -38,7 +38,7 @@ const TONE: Record<KpiTone, string> = {
 export default function KpiCard({ label, value, unit, provenance, tip, compactProvenance, trend, trendTier, tone = 'paper' }: KpiCardProps) {
   const filled = tone !== 'paper'
   return (
-    <div className={clsx('tt-box tt-box-sm p-3', TONE[tone])}>
+    <div className={clsx('tt-box tt-box-sm overflow-visible p-3', TONE[tone])}>
       <div className="flex items-start justify-between gap-2">
         <span className="tt-caps flex items-center gap-1.5">
           {label}

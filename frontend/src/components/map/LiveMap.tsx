@@ -1,9 +1,10 @@
 import 'leaflet/dist/leaflet.css'
 import L from 'leaflet'
 import { MapContainer, Marker, Popup, TileLayer, Tooltip, useMap } from 'react-leaflet'
-import { useEffect } from 'react'
-import type { TruckSummary } from '../../types'
-import { HYPERMARKETS, MAP_CENTER, MAP_ZOOM, PLACE_COLORS, RISK_COLORS, SUPERMARKETS, WAREHOUSES } from './mapConfig'
+import { useEffect, useRef, type ReactNode } from 'react'
+import type { RiskLevel, TruckSummary } from '../../types'
+import { RiskBadge } from '../common/RiskBadge'
+import { HYPERMARKETS, MAP_CENTER, MAP_ZOOM, SUPERMARKETS, WAREHOUSES } from './mapConfig'
 
 delete (L.Icon.Default.prototype as unknown as Record<string, unknown>)._getIconUrl
 L.Icon.Default.mergeOptions({
@@ -12,109 +13,138 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 })
 
-/* ── Truck icon (side-view box truck SVG) ──────────────────── */
-function createTruckIcon(riskLevel: string, isActive: boolean) {
-  const color = RISK_COLORS[riskLevel] ?? 'var(--color-text-secondary)'
-  const dark = 'var(--color-on-accent)'
+/* ── QAI markers ───────────────────────────────────────────────
+   Leaflet div icons are plain HTML in the page, so colours are CSS variables
+   and follow the light/dark theme without re-rendering. Risk fills use the
+   same scale as RiskBadge: lime LOW, gold MEDIUM, coral HIGH, deep red
+   CRITICAL. */
+const RISK_FILL: Record<string, { bg: string; fg: string }> = {
+  LOW: { bg: 'var(--color-fill-lime)', fg: 'var(--color-on-fill)' },
+  MEDIUM: { bg: 'var(--color-fill-sun)', fg: 'var(--color-on-fill)' },
+  HIGH: { bg: 'var(--color-fill-coral)', fg: 'var(--color-on-fill)' },
+  CRITICAL: { bg: 'var(--color-fill-critical)', fg: '#fbf9f3' },
+}
+const UNKNOWN_FILL = { bg: 'var(--color-elevated)', fg: 'var(--color-text-primary)' }
 
-  const pulse = isActive
-    ? `<circle cx="20" cy="12" r="18" fill="${color}" opacity="0">
-         <animate attributeName="r" values="14;22;14" dur="2s" repeatCount="indefinite"/>
-         <animate attributeName="opacity" values="0.4;0;0.4" dur="2s" repeatCount="indefinite"/>
-       </circle>`
+const TRUCK_GLYPH = `<svg width="16" height="11" viewBox="0 0 16 11" fill="currentColor" aria-hidden="true">
+  <rect x="0" y="0" width="10" height="7.5" rx="1"/><path d="M10.6 2.2h2.9l2.5 3v2.3h-5.4z"/>
+  <circle cx="3.4" cy="9" r="1.9"/><circle cx="12.4" cy="9" r="1.9"/></svg>`
+
+const escapeHtml = (s: string) =>
+  s.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c] ?? c)
+
+/**
+ * Truck tag: an ink-framed tab filled by risk, with the truck id in mono,
+ * standing on a short ink stem whose foot is the truck's position. Trucks
+ * with an open incident pulse at the foot; `selected` adds a sky ring.
+ */
+export function truckMarkerIcon(id: string, risk: string | undefined, opts: { active?: boolean; selected?: boolean } = {}) {
+  const fill = RISK_FILL[(risk ?? '').toUpperCase()] ?? UNKNOWN_FILL
+  const label = escapeHtml(id)
+  const w = Math.round(40 + id.length * 7)
+  const ring = opts.selected
+    ? '0 0 0 3px var(--color-fill-sky), 4px 4px 0 2px var(--color-shadow)'
+    : '2px 2px 0 0 var(--color-shadow)'
+  const pulse = opts.active
+    ? `<span style="position:absolute;left:${w / 2 - 7}px;top:29px;width:14px;height:14px;border-radius:50%;background:${fill.bg};animation:pulse-ring 1.4s ease-out infinite"></span>`
     : ''
-
-  // Side-view box truck: cargo box + cab + wheels
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="36" height="24" viewBox="0 0 48 32">
+  const html = `<div style="position:relative;width:${w}px;height:40px;">
     ${pulse}
-    <rect x="2" y="5" width="26" height="16" rx="1" fill="${color}" stroke="${dark}" stroke-width="1.5"/>
-    <rect x="28" y="9" width="14" height="12" rx="1" fill="${color}" stroke="${dark}" stroke-width="1.5"/>
-    <rect x="30" y="10.5" width="8" height="6" rx="0.5" fill="${dark}" opacity="0.55"/>
-    <rect x="2" y="20" width="40" height="3" rx="1" fill="${color}" stroke="${dark}" stroke-width="1"/>
-    <circle cx="10" cy="25" r="5" fill="${dark}" stroke="${color}" stroke-width="2"/>
-    <circle cx="10" cy="25" r="2" fill="${color}"/>
-    <circle cx="36" cy="25" r="5" fill="${dark}" stroke="${color}" stroke-width="2"/>
-    <circle cx="36" cy="25" r="2" fill="${color}"/>
-    <circle cx="42" cy="5" r="3.5" fill="${color}" stroke="${dark}" stroke-width="1.5"/>
-  </svg>`
-
-  return L.divIcon({
-    html: svg,
-    className: '',
-    iconSize: [36, 24],
-    iconAnchor: [18, 22],
-    popupAnchor: [0, -22],
-  })
+    <span style="position:absolute;left:${w / 2 - 1.5}px;top:22px;width:3px;height:14px;background:var(--color-ink)"></span>
+    <span style="position:absolute;left:${w / 2 - 4}px;top:32px;width:8px;height:8px;border-radius:50%;background:${fill.bg};border:2px solid var(--color-ink);box-sizing:border-box"></span>
+    <div style="position:absolute;left:0;top:0;width:${w}px;height:25px;box-sizing:border-box;display:flex;align-items:center;justify-content:center;gap:5px;
+      border:2.5px solid var(--color-ink);border-radius:6px;background:${fill.bg};color:${fill.fg};box-shadow:${ring};
+      font:700 11px/1 var(--font-mono);letter-spacing:0.03em;white-space:nowrap">${TRUCK_GLYPH}${label}</div>
+  </div>`
+  return L.divIcon({ html, className: '', iconSize: [w, 40], iconAnchor: [w / 2, 36], popupAnchor: [0, -38] })
 }
 
-/* ── Location icons ────────────────────────────────────────── */
-function createWarehouseIcon() {
-  const c = PLACE_COLORS.warehouse
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 34 34">
-    <polygon points="17,3 32,14 32,31 2,31 2,14" fill="${c}" opacity="0.9" stroke="var(--color-on-accent)" stroke-width="1.5"/>
-    <rect x="13" y="20" width="8" height="11" fill="var(--color-on-accent)" opacity="0.6"/>
-    <text x="17" y="17" text-anchor="middle" font-size="9" font-weight="600" fill="var(--color-on-accent)" font-family="sans-serif">WH</text>
-    <!-- Snowflake -->
-    <line x1="17" y1="22" x2="17" y2="30" stroke="${c}" stroke-width="1" opacity="0.8"/>
-    <line x1="13" y1="26" x2="21" y2="26" stroke="${c}" stroke-width="1" opacity="0.8"/>
-  </svg>`
-  return L.divIcon({ html: svg, className: '', iconSize: [34, 34], iconAnchor: [17, 34], popupAnchor: [0, -34] })
+const PLACE_LABEL_STYLE =
+  'margin-top:3px;font:700 10px/1 var(--font-mono);letter-spacing:0.04em;color:var(--color-text-primary);white-space:nowrap;text-shadow:0 0 3px var(--color-base),0 0 3px var(--color-base),0 0 6px var(--color-base);pointer-events:none'
+
+function placeIcon(shape: string, size: number, label?: string) {
+  const html = `<div style="width:96px;display:flex;flex-direction:column;align-items:center">
+    ${shape}
+    ${label ? `<div style="${PLACE_LABEL_STYLE}">${escapeHtml(label)}</div>` : ''}
+  </div>`
+  return L.divIcon({ html, className: '', iconSize: [96, size + 16], iconAnchor: [48, size / 2], popupAnchor: [0, -size / 2 - 2] })
 }
 
-function createHypermarketIcon() {
-  const c = PLACE_COLORS.store
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 30 30">
-    <circle cx="15" cy="15" r="13" fill="${c}" opacity="0.9" stroke="var(--color-on-accent)" stroke-width="1.5"/>
-    <!-- Cart body -->
-    <rect x="9" y="11" width="12" height="8" rx="1" fill="var(--color-on-accent)" opacity="0.7"/>
-    <line x1="7" y1="11" x2="9" y2="11" stroke="var(--color-on-accent)" stroke-width="1.5"/>
-    <!-- Wheels -->
-    <circle cx="11" cy="21" r="1.5" fill="var(--color-on-accent)" opacity="0.7"/>
-    <circle cx="18" cy="21" r="1.5" fill="var(--color-on-accent)" opacity="0.7"/>
-    <text x="15" y="11" text-anchor="middle" font-size="6" font-weight="700" fill="var(--color-on-accent)" font-family="sans-serif">H</text>
-  </svg>`
-  return L.divIcon({ html: svg, className: '', iconSize: [30, 30], iconAnchor: [15, 30], popupAnchor: [0, -30] })
+/** Cold-storage warehouse: an ink-filled square tile marked WH. */
+export function warehouseMarkerIcon(label?: string) {
+  const s = 26
+  const shape = `<div style="width:${s}px;height:${s}px;box-sizing:border-box;display:grid;place-items:center;border:2.5px solid var(--color-ink);border-radius:5px;
+    background:var(--color-band);color:var(--color-on-band);box-shadow:2px 2px 0 0 var(--color-shadow);font:700 9px/1 var(--font-mono);letter-spacing:0.04em">WH</div>`
+  return placeIcon(shape, s, label)
 }
 
-function createSupermarketIcon() {
-  const c = PLACE_COLORS.store
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="26" height="26" viewBox="0 0 26 26">
-    <circle cx="13" cy="13" r="11" fill="${c}" opacity="0.9" stroke="var(--color-on-accent)" stroke-width="1.5"/>
-    <!-- Bag -->
-    <rect x="8" y="11" width="10" height="9" rx="1" fill="var(--color-on-accent)" opacity="0.7"/>
-    <path d="M10 11 Q10 8 13 8 Q16 8 16 11" fill="none" stroke="var(--color-on-accent)" stroke-width="1.5"/>
-    <text x="13" y="11" text-anchor="middle" font-size="5.5" font-weight="700" fill="var(--color-on-accent)" font-family="sans-serif">S</text>
-  </svg>`
-  return L.divIcon({ html: svg, className: '', iconSize: [26, 26], iconAnchor: [13, 26], popupAnchor: [0, -26] })
+/** Store: a paper circle, H for a hypermarket, S for a supermarket. */
+export function storeMarkerIcon(kind: 'H' | 'S' = 'S', label?: string) {
+  const s = kind === 'H' ? 24 : 21
+  const shape = `<div style="width:${s}px;height:${s}px;box-sizing:border-box;display:grid;place-items:center;border:2.5px solid var(--color-ink);border-radius:50%;
+    background:var(--color-surface);color:var(--color-text-primary);box-shadow:2px 2px 0 0 var(--color-shadow);font:700 10px/1 var(--font-mono)">${kind}</div>`
+  return placeIcon(shape, s, label)
 }
 
-function createLabelIcon(text: string, color: string) {
-  return L.divIcon({
-    html: `<div style="color:${color};font-size:9px;font-weight:600;letter-spacing:0.04em;white-space:nowrap;text-shadow:0 0 3px var(--color-base),0 0 6px var(--color-base);pointer-events:none;">${text}</div>`,
-    className: '',
-    iconSize: [80, 12],
-    iconAnchor: [40, 0],
-  })
+/* ── Legend strip under a map ─────────────────────────────────── */
+const LEGEND_RISK: { level: RiskLevel; label: string; cls: string }[] = [
+  { level: 'LOW', label: 'Low', cls: 'bg-fill-lime' },
+  { level: 'MEDIUM', label: 'Medium', cls: 'bg-fill-sun' },
+  { level: 'HIGH', label: 'High', cls: 'bg-fill-coral' },
+  { level: 'CRITICAL', label: 'Critical', cls: 'bg-fill-critical' },
+]
+
+/** Risk colours and place symbols, on a 3px ink rule. `children` adds items. */
+export function MapLegend({ places = true, children }: { places?: boolean; children?: ReactNode }) {
+  return (
+    <div className="tt-caps flex shrink-0 flex-wrap items-center gap-x-4 gap-y-1.5 border-t-[3px] border-ink bg-surface px-3.5 py-2 text-text-primary">
+      <span className="text-text-secondary">Risk</span>
+      {LEGEND_RISK.map(({ level, label, cls }) => (
+        <span key={level} className="flex items-center gap-1.5">
+          <span className={`inline-block h-3 w-3 rounded-full border-2 border-ink ${cls}`} aria-hidden />
+          {label}
+        </span>
+      ))}
+      {places && (
+        <>
+          <span className="h-4 w-[2px] bg-border" aria-hidden />
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded-[3px] border-2 border-ink bg-band" aria-hidden />
+            Warehouse
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-3 w-3 rounded-full border-2 border-ink bg-surface" aria-hidden />
+            Store
+          </span>
+        </>
+      )}
+      {children}
+    </div>
+  )
 }
 
-/* ── MapUpdater: fit bounds once on first load ─────────────── */
+/* ── MapUpdater: fit bounds once, when the first trucks arrive ── */
 function MapUpdater({ trucks }: { trucks: TruckSummary[] }) {
   const map = useMap()
+  const fitted = useRef(false)
   useEffect(() => {
-    if (trucks.length > 0) {
-      const bounds = L.latLngBounds(trucks.map((t) => [t.latitude, t.longitude]))
-      map.fitBounds(bounds, { padding: [80, 80], maxZoom: 13 })
-    }
-  }, []) // eslint-disable-line react-hooks/exhaustive-deps
+    if (fitted.current || trucks.length === 0) return
+    fitted.current = true
+    const bounds = L.latLngBounds(trucks.map((t) => [t.latitude, t.longitude]))
+    // Smaller padding on a phone-sized map so the trucks are not pushed out.
+    const size = map.getSize()
+    const pad = Math.round(Math.min(80, Math.min(size.x, size.y) / 6))
+    map.fitBounds(bounds, { padding: [pad, pad], maxZoom: 13 })
+  }, [trucks, map])
   return null
 }
 
 /* ── Popup content helpers ─────────────────────────────────── */
-function LocationPopup({ name, type, color }: { name: string; type: string; color: string }) {
+function LocationPopup({ name, type }: { name: string; type: string }) {
   return (
-    <div style={{ minWidth: 130 }}>
-      <div style={{ fontWeight: 600, fontSize: 12, marginBottom: 2 }}>{name}</div>
-      <div style={{ fontSize: 10, letterSpacing: '0.06em', color, fontWeight: 500 }}>{type}</div>
+    <div className="min-w-[130px]">
+      <div className="mb-0.5 text-[13px] font-extrabold text-text-primary">{name}</div>
+      <div className="tt-caps text-[10px] text-text-secondary">{type}</div>
     </div>
   )
 }
@@ -138,41 +168,32 @@ export function LiveMap({ trucks, onTruckClick }: Props) {
 
       {/* ── Warehouses ──────────────────────────────────────── */}
       {WAREHOUSES.map((wh) => (
-        <Marker key={wh.id} position={[wh.lat, wh.lon]} icon={createWarehouseIcon()}>
-          <Tooltip direction="top" offset={[0, -34]} opacity={0.95}>
-            <LocationPopup name={wh.name} type="COLD STORAGE" color={PLACE_COLORS.warehouse} />
+        <Marker key={wh.id} position={[wh.lat, wh.lon]} icon={warehouseMarkerIcon(wh.id)}>
+          <Tooltip direction="top" offset={[0, -16]} opacity={1}>
+            <LocationPopup name={wh.name} type="Cold storage" />
           </Tooltip>
-          <Popup><LocationPopup name={wh.name} type="COLD STORAGE WAREHOUSE" color={PLACE_COLORS.warehouse} /></Popup>
+          <Popup><LocationPopup name={wh.name} type="Cold storage warehouse" /></Popup>
         </Marker>
-      ))}
-      {WAREHOUSES.map((wh) => (
-        <Marker key={`${wh.id}-label`} position={[wh.lat - 0.003, wh.lon]} icon={createLabelIcon(wh.id, PLACE_COLORS.warehouse)} interactive={false} />
       ))}
 
       {/* ── Hypermarkets ────────────────────────────────────── */}
       {HYPERMARKETS.map((h) => (
-        <Marker key={h.id} position={[h.lat, h.lon]} icon={createHypermarketIcon()}>
-          <Tooltip direction="top" offset={[0, -30]} opacity={0.95}>
-            <LocationPopup name={h.name} type="HYPERMARKET" color={PLACE_COLORS.store} />
+        <Marker key={h.id} position={[h.lat, h.lon]} icon={storeMarkerIcon('H', h.name.split(' ')[0])}>
+          <Tooltip direction="top" offset={[0, -14]} opacity={1}>
+            <LocationPopup name={h.name} type="Hypermarket" />
           </Tooltip>
-          <Popup><LocationPopup name={h.name} type="HYPERMARKET" color={PLACE_COLORS.store} /></Popup>
+          <Popup><LocationPopup name={h.name} type="Hypermarket" /></Popup>
         </Marker>
-      ))}
-      {HYPERMARKETS.map((h) => (
-        <Marker key={`${h.id}-label`} position={[h.lat - 0.0025, h.lon]} icon={createLabelIcon(h.name.split(' ')[0], PLACE_COLORS.store)} interactive={false} />
       ))}
 
       {/* ── Supermarkets ────────────────────────────────────── */}
       {SUPERMARKETS.map((s) => (
-        <Marker key={s.id} position={[s.lat, s.lon]} icon={createSupermarketIcon()}>
-          <Tooltip direction="top" offset={[0, -26]} opacity={0.95}>
-            <LocationPopup name={s.name} type="SUPERMARKET" color={PLACE_COLORS.store} />
+        <Marker key={s.id} position={[s.lat, s.lon]} icon={storeMarkerIcon('S', s.name.split(' ')[0])}>
+          <Tooltip direction="top" offset={[0, -12]} opacity={1}>
+            <LocationPopup name={s.name} type="Supermarket" />
           </Tooltip>
-          <Popup><LocationPopup name={s.name} type="SUPERMARKET" color={PLACE_COLORS.store} /></Popup>
+          <Popup><LocationPopup name={s.name} type="Supermarket" /></Popup>
         </Marker>
-      ))}
-      {SUPERMARKETS.map((s) => (
-        <Marker key={`${s.id}-label`} position={[s.lat - 0.002, s.lon]} icon={createLabelIcon(s.name.split(' ')[0], PLACE_COLORS.store)} interactive={false} />
       ))}
 
       {/* ── Trucks ──────────────────────────────────────────── */}
@@ -180,28 +201,28 @@ export function LiveMap({ trucks, onTruckClick }: Props) {
         <Marker
           key={truck.id}
           position={[truck.latitude, truck.longitude]}
-          icon={createTruckIcon(truck.riskLevel, truck.activeIncident)}
+          icon={truckMarkerIcon(truck.id, truck.riskLevel, { active: truck.activeIncident })}
+          zIndexOffset={truck.activeIncident ? 1000 : 500}
           eventHandlers={{ click: () => onTruckClick(truck.id) }}
         >
           <Popup>
-            <div style={{ minWidth: 140 }}>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 4 }}>
-                <span style={{ fontWeight: 700, fontSize: 13 }}>{truck.id}</span>
-                <span style={{ fontSize: 10, letterSpacing: '0.06em', fontWeight: 600, color: RISK_COLORS[truck.riskLevel] }}>
-                  {truck.riskLevel}
-                </span>
+            <div className="min-w-[170px]">
+              <div className="mb-1.5 flex items-center justify-between gap-3">
+                <span className="font-mono text-[14px] font-bold text-text-primary">{truck.id}</span>
+                <RiskBadge level={truck.riskLevel} />
               </div>
-              <div style={{ fontFamily: 'monospace', fontSize: 12, marginBottom: 2 }}>
+              <div className="font-mono text-[12px] text-text-primary">
                 {truck.temperatureC.toFixed(1)}°C · {truck.humidityPct}% RH
               </div>
-              <div style={{ fontFamily: 'monospace', fontSize: 11, opacity: 0.7 }}>
+              <div className="font-mono text-[11px] text-text-secondary">
                 {truck.speedKmh} km/h · Score {truck.riskScore}
               </div>
               <button
+                type="button"
                 onClick={() => onTruckClick(truck.id)}
-                style={{ marginTop: 8, fontSize: 11, color: 'var(--color-primary)', letterSpacing: '0.04em', background: 'none', border: 'none', cursor: 'pointer', padding: 0 }}
+                className="tt-press tt-caps mt-2.5 w-full bg-fill-maroon px-2 py-1 text-[#fbf9f3]"
               >
-                VIEW DETAILS →
+                View details →
               </button>
             </div>
           </Popup>

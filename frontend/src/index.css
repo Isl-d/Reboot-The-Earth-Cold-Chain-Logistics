@@ -268,156 +268,160 @@ body {
 [data-theme="light"] { color-scheme: light; }
 input[type="checkbox"], input[type="radio"] { accent-color: var(--color-primary); }
 
-/* ── QAI building blocks ───────────────────────────────────────
-   Plain classes so inline-styled screens and Tailwind screens share one look.
-   Prefer the <Box> component (design/Box.tsx); use these where a component
-   does not fit. */
+/* In the components layer so Tailwind utilities (bg-fill-*, overflow-*)
+   on the same element win over these defaults. */
+@layer components {
+  /* ── QAI building blocks ───────────────────────────────────────
+     Plain classes so inline-styled screens and Tailwind screens share one look.
+     Prefer the <Box> component (design/Box.tsx); use these where a component
+     does not fit. */
 
-/* The page canvas: base tone with the 22px dot grid. */
-.tt-canvas {
-  background-color: var(--color-base);
-  background-image: radial-gradient(var(--color-dot) 1px, transparent 1px);
-  background-size: 22px 22px;
-}
+  /* The page canvas: base tone with the 22px dot grid. */
+  .tt-canvas {
+    background-color: var(--color-base);
+    background-image: radial-gradient(var(--color-dot) 1px, transparent 1px);
+    background-size: 22px 22px;
+  }
 
-/* A framed box: paper, 3px ink border, 6px radius, hard offset shadow. */
-.tt-box {
-  background: var(--color-surface);
-  border: 3px solid var(--color-ink);
-  border-radius: 6px;
-  box-shadow: 5px 5px 0 0 var(--color-shadow);
-  min-width: 0;
-  overflow: hidden;
-}
-.tt-box-sm { box-shadow: 3px 3px 0 0 var(--color-shadow); }
+  /* A framed box: paper, 3px ink border, 6px radius, hard offset shadow. */
+  .tt-box {
+    background: var(--color-surface);
+    border: 3px solid var(--color-ink);
+    border-radius: 6px;
+    box-shadow: 5px 5px 0 0 var(--color-shadow);
+    min-width: 0;
+    overflow: hidden;
+  }
+  .tt-box-sm { box-shadow: 3px 3px 0 0 var(--color-shadow); }
 
-/* The header bar of a box: bold title left, caps meta right, ink rule below.
-   Set a tone with one of the .tt-tone-* classes. */
-.tt-hd {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 8px 14px;
-  border-bottom: 3px solid var(--color-ink);
-  font-weight: 800;
-  font-size: 14px;
-  line-height: 1.3;
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  flex-shrink: 0;
-}
-.tt-tone-sky    { background: var(--color-fill-sky);    color: var(--color-on-fill); }
-.tt-tone-lime   { background: var(--color-fill-lime);   color: var(--color-on-fill); }
-.tt-tone-sun    { background: var(--color-fill-sun);    color: var(--color-on-fill); }
-.tt-tone-coral  { background: var(--color-fill-coral);  color: var(--color-on-fill); }
-.tt-tone-lilac  { background: var(--color-fill-lilac);  color: var(--color-on-fill); }
-.tt-tone-maroon { background: var(--color-fill-maroon); color: #fbf9f3; }
-.tt-tone-critical { background: var(--color-fill-critical); color: #fbf9f3; }
-.tt-tone-ink    { background: var(--color-band);        color: var(--color-on-band); }
-.tt-tone-paper  { background: var(--color-surface);     color: var(--color-text-primary); }
+  /* The header bar of a box: bold title left, caps meta right, ink rule below.
+     Set a tone with one of the .tt-tone-* classes. */
+  .tt-hd {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    flex-wrap: wrap;
+    padding: 8px 14px;
+    border-bottom: 3px solid var(--color-ink);
+    font-weight: 800;
+    font-size: 14px;
+    line-height: 1.3;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    flex-shrink: 0;
+  }
+  .tt-tone-sky    { background: var(--color-fill-sky);    color: var(--color-on-fill); }
+  .tt-tone-lime   { background: var(--color-fill-lime);   color: var(--color-on-fill); }
+  .tt-tone-sun    { background: var(--color-fill-sun);    color: var(--color-on-fill); }
+  .tt-tone-coral  { background: var(--color-fill-coral);  color: var(--color-on-fill); }
+  .tt-tone-lilac  { background: var(--color-fill-lilac);  color: var(--color-on-fill); }
+  .tt-tone-maroon { background: var(--color-fill-maroon); color: #fbf9f3; }
+  .tt-tone-critical { background: var(--color-fill-critical); color: #fbf9f3; }
+  .tt-tone-ink    { background: var(--color-band);        color: var(--color-on-band); }
+  .tt-tone-paper  { background: var(--color-surface);     color: var(--color-text-primary); }
 
-/* Mono uppercase label. */
-.tt-caps {
-  font-family: var(--font-mono);
-  font-weight: 700;
-  font-size: 11px;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
+  /* Mono uppercase label. */
+  .tt-caps {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
 
-/* Title highlight: <em> inside a heading gets the maroon block. */
-.tt-title em {
-  font-style: normal;
-  background: var(--color-fill-maroon);
-  color: #fbf9f3;
-  padding: 0 0.12em;
-}
+  /* Title highlight: <em> inside a heading gets the maroon block. */
+  .tt-title em {
+    font-style: normal;
+    background: var(--color-fill-maroon);
+    color: #fbf9f3;
+    padding: 0 0.12em;
+  }
 
-/* Small bordered chip, e.g. "LAYLA" or a model tag. */
-.tt-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  border: 2px solid var(--color-on-fill);
-  border-radius: 6px;
-  padding: 1px 8px;
-  font: 700 11px/1.5 var(--font-mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  white-space: nowrap;
-}
+  /* Small bordered chip, e.g. "LAYLA" or a model tag. */
+  .tt-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    border: 2px solid var(--color-on-fill);
+    border-radius: 6px;
+    padding: 1px 8px;
+    font: 700 11px/1.5 var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    white-space: nowrap;
+  }
 
-/* Live dot: pulsing lime. */
-.tt-live-dot {
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--color-fill-lime);
-  animation: tt-pulse 0.9s infinite alternate;
-}
+  /* Live dot: pulsing lime. */
+  .tt-live-dot {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-fill-lime);
+    animation: tt-pulse 0.9s infinite alternate;
+  }
 
-/* Press-down: hard shadow that collapses on click. */
-.tt-press {
-  border: 3px solid var(--color-ink);
-  border-radius: 6px;
-  box-shadow: 3px 3px 0 0 var(--color-shadow);
-  transition: transform 0.12s, box-shadow 0.12s;
-}
-.tt-press:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 0 var(--color-shadow); }
-.tt-press:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: none; }
+  /* Press-down: hard shadow that collapses on click. */
+  .tt-press {
+    border: 3px solid var(--color-ink);
+    border-radius: 6px;
+    box-shadow: 3px 3px 0 0 var(--color-shadow);
+    transition: transform 0.12s, box-shadow 0.12s;
+  }
+  .tt-press:hover:not(:disabled) { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 0 var(--color-shadow); }
+  .tt-press:active:not(:disabled) { transform: translate(3px, 3px); box-shadow: none; }
 
-/* Numbered pipeline step (Data → Condition → … → Food loss). */
-.tt-step-n {
-  width: 36px;
-  height: 36px;
-  display: grid;
-  place-items: center;
-  border: 3px solid var(--color-ink);
-  border-radius: 6px;
-  font: 700 14px var(--font-mono);
-  background: var(--color-surface);
-  color: var(--color-text-primary);
-  flex-shrink: 0;
-}
-.tt-step-n.is-done { background: var(--color-fill-lime); color: var(--color-on-fill); }
-.tt-step-n.is-run  { background: var(--color-fill-sky);  color: var(--color-on-fill); animation: tt-pulse 0.7s infinite alternate; }
+  /* Numbered pipeline step (Data → Condition → … → Food loss). */
+  .tt-step-n {
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    border: 3px solid var(--color-ink);
+    border-radius: 6px;
+    font: 700 14px var(--font-mono);
+    background: var(--color-surface);
+    color: var(--color-text-primary);
+    flex-shrink: 0;
+  }
+  .tt-step-n.is-done { background: var(--color-fill-lime); color: var(--color-on-fill); }
+  .tt-step-n.is-run  { background: var(--color-fill-sky);  color: var(--color-on-fill); animation: tt-pulse 0.7s infinite alternate; }
 
-/* Blinking caret for typed-out LAYLA text. */
-.tt-caret {
-  display: inline-block;
-  width: 8px;
-  height: 1em;
-  background: currentColor;
-  vertical-align: middle;
-  animation: tt-blink 0.8s steps(1) infinite;
-}
+  /* Blinking caret for typed-out LAYLA text. */
+  .tt-caret {
+    display: inline-block;
+    width: 8px;
+    height: 1em;
+    background: currentColor;
+    vertical-align: middle;
+    animation: tt-blink 0.8s steps(1) infinite;
+  }
 
-/* Dark JSON / code block. */
-.tt-pre {
-  margin: 6px 0 0;
-  background: var(--color-band);
-  color: #d7e3ff;
-  border-radius: 6px;
-  padding: 10px;
-  font: 12px/1.45 var(--font-mono);
-  overflow: auto;
-  max-height: 180px;
-}
+  /* Dark JSON / code block. */
+  .tt-pre {
+    margin: 6px 0 0;
+    background: var(--color-band);
+    color: #d7e3ff;
+    border-radius: 6px;
+    padding: 10px;
+    font: 12px/1.45 var(--font-mono);
+    overflow: auto;
+    max-height: 180px;
+  }
 
-/* Table header row in ink. Apply to <thead> or <tr>. */
-.tt-thead th {
-  font: 700 11px var(--font-mono);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  background: var(--color-band);
-  color: var(--color-on-band);
-  text-align: left;
-  padding: 8px 12px;
+  /* Table header row in ink. Apply to <thead> or <tr>. */
+  .tt-thead th {
+    font: 700 11px var(--font-mono);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    background: var(--color-band);
+    color: var(--color-on-band);
+    text-align: left;
+    padding: 8px 12px;
+  }
 }
 
 @keyframes tt-pulse { to { transform: scale(1.08); } }

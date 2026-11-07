@@ -1,19 +1,56 @@
-import { useState } from 'react'
+import { useState, type KeyboardEvent } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { RiskBadge } from '../components/common/RiskBadge'
 import { PageHeader } from '../components/layout/PageHeader'
+import { Box, ProvenanceBadge } from '../design'
 import { useTrucks } from '../hooks/useTrucks'
-import type { RiskLevel } from '../types'
+import type { RiskLevel, TruckSummary } from '../types'
 
 const RISK_ORDER: Record<RiskLevel, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
 
-const RISK_COL: Record<RiskLevel, string> = {
-  LOW: 'var(--color-risk-low)',
-  MEDIUM: 'var(--color-risk-medium)',
-  HIGH: 'var(--color-risk-high)',
-  CRITICAL: 'var(--color-risk-critical)',
+// Temperature text and filter dots follow the risk scale.
+const RISK_TEXT: Record<RiskLevel, string> = {
+  LOW: 'text-risk-low',
+  MEDIUM: 'text-risk-medium',
+  HIGH: 'text-risk-high',
+  CRITICAL: 'text-risk-critical',
+}
+const RISK_DOT: Record<RiskLevel, string> = {
+  LOW: 'bg-fill-lime',
+  MEDIUM: 'bg-fill-sun',
+  HIGH: 'bg-fill-coral',
+  CRITICAL: 'bg-fill-critical',
 }
 
 const FILTERS: (RiskLevel | 'ALL')[] = ['ALL', 'CRITICAL', 'HIGH', 'MEDIUM', 'LOW']
+
+const COLS = ['Truck', 'Name', 'Temp', 'Humidity', 'Speed', 'Door', 'Refrig', 'Risk', 'Incident']
+
+function DoorState({ open }: { open: boolean }) {
+  return open ? (
+    <span className="font-mono text-[12px] font-bold text-risk-critical">OPEN</span>
+  ) : (
+    <span className="font-mono text-[12px] text-text-secondary">CLOSED</span>
+  )
+}
+
+function RefrigState({ on }: { on: boolean }) {
+  return on ? (
+    <span className="font-mono text-[12px] font-bold text-risk-low">ON</span>
+  ) : (
+    <span className="font-mono text-[12px] font-bold text-risk-critical">OFF</span>
+  )
+}
+
+function IncidentState({ active }: { active: boolean }) {
+  return active ? (
+    <span className="inline-flex animate-pulse items-center gap-1.5 whitespace-nowrap rounded-md border-2 border-on-fill bg-fill-critical px-2 py-px font-mono text-[11px] font-bold uppercase tracking-[0.06em] text-[#fbf9f3]">
+      Active
+    </span>
+  ) : (
+    <span className="font-mono text-[12px] text-text-secondary opacity-60">None</span>
+  )
+}
 
 export function Fleet() {
   const navigate = useNavigate()
@@ -24,138 +61,157 @@ export function Fleet() {
     .filter((t) => filter === 'ALL' || t.riskLevel === filter)
     .sort((a, b) => RISK_ORDER[a.riskLevel] - RISK_ORDER[b.riskLevel])
 
-  const cols = [
-    { key: 'id',      label: 'TRUCK',    w: '80px' },
-    { key: 'name',    label: 'NAME',     w: '1fr' },
-    { key: 'temp',    label: 'TEMP',     w: '80px' },
-    { key: 'hum',     label: 'HUMIDITY', w: '80px' },
-    { key: 'speed',   label: 'SPEED',    w: '80px' },
-    { key: 'door',    label: 'DOOR',     w: '70px' },
-    { key: 'refrig',  label: 'REFRIG',   w: '70px' },
-    { key: 'risk',    label: 'RISK',     w: '100px' },
-    { key: 'inc',     label: 'INCIDENT', w: '80px' },
-  ]
-  const gridCols = cols.map(c => c.w).join(' ')
+  const open = (t: TruckSummary) => navigate(`/trucks/${t.id}`)
+  const onRowKey = (e: KeyboardEvent, t: TruckSummary) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault()
+      open(t)
+    }
+  }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* Header */}
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
       <PageHeader
-        title="Fleet Overview"
+        eyebrow="Operate"
+        title={<>The <em>fleet</em></>}
         meta={
-          <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)' }}>
-            {visible.length} trucks
+          <span className="font-mono">
+            {visible.length} of {trucks.length} trucks
           </span>
         }
       >
-        <div style={{ display: 'flex', gap: 4 }}>
-          {FILTERS.map((lvl) => (
-            <button
-              key={lvl}
-              onClick={() => setFilter(lvl)}
-              style={{
-                padding: '4px 10px', borderRadius: 2, fontSize: 11,
-                letterSpacing: '0.04em', fontWeight: 500, cursor: 'pointer',
-                border: 'none', transition: 'all 0.15s',
-                background: filter === lvl ? 'var(--color-primary)' : 'var(--color-elevated)',
-                color: filter === lvl ? 'var(--color-on-accent)' : lvl === 'ALL' ? 'var(--color-text-secondary)' : RISK_COL[lvl as RiskLevel] ?? 'var(--color-text-secondary)',
-              }}
-            >
-              {lvl}
-              {lvl !== 'ALL' && (
-                <span style={{ marginLeft: 4, opacity: 0.7 }}>
-                  ({trucks.filter(t => t.riskLevel === lvl).length})
-                </span>
-              )}
-            </button>
-          ))}
+        <div className="flex max-w-[calc(100vw-2rem)] flex-wrap gap-2" role="group" aria-label="Filter by risk">
+          {FILTERS.map((lvl) => {
+            const active = filter === lvl
+            const count = lvl === 'ALL' ? trucks.length : trucks.filter((t) => t.riskLevel === lvl).length
+            return (
+              <button
+                key={lvl}
+                type="button"
+                onClick={() => setFilter(lvl)}
+                aria-pressed={active}
+                className={`tt-press inline-flex min-h-8 items-center gap-1.5 px-2.5 font-mono text-[11px] font-bold uppercase tracking-[0.06em] outline-none focus-visible:shadow-focus-halo ${
+                  active ? 'bg-fill-sky text-on-fill' : 'bg-surface text-text-primary'
+                }`}
+              >
+                {lvl !== 'ALL' && (
+                  <span className={`inline-block h-2.5 w-2.5 rounded-full border-2 border-ink ${RISK_DOT[lvl]}`} aria-hidden />
+                )}
+                {lvl}
+                <span className="opacity-60">{count}</span>
+              </button>
+            )
+          })}
         </div>
       </PageHeader>
 
-      {/* Table header */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: gridCols,
-        padding: '8px 16px', gap: 8, flexShrink: 0,
-        borderBottom: '1px solid var(--color-border)',
-        background: 'var(--color-base)',
-      }}>
-        {cols.map(c => (
-          <span key={c.key} style={{ fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-secondary)', fontWeight: 500 }}>
-            {c.label}
-          </span>
-        ))}
-      </div>
+      <div className="tt-canvas min-h-0 flex-1 overflow-y-auto p-4 tablet:px-5">
+        <Box
+          title="Live telemetry"
+          tone="sky"
+          meta={
+            <>
+              <span className="hidden tablet:inline">Sorted by risk</span>
+              <ProvenanceBadge kind="measured" />
+            </>
+          }
+        >
+          {visible.length === 0 ? (
+            <div className="tt-caps flex h-40 items-center justify-center text-text-secondary">No trucks match filter</div>
+          ) : (
+            <>
+              {/* Table from tablet up. */}
+              <div className="hidden overflow-x-auto tablet:block">
+                <table className="w-full border-collapse">
+                  <thead className="tt-thead">
+                    <tr>
+                      {COLS.map((c) => (
+                        <th key={c} className="whitespace-nowrap">
+                          {c}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visible.map((truck, i) => (
+                      <tr
+                        key={truck.id}
+                        tabIndex={0}
+                        onClick={() => open(truck)}
+                        onKeyDown={(e) => onRowKey(e, truck)}
+                        aria-label={`Open truck ${truck.id}`}
+                        className="cursor-pointer border-b-2 border-border outline-none transition-colors last:border-b-0 hover:bg-elevated focus-visible:bg-elevated [&>td]:px-3 [&>td]:py-3"
+                        style={{ animation: `slide-in-up 0.25s ease-out ${i * 40}ms both` }}
+                      >
+                        <td className="font-mono text-[14px] font-bold text-text-primary">{truck.id}</td>
+                        <td className="max-w-[260px] truncate text-[13px] text-text-secondary">{truck.name}</td>
+                        <td className={`font-mono text-[14px] font-bold tabular-nums ${RISK_TEXT[truck.riskLevel]}`}>
+                          {truck.temperatureC.toFixed(1)}°C
+                        </td>
+                        <td className="font-mono text-[13px] tabular-nums text-text-primary">{truck.humidityPct}%</td>
+                        <td className="whitespace-nowrap font-mono text-[13px] tabular-nums text-text-primary">
+                          {truck.speedKmh} km/h
+                        </td>
+                        <td><DoorState open={truck.doorOpen} /></td>
+                        <td><RefrigState on={truck.refrigerationOn} /></td>
+                        <td><RiskBadge level={truck.riskLevel} score={truck.riskScore} /></td>
+                        <td><IncidentState active={truck.activeIncident} /></td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
 
-      {/* Table rows */}
-      <div style={{ flex: 1, overflowY: 'auto' }}>
-        {visible.map((truck, i) => (
-          <div
-            key={truck.id}
-            onClick={() => navigate(`/trucks/${truck.id}`)}
-            style={{
-              display: 'grid', gridTemplateColumns: gridCols,
-              padding: '0 16px', gap: 8, alignItems: 'center',
-              height: 52, cursor: 'pointer',
-              borderBottom: '1px solid color-mix(in srgb, var(--color-border) 50%, transparent)',
-              transition: 'background 0.12s',
-              animation: `slide-in-up 0.25s ease-out ${i * 40}ms both`,
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--color-elevated)')}
-            onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-          >
-            {/* Truck ID */}
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, fontWeight: 600, color: 'var(--color-text-primary)' }}>
-              {truck.id}
-            </span>
-            {/* Name */}
-            <span style={{ fontSize: 12, color: 'var(--color-text-secondary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-              {truck.name}
-            </span>
-            {/* Temp */}
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 13, color: RISK_COL[truck.riskLevel], fontWeight: 600 }}>
-              {truck.temperatureC.toFixed(1)}°C
-            </span>
-            {/* Humidity */}
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-text-secondary)' }}>
-              {truck.humidityPct}%
-            </span>
-            {/* Speed */}
-            <span style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--color-text-secondary)' }}>
-              {truck.speedKmh} km/h
-            </span>
-            {/* Door */}
-            <span style={{ fontSize: 11, fontWeight: 600, color: truck.doorOpen ? 'var(--color-risk-critical)' : 'var(--color-risk-low)' }}>
-              {truck.doorOpen ? 'OPEN' : 'CLOSED'}
-            </span>
-            {/* Refrig */}
-            <span style={{ fontSize: 11, fontWeight: 600, color: truck.refrigerationOn ? 'var(--color-risk-low)' : 'var(--color-risk-critical)' }}>
-              {truck.refrigerationOn ? 'ON' : 'OFF'}
-            </span>
-            {/* Risk badge */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-              <span style={{
-                display: 'inline-flex', alignItems: 'center', gap: 4,
-                padding: '2px 8px', borderRadius: 2,
-                fontSize: 10, fontWeight: 600, letterSpacing: '0.06em',
-                background: 'var(--color-elevated)',
-                color: RISK_COL[truck.riskLevel],
-              }}>
-                <span style={{ width: 5, height: 5, borderRadius: '50%', background: RISK_COL[truck.riskLevel], flexShrink: 0 }} />
-                {truck.riskLevel} {truck.riskScore}
-              </span>
-            </div>
-            {/* Incident */}
-            <span style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-risk-critical)', ...(truck.activeIncident ? { animation: 'pulse 2s infinite' } : { color: 'var(--color-text-secondary)', opacity: 0.3 }) }}>
-              {truck.activeIncident ? '● ACTIVE' : '—'}
-            </span>
-          </div>
-        ))}
-
-        {visible.length === 0 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: 160, color: 'var(--color-text-secondary)', fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-            No trucks match filter
-          </div>
-        )}
+              {/* Stacked rows on phones. */}
+              <div className="tablet:hidden">
+                {visible.map((truck) => (
+                  <button
+                    key={truck.id}
+                    type="button"
+                    onClick={() => open(truck)}
+                    className="block w-full border-b-2 border-border px-3.5 py-3 text-left outline-none transition-colors last:border-b-0 hover:bg-elevated focus-visible:bg-elevated"
+                  >
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="min-w-0 truncate">
+                        <span className="font-mono text-[15px] font-bold text-text-primary">{truck.id}</span>
+                        <span className="ml-2 text-[12px] text-text-secondary">{truck.name}</span>
+                      </span>
+                      <RiskBadge level={truck.riskLevel} score={truck.riskScore} />
+                    </div>
+                    <div className="mt-2 grid grid-cols-3 gap-x-3 gap-y-1.5">
+                      <div>
+                        <div className="tt-caps text-[10px] text-text-secondary">Temp</div>
+                        <div className={`font-mono text-[14px] font-bold ${RISK_TEXT[truck.riskLevel]}`}>
+                          {truck.temperatureC.toFixed(1)}°C
+                        </div>
+                      </div>
+                      <div>
+                        <div className="tt-caps text-[10px] text-text-secondary">Humidity</div>
+                        <div className="font-mono text-[13px] text-text-primary">{truck.humidityPct}%</div>
+                      </div>
+                      <div>
+                        <div className="tt-caps text-[10px] text-text-secondary">Speed</div>
+                        <div className="font-mono text-[13px] text-text-primary">{truck.speedKmh} km/h</div>
+                      </div>
+                      <div>
+                        <div className="tt-caps text-[10px] text-text-secondary">Door</div>
+                        <DoorState open={truck.doorOpen} />
+                      </div>
+                      <div>
+                        <div className="tt-caps text-[10px] text-text-secondary">Refrig</div>
+                        <RefrigState on={truck.refrigerationOn} />
+                      </div>
+                      <div>
+                        <div className="tt-caps text-[10px] text-text-secondary">Incident</div>
+                        <IncidentState active={truck.activeIncident} />
+                      </div>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </Box>
       </div>
     </div>
   )

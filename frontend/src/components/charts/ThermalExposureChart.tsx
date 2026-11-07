@@ -1,32 +1,46 @@
-import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts'
+import { Area, AreaChart, CartesianGrid, ResponsiveContainer, XAxis, YAxis } from 'recharts'
+import { CHART_COLORS, CrosshairTooltip } from '../../design'
 import type { TelemetryPoint } from '../../types'
+import { clock, GRID, MARGIN, RISK, X_AXIS, Y_AXIS } from './style'
 
-function fmt(ts: string) {
-  return new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-}
-
+// How far each measured reading sits above the batch's safe max (0 when inside
+// the band). This is a per-reading display of measured data only: the official
+// thermal exposure E_T is computed by the backend (features.py) and is shown
+// next to this chart, never re-derived here.
 export function ThermalExposureChart({ data, safeMaxTempC = 4, fill }: { data: TelemetryPoint[]; safeMaxTempC?: number; fill?: boolean }) {
-  let cumulative = 0
-  const chartData = data.map((p) => {
-    cumulative += Math.max(0, p.temperatureC - safeMaxTempC) / 12
-    return { time: fmt(p.timestamp), exposure: parseFloat(cumulative.toFixed(2)) }
-  })
+  const chartData = data.map((p) => ({
+    time: clock(p.timestamp),
+    over: Math.max(0, p.temperatureC - safeMaxTempC),
+  }))
+  const anyOver = chartData.some((d) => d.over > 0)
+
   return (
-    <ResponsiveContainer width="100%" height={fill ? '100%' : 180}>
-      <AreaChart data={chartData} margin={{ top: 8, right: 24, left: 4, bottom: 0 }}>
-        <defs>
-          <linearGradient id="expGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="5%" stopColor="var(--color-risk-high)" stopOpacity={0.5} />
-            <stop offset="95%" stopColor="var(--color-risk-high)" stopOpacity={0} />
-          </linearGradient>
-        </defs>
-        <CartesianGrid strokeDasharray="2 4" stroke="var(--color-border)" vertical={false} />
-        <XAxis dataKey="time" tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'IBM Plex Mono' }} tickLine={false} axisLine={{ stroke: 'var(--color-border)' }} interval="preserveStartEnd" minTickGap={24} />
-        <YAxis tick={{ fill: 'var(--color-text-secondary)', fontSize: 9, fontFamily: 'IBM Plex Mono' }} tickLine={false} axisLine={false} width={32} />
-        <Tooltip contentStyle={{ background: 'var(--color-elevated)', border: '1px solid var(--color-border)', borderRadius: 4, fontSize: 11, fontFamily: 'IBM Plex Mono', color: 'var(--color-text-primary)' }} formatter={(v) => [Number(v).toFixed(2), 'Exposure']} labelStyle={{ color: 'var(--color-text-secondary)' }} />
-        <ReferenceLine y={35} stroke="var(--color-risk-critical)" strokeDasharray="4 3" strokeWidth={1.5} label={{ value: 'THRESHOLD', fill: 'var(--color-risk-critical)', fontSize: 8, position: 'right' }} />
-        <Area type="monotone" dataKey="exposure" stroke="var(--color-risk-high)" strokeWidth={2.5} fill="url(#expGrad)" dot={false} isAnimationActive animationDuration={1600} animationEasing="ease-out" />
-      </AreaChart>
-    </ResponsiveContainer>
+    <div className="relative h-full w-full">
+      <ResponsiveContainer width="100%" height={fill ? '100%' : 200}>
+        <AreaChart data={chartData} margin={MARGIN}>
+          <CartesianGrid {...GRID} />
+          <XAxis dataKey="time" {...X_AXIS} />
+          <YAxis {...Y_AXIS} unit="°C" width={46} domain={[0, (max: number) => Math.max(1, Math.ceil(max))]} />
+          <CrosshairTooltip formatter={(v) => [`+${Number(v).toFixed(1)}°C`, 'Above safe max']} />
+          <Area
+            type="stepAfter"
+            dataKey="over"
+            stroke={RISK.high}
+            strokeWidth={2}
+            fill={RISK.high}
+            fillOpacity={0.22}
+            dot={false}
+            activeDot={{ r: 5, fill: RISK.high, stroke: CHART_COLORS.ink, strokeWidth: 2 }}
+            isAnimationActive
+            animationDuration={900}
+          />
+        </AreaChart>
+      </ResponsiveContainer>
+      {!anyOver && data.length > 0 && (
+        <div className="pointer-events-none absolute inset-0 flex items-center justify-center pb-6">
+          <span className="tt-chip bg-fill-lime text-on-fill">No reading above {safeMaxTempC}°C</span>
+        </div>
+      )}
+    </div>
   )
 }

@@ -191,6 +191,29 @@ components:
 
 # Cold Chain Command Center
 
+> **Current design language: QAI (November 2026).** The frontend now uses the
+> design language of the team's QAI Connect app. It replaces the Strategic Ops
+> palette and type in the front matter above, which are kept for history.
+> Source of truth for values is `frontend/src/index.css`; the live catalogue is
+> the dev-only `/styleguide` route. Branch `frontend/qai-style`.
+>
+> - **Look:** sand canvas with a 22px dot grid; paper boxes in a 3px ink
+>   frame, 6px radius, hard offset shadow with no blur; every box has a
+>   header bar (bold title, mono caps meta, 3px ink rule). Navy page band
+>   with one maroon-highlighted word in the title. Top nav (Operate /
+>   Analyse) replaces the icon sidebar.
+> - **Type:** DM Sans for text, JetBrains Mono for numbers and caps labels.
+> - **Colour roles:** maroon brand accent; sky measured data and the map;
+>   lime safe, done and result rows; lilac LAYLA and AI-explained; coral HIGH
+>   risk; deep red CRITICAL; gold only for MEDIUM risk and finance, never
+>   decorative. Text on any pastel fill is navy ink in both themes.
+> - **Themes:** light (sand/paper/navy) and dark (navy canvas, light ink
+>   frames, black hard shadows), switched by `data-theme` on `<html>`.
+> - **Shared pieces** (`frontend/src/design/`): `Box`, `KpiCard` tones,
+>   `Steps` (numbered pipeline), `Ontology` (entity chain), `Breakdown`
+>   (term table ending in a lime result row), `TypedText` (LAYLA reveal).
+>   All are presentational; every number still comes from the backend.
+
 ## Overview
 
 The Cold Chain Command Center is an operational dashboard for food-safety engineers monitoring a network of refrigerated trucks in real time. It sits at the intersection of military operations software and medical monitoring equipment — two domains where information must be instantly readable, urgency must be visually unambiguous, and nothing can be decorative for its own sake.

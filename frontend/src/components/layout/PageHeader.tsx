@@ -33,7 +33,7 @@ export function PageHeader({
           {meta && <div className="mt-1 flex flex-wrap items-center gap-2 text-[12px] opacity-85">{meta}</div>}
         </div>
       </div>
-      {children && <div className="flex shrink-0 flex-wrap items-center gap-2">{children}</div>}
+      {children && <div className="flex min-w-0 max-w-full flex-wrap items-center gap-2">{children}</div>}
     </header>
   )
 }

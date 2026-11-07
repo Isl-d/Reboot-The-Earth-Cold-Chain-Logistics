@@ -1,26 +1,28 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { RiskBadge } from '../components/common/RiskBadge'
 import { PageHeader } from '../components/layout/PageHeader'
+import { Box, Button, SegmentedControl, type BoxTone } from '../design'
 import { useIncidents } from '../hooks/useIncidents'
 import type { IncidentStatus } from '../types'
 
 const SEVERITY_ORDER: Record<string, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
 
-// Severity rides on the left rule and the text colour only; every card sits on
-// the same surface (DESIGN.md: tonal steps, no tints or shadows).
-const SEVERITY_COLORS: Record<string, { border: string; text: string }> = {
-  CRITICAL: { border: 'var(--color-risk-critical)', text: 'var(--color-risk-critical)' },
-  HIGH:     { border: 'var(--color-risk-high)',     text: 'var(--color-risk-high)' },
-  MEDIUM:   { border: 'var(--color-risk-medium)',   text: 'var(--color-risk-medium)' },
-  LOW:      { border: 'var(--color-risk-low)',      text: 'var(--color-risk-low)' },
+// Open incidents get a header bar on the risk scale. Resolved ones drop back
+// to paper so the page does not shout about closed cases.
+const SEVERITY_TONE: Record<string, BoxTone> = {
+  CRITICAL: 'critical',
+  HIGH: 'coral',
+  MEDIUM: 'sun',
+  LOW: 'lime',
 }
 
 const TYPE_LABELS: Record<string, string> = {
-  TEMPERATURE_EXCURSION: 'Temperature Excursion',
-  REFRIGERATION_FAILURE: 'Refrigeration Failure',
-  DOOR_LEFT_OPEN: 'Door Left Open',
-  TRAFFIC_DELAY: 'Traffic Delay',
-  COMBINED_FAILURE: 'Combined Failure',
+  TEMPERATURE_EXCURSION: 'Temperature excursion',
+  REFRIGERATION_FAILURE: 'Refrigeration failure',
+  DOOR_LEFT_OPEN: 'Door left open',
+  TRAFFIC_DELAY: 'Traffic delay',
+  COMBINED_FAILURE: 'Combined failure',
 }
 
 function timeAgo(ts: string) {
@@ -43,114 +45,91 @@ export function Incidents() {
   const resolvedCount = incidents.filter((i) => i.status === 'RESOLVED').length
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden' }}>
-      {/* Header */}
-      <PageHeader title="Incidents">
-        <div style={{ display: 'flex', gap: 4 }}>
-          {(['OPEN', 'RESOLVED'] as const).map((t) => (
-            <button
-              key={t}
-              onClick={() => setTab(t)}
-              style={{
-                padding: '4px 10px', borderRadius: 2, fontSize: 11,
-                letterSpacing: '0.04em', fontWeight: 500, cursor: 'pointer',
-                border: 'none', transition: 'all 0.15s',
-                // Same tab treatment as the Fleet filters: Signal Cyan marks the
-                // active control; risk colours stay reserved for risk state.
-                background: tab === t ? 'var(--color-primary)' : 'var(--color-elevated)',
-                color: tab === t ? 'var(--color-on-accent)' : 'var(--color-text-secondary)',
-              }}
-            >
-              {t} {t === 'OPEN' && openCount > 0 ? `(${openCount})` : t === 'RESOLVED' && resolvedCount > 0 ? `(${resolvedCount})` : ''}
-            </button>
-          ))}
-        </div>
+    <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
+      <PageHeader
+        eyebrow="Operate"
+        title={<>Incident <em>log</em></>}
+        meta={
+          <span className="font-mono">
+            {openCount} open · {resolvedCount} resolved
+          </span>
+        }
+      >
+        <SegmentedControl<IncidentStatus>
+          value={tab}
+          onChange={setTab}
+          options={[
+            { value: 'OPEN', label: `Open ${openCount}` },
+            { value: 'RESOLVED', label: `Resolved ${resolvedCount}` },
+          ]}
+          className="shadow-level1"
+        />
       </PageHeader>
 
-      {/* Content */}
-      <div style={{ flex: 1, overflowY: 'auto', padding: '8px 16px' }}>
+      <div className="tt-canvas min-h-0 flex-1 overflow-y-auto p-4 tablet:px-5">
         {filtered.length === 0 ? (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: 200, gap: 8, color: 'var(--color-text-secondary)' }}>
-            <span style={{ fontSize: 32, opacity: 0.2 }}>◎</span>
-            <span style={{ fontSize: 12, letterSpacing: '0.06em', textTransform: 'uppercase' }}>No {tab.toLowerCase()} incidents</span>
+          <div className="flex h-56 flex-col items-center justify-center gap-3">
+            <span
+              className={`grid h-12 w-12 place-items-center rounded-md border-[3px] border-ink text-[22px] font-extrabold shadow-level1 ${
+                tab === 'OPEN' ? 'bg-fill-lime text-on-fill' : 'bg-surface text-text-secondary'
+              }`}
+              aria-hidden
+            >
+              {tab === 'OPEN' ? '✓' : '○'}
+            </span>
+            <span className="tt-caps text-text-secondary">No {tab.toLowerCase()} incidents</span>
           </div>
         ) : (
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(420px, 1fr))', gap: 8 }}>
+          <div className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,400px),1fr))] gap-4 pb-1">
             {filtered.map((inc, i) => {
-              const sc = SEVERITY_COLORS[inc.severity] ?? SEVERITY_COLORS.LOW
+              const isOpen = tab === 'OPEN'
               return (
-                <div
+                <Box
                   key={inc.id}
-                  style={{
-                    background: 'var(--color-surface)',
-                    border: `1px solid var(--color-border)`,
-                    borderLeft: `3px solid ${sc.border}`,
-                    borderRadius: 4,
-                    padding: '14px 16px',
-                    animation: `slide-in-up 0.3s ease-out ${i * 60}ms both`,
-                  }}
+                  tone={isOpen ? (SEVERITY_TONE[inc.severity] ?? 'lime') : 'paper'}
+                  title={
+                    <span className="flex items-center gap-2">
+                      {isOpen ? <span className="tt-caps">{inc.severity}</span> : <RiskBadge level={inc.severity} />}
+                      <span>Truck {inc.truckId}</span>
+                    </span>
+                  }
+                  meta={<span className="tabular-nums">{timeAgo(inc.createdAt)}</span>}
+                  className={
+                    isOpen && inc.severity === 'CRITICAL'
+                      ? '[animation:slide-in-up_0.3s_ease-out_both,glow-critical_2s_ease-in-out_infinite]'
+                      : '[animation:slide-in-up_0.3s_ease-out_both]'
+                  }
+                  style={{ animationDelay: `${i * 60}ms, 0ms` }}
+                  bodyClassName="flex flex-col gap-3 p-4"
                 >
-                  {/* Top row */}
-                  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 8 }}>
-                    <div>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
-                        <span style={{ fontSize: 10, fontWeight: 600, letterSpacing: '0.08em', textTransform: 'uppercase', color: sc.text }}>
-                          {inc.severity}
-                        </span>
-                        <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)' }}>
-                          {inc.id}
-                        </span>
-                        {tab === 'OPEN' && (
-                          <span style={{ fontSize: 9, background: 'var(--color-elevated)', color: sc.text, padding: '1px 5px', borderRadius: 2, fontWeight: 600, letterSpacing: '0.06em' }}>
-                            OPEN
-                          </span>
-                        )}
-                      </div>
-                      <div style={{ fontSize: 15, fontWeight: 600, color: 'var(--color-text-primary)', marginBottom: 2 }}>
-                        Truck {inc.truckId}
-                      </div>
-                      <div style={{ fontSize: 10, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--color-text-secondary)' }}>
-                        {TYPE_LABELS[inc.type] ?? inc.type.replace(/_/g, ' ')}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                      <div style={{ fontSize: 10, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)' }}>
-                        {timeAgo(inc.createdAt)}
-                      </div>
-                      <div style={{ fontSize: 9, fontFamily: 'var(--font-mono)', color: 'var(--color-text-secondary)', opacity: 0.6, marginTop: 2 }}>
-                        {new Date(inc.createdAt).toLocaleTimeString()}
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Message */}
-                  <p style={{ fontSize: 12, color: 'var(--color-text-secondary)', lineHeight: 1.6, margin: '0 0 12px' }}>
-                    {inc.message}
-                  </p>
-
-                  {/* Batch info */}
-                  <div style={{ display: 'flex', gap: 8, marginBottom: 12 }}>
-                    <span style={{ fontSize: 10, fontFamily: 'var(--font-mono)', background: 'var(--color-elevated)', padding: '2px 8px', borderRadius: 2, color: 'var(--color-text-secondary)' }}>
-                      Batch: {inc.batchId}
+                  <div className="flex items-start justify-between gap-3">
+                    <span className="tt-caps text-text-primary">
+                      {TYPE_LABELS[inc.type] ?? inc.type.replace(/_/g, ' ')}
+                    </span>
+                    <span className="shrink-0 font-mono text-[11px] tabular-nums text-text-secondary">
+                      {new Date(inc.createdAt).toLocaleTimeString()}
                     </span>
                   </div>
 
-                  {/* Action */}
-                  <button
-                    onClick={() => navigate(`/trucks/${inc.truckId}`)}
-                    style={{
-                      fontSize: 10, fontWeight: 600, letterSpacing: '0.06em',
-                      color: 'var(--color-primary)', background: 'none',
-                      border: '1px solid var(--color-primary)', borderRadius: 2,
-                      padding: '4px 12px', cursor: 'pointer',
-                      transition: 'all 0.15s',
-                    }}
-                    onMouseEnter={(e) => { (e.target as HTMLButtonElement).style.background = 'var(--color-primary)'; (e.target as HTMLButtonElement).style.color = 'var(--color-on-accent)' }}
-                    onMouseLeave={(e) => { (e.target as HTMLButtonElement).style.background = 'none'; (e.target as HTMLButtonElement).style.color = 'var(--color-primary)' }}
-                  >
-                    VIEW TRUCK →
-                  </button>
-                </div>
+                  <p className="m-0 text-[13px] leading-relaxed text-text-secondary">{inc.message}</p>
+
+                  <div className="mt-auto flex flex-wrap items-center justify-between gap-3 border-t-2 border-border pt-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="tt-chip">Batch {inc.batchId}</span>
+                      <span className="font-mono text-[11px] text-text-secondary">{inc.id}</span>
+                      {!isOpen && (
+                        <span className="tt-chip bg-fill-lime text-on-fill">Resolved</span>
+                      )}
+                    </div>
+                    <Button
+                      variant="secondary"
+                      onClick={() => navigate(`/trucks/${inc.truckId}`)}
+                      className="min-h-8! px-3! text-[13px]!"
+                    >
+                      View truck →
+                    </Button>
+                  </div>
+                </Box>
               )
             })}
           </div>

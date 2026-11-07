@@ -14,15 +14,20 @@ export function IncidentPanel({ incidents }: Props) {
 
   if (open.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-32 text-text-secondary">
-        <span className="text-2xl mb-2 opacity-30">◎</span>
-        <span className="text-[12px] tracking-[0.06em] uppercase">No Active Incidents</span>
+      <div className="flex h-full min-h-32 flex-col items-center justify-center gap-3 py-4 text-center">
+        <span
+          className="grid h-11 w-11 place-items-center rounded-md border-[3px] border-ink bg-fill-lime text-[20px] font-extrabold text-on-fill shadow-level1"
+          aria-hidden
+        >
+          ✓
+        </span>
+        <span className="tt-caps text-text-secondary">No open incidents</span>
       </div>
     )
   }
 
   return (
-    <div className="space-y-2">
+    <div className="space-y-3 pb-2 pr-2">
       {open.map((inc) => (
         <IncidentCard key={inc.id} incident={inc} />
       ))}

@@ -28,9 +28,9 @@ const BATCH_ID = 'BEF-2031'
 
 function Row({ label, value }: { label: string; value: unknown }) {
   return (
-    <div className="flex items-start justify-between gap-4 border-b border-line py-1 text-body-sm">
-      <span className="text-muted">{label}</span>
-      <span className="max-w-md truncate font-mono text-navy" title={JSON.stringify(value)}>
+    <div className="flex items-start justify-between gap-4 border-b-2 border-line px-4 py-1.5 text-body-sm last:border-b-0">
+      <span className="shrink-0 font-mono text-[12px] font-bold">{label}</span>
+      <span className="min-w-0 max-w-md truncate font-mono text-[12px] text-text-secondary" title={JSON.stringify(value)}>
         {JSON.stringify(value)}
       </span>
     </div>
@@ -57,8 +57,8 @@ export default function DataLayerDebug() {
   const live = useLiveSocket()
 
   return (
-    <div className="rounded-md border border-line p-4">
-      <div className="mb-3 flex flex-wrap gap-2">
+    <div>
+      <div className="flex flex-wrap gap-2 border-b-[3px] border-ink p-4">
         <Button
           onClick={() => {
             start.mutate({ truckId: TRUCK_ID, scenario: 'REFRIGERATION_FAILURE', speedMultiplier: 30 })

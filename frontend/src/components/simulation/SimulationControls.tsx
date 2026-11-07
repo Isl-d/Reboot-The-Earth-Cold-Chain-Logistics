@@ -1,14 +1,15 @@
 import { useState } from 'react'
 import { startSimulation, stopSimulation, triggerScenario } from '../../api/simulation'
+import { Box, Button, Select } from '../../design'
 import type { SimulationScenario, TruckSummary } from '../../types'
 
 const SCENARIOS: { value: SimulationScenario; label: string }[] = [
-  { value: 'NORMAL', label: 'Normal Operation' },
-  { value: 'TEMPERATURE_EXCURSION', label: 'Temperature Excursion' },
-  { value: 'DOOR_LEFT_OPEN', label: 'Door Left Open' },
-  { value: 'REFRIGERATION_FAILURE', label: 'Refrigeration Failure' },
-  { value: 'TRAFFIC_DELAY', label: 'Traffic Delay' },
-  { value: 'COMBINED_FAILURE', label: 'Combined Failure' },
+  { value: 'NORMAL', label: 'Normal operation' },
+  { value: 'TEMPERATURE_EXCURSION', label: 'Temperature excursion' },
+  { value: 'DOOR_LEFT_OPEN', label: 'Door left open' },
+  { value: 'REFRIGERATION_FAILURE', label: 'Refrigeration failure' },
+  { value: 'TRAFFIC_DELAY', label: 'Traffic delay' },
+  { value: 'COMBINED_FAILURE', label: 'Combined failure' },
 ]
 
 interface Props {
@@ -31,7 +32,7 @@ export function SimulationControls({ trucks }: Props) {
       await triggerScenario(selectedTruck, selectedScenario)
       setStatus(`Scenario triggered on ${selectedTruck}`)
     } catch {
-      setStatus('Backend offline — scenario logged locally')
+      setStatus('Backend offline. Scenario logged locally')
     } finally {
       setLoading(false)
     }
@@ -62,63 +63,43 @@ export function SimulationControls({ trucks }: Props) {
   }
 
   return (
-    <div className="bg-surface border border-border rounded-md overflow-hidden">
-      <div className="px-3 py-1.5 border-b border-border text-[11px] font-medium tracking-[0.06em] uppercase text-text-secondary">
-        Simulation Control
+    <Box title="Simulation" meta="Synthetic · demo" small bodyClassName="space-y-3 p-3">
+      <div className="flex flex-wrap gap-2">
+        <Select
+          aria-label="Truck"
+          value={selectedTruck}
+          onChange={(e) => setSelectedTruck(e.target.value)}
+          options={trucks.map((t) => ({ value: t.id, label: t.id }))}
+          className="w-auto! shrink-0 font-mono"
+        />
+        <Select
+          aria-label="Scenario"
+          value={selectedScenario}
+          onChange={(e) => setSelectedScenario(e.target.value as SimulationScenario)}
+          options={SCENARIOS}
+          className="w-auto! min-w-0 flex-1 basis-44"
+        />
+        <Button onClick={handleTrigger} disabled={loading || !selectedTruck}>
+          Trigger
+        </Button>
       </div>
 
-      <div className="p-3 space-y-2">
-        <div className="flex gap-2 flex-wrap">
-          <select
-            value={selectedTruck}
-            onChange={(e) => setSelectedTruck(e.target.value)}
-            className="bg-elevated border border-border rounded-sm text-[12px] font-mono text-text-primary px-2 py-1.5 focus:outline-none focus:border-primary"
-          >
-            {trucks.map((t) => (
-              <option key={t.id} value={t.id}>{t.id}</option>
-            ))}
-          </select>
-
-          <select
-            value={selectedScenario}
-            onChange={(e) => setSelectedScenario(e.target.value as SimulationScenario)}
-            className="bg-elevated border border-border rounded-sm text-[12px] text-text-primary px-2 py-1.5 focus:outline-none focus:border-primary flex-1 min-w-[180px]"
-          >
-            {SCENARIOS.map((s) => (
-              <option key={s.value} value={s.value}>{s.label}</option>
-            ))}
-          </select>
-
-          <button
-            onClick={handleTrigger}
-            disabled={loading}
-            className="px-3 py-1.5 bg-risk-critical text-on-accent rounded-sm text-[12px] font-medium tracking-[0.04em] hover:bg-risk-critical/85 transition-colors disabled:opacity-50"
-          >
-            TRIGGER
-          </button>
-        </div>
-
-        <div className="flex gap-2">
-          <button
-            onClick={handleStart}
-            disabled={loading}
-            className="px-3 py-1.5 bg-primary text-on-accent rounded-sm text-[12px] font-medium tracking-[0.04em] hover:bg-primary-dim transition-colors disabled:opacity-50"
-          >
-            START SIM
-          </button>
-          <button
-            onClick={handleStop}
-            disabled={loading}
-            className="px-3 py-1.5 bg-elevated border border-border text-text-primary rounded-sm text-[12px] font-medium tracking-[0.04em] hover:border-primary transition-colors disabled:opacity-50"
-          >
-            STOP SIM
-          </button>
-        </div>
-
-        {status && (
-          <div className="text-[11px] font-mono text-text-secondary">{status}</div>
-        )}
+      <div className="flex flex-wrap items-center gap-2">
+        <span className="tt-caps mr-1 text-text-secondary">Feed</span>
+        <Button variant="secondary" onClick={handleStart} disabled={loading} className="min-h-8! px-3! text-[13px]!">
+          Start sim
+        </Button>
+        <Button variant="secondary" onClick={handleStop} disabled={loading} className="min-h-8! px-3! text-[13px]!">
+          Stop sim
+        </Button>
       </div>
-    </div>
+
+      {status && (
+        <div className="flex items-center gap-2 font-mono text-[11px] text-text-secondary" role="status">
+          <span className="inline-block h-2 w-2 shrink-0 rounded-full border border-ink bg-fill-sky" aria-hidden />
+          {status}
+        </div>
+      )}
+    </Box>
   )
 }
