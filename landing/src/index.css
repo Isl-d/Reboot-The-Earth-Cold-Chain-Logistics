@@ -43,6 +43,12 @@ html {
   scroll-padding-top: 4.5rem;
 }
 
+/* Entrances start offset sideways; clip (not hidden) so they never widen
+   the page on phones and position: sticky keeps working. */
+main {
+  overflow-x: clip;
+}
+
 body {
   margin: 0;
   background: var(--color-base);
@@ -518,9 +524,49 @@ body {
   }
 }
 
+/* Reserve stack: the selected slab steps out of the stack towards its panel,
+   and the panel's content settles in whenever the layer changes. */
+@media (min-width: 1024px) {
+  .slab.is-on {
+    transform: translateX(10px);
+  }
+}
+.panel-in {
+  animation: panel-in 0.35s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+@keyframes panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+.panel-in .bar-x {
+  transform-origin: left;
+  animation: bar-x 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.15s both;
+}
+@keyframes bar-x {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;
+  }
+  .panel-in,
+  .panel-in .bar-x {
+    animation: none;
+  }
+  .slab.is-on {
+    transform: none;
   }
   .reveal,
   .grow-y,

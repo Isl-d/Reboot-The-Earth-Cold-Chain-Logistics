@@ -39,10 +39,15 @@ export default function LiveStats() {
             Live from the command center
           </p>
           <p className="font-mono text-xs text-text-secondary">
-            Test fleet · updated {updatedAt?.toLocaleTimeString()} ·{' '}
-            <a href={APP_URL} className="text-primary hover:underline">
-              open dashboard →
-            </a>
+            Test fleet · updated {updatedAt?.toLocaleTimeString()}
+            {APP_URL && (
+              <>
+                {' · '}
+                <a href={APP_URL} className="text-primary hover:underline">
+                  open dashboard
+                </a>
+              </>
+            )}
           </p>
         </Reveal>
         <div className="grid grid-cols-2 gap-px overflow-hidden rounded-md border border-border/70 bg-border/70 md:grid-cols-3 lg:grid-cols-5">

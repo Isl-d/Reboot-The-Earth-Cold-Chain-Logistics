@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { APP_URL, brand, nav } from '@/content/copy'
+import { brand, contact, nav } from '@/content/copy'
 import Logo from '@/components/Logo'
 
 export default function Nav() {
@@ -32,11 +32,10 @@ export default function Nav() {
           ))}
         </ul>
         <a
-          href={APP_URL}
+          href={contact.pilot}
           className="btn-shine shrink-0 rounded-sm bg-primary px-3.5 py-2 text-xs font-semibold tracking-[0.04em] text-on-accent transition-colors hover:bg-primary-dim"
         >
-          <span className="sm:hidden">Open app</span>
-          <span className="hidden sm:inline">Open the command center</span>
+          Book a pilot
         </a>
       </nav>
     </header>

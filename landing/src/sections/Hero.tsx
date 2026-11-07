@@ -4,7 +4,7 @@ import DigitalOverlay from '@/components/DigitalOverlay'
 import ProvenanceTag from '@/components/ProvenanceTag'
 import SplitWords from '@/components/SplitWords'
 import ThermalTraceCard from '@/components/ThermalTraceCard'
-import { APP_URL, hero } from '@/content/copy'
+import { award, contact, hero } from '@/content/copy'
 
 export default function Hero() {
   // One frame after mount, so the title words have a "before" to fly in from.
@@ -44,7 +44,16 @@ export default function Hero() {
 
       <div className="mx-auto grid w-full max-w-[1400px] items-center gap-14 px-5 pt-32 pb-20 sm:px-8 sm:pb-28 lg:grid-cols-[1.15fr_0.85fr] xl:gap-20">
         <div>
-          <p className="rise mb-5 font-mono text-xs font-medium tracking-[0.14em] text-primary uppercase" style={{ animationDelay: '0ms' }}>
+          <p
+            className="rise mb-6 inline-flex items-center gap-2 rounded-sm border border-risk-medium/40 bg-base/70 px-2.5 py-1.5 text-xs font-medium text-risk-medium"
+            style={{ animationDelay: '0ms' }}
+          >
+            <svg viewBox="0 0 16 16" width="14" height="14" fill="none" stroke="currentColor" strokeWidth="1.5" aria-hidden>
+              <path d="M4.5 2h7v3.5a3.5 3.5 0 0 1-7 0V2ZM4.5 3.5H2.5v1a2 2 0 0 0 2 2M11.5 3.5h2v1a2 2 0 0 1-2 2M8 9v3M5.5 14h5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+            {award}
+          </p>
+          <p className="rise mb-5 font-mono text-xs font-medium tracking-[0.14em] text-primary uppercase" style={{ animationDelay: '60ms' }}>
             {hero.eyebrow}
           </p>
           <h1 className="text-4xl leading-[1.05] font-bold tracking-[-0.03em] text-balance text-white sm:text-6xl xl:text-7xl">
@@ -58,13 +67,13 @@ export default function Hero() {
           </p>
           <div className="rise mt-9 flex flex-wrap gap-3" style={{ animationDelay: '400ms' }}>
             <a
-              href="#demo"
+              href={contact.pilot}
               className="btn-shine rounded-sm bg-primary px-5 py-3 text-sm font-semibold text-on-accent transition-colors hover:bg-primary-dim"
             >
               {hero.primaryCta}
             </a>
             <a
-              href={APP_URL}
+              href="#how"
               className="rounded-sm border border-border bg-surface/85 px-5 py-3 text-sm font-semibold text-primary transition-colors hover:border-primary"
             >
               {hero.secondaryCta}
@@ -78,8 +87,8 @@ export default function Hero() {
       </div>
 
       <a
-        href="#how"
-        aria-label="Scroll to how it works"
+        href="#problem"
+        aria-label="Scroll to the problem"
         className="scroll-cue absolute bottom-6 left-1/2 hidden -translate-x-1/2 text-text-secondary transition-colors hover:text-primary sm:block"
       >
         <svg width="22" height="34" viewBox="0 0 22 34" fill="none" aria-hidden>
