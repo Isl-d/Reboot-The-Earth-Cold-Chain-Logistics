@@ -1,5 +1,6 @@
 import { useQueryClient } from '@tanstack/react-query'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { USE_MOCKS } from '../api/client'
 import type { TruckSummary, WsEvent } from '../types'
 
 export function useWebSocket() {
@@ -11,6 +12,8 @@ export function useWebSocket() {
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const connect = useCallback(() => {
+    // Mock mode has no backend; live updates come from the mock socket in useLiveSocket.
+    if (USE_MOCKS) return
     if (wsRef.current?.readyState === WebSocket.OPEN) return
 
     const protocol = location.protocol === 'https:' ? 'wss:' : 'ws:'
@@ -80,5 +83,5 @@ export function useWebSocket() {
     }
   }, [connect])
 
-  return { connected, lastEventTime }
+  return { connected, lastEventTime, demo: USE_MOCKS }
 }

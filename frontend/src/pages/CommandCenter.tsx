@@ -16,7 +16,7 @@ export function CommandCenter() {
   const { data: trucks = [] } = useTrucks()
   const { data: incidents = [] } = useIncidents()
   const { data: foodLoss } = useFoodLossAnalytics()
-  const { connected, lastEventTime } = useWebSocket()
+  const { connected, lastEventTime, demo } = useWebSocket()
 
   const atRisk = trucks.filter((t) => t.riskLevel === 'HIGH' || t.riskLevel === 'CRITICAL').length
   const openIncidents = incidents.filter((i) => i.status === 'OPEN')
@@ -33,7 +33,7 @@ export function CommandCenter() {
           </span>
         }
       >
-        <ConnectionStatus connected={connected} lastEventTime={lastEventTime} />
+        <ConnectionStatus connected={connected} lastEventTime={lastEventTime} demo={demo} />
         <NotificationBell incidents={incidents} />
       </PageHeader>
 
@@ -93,7 +93,7 @@ export function CommandCenter() {
                 Active Incidents
               </span>
               {openIncidents.length > 0 && (
-                <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-risk-critical)', animation: 'pulse 2s infinite' }}>
+                <span style={{ fontSize: 11, fontFamily: 'var(--font-mono)', color: 'var(--color-risk-critical)' }}>
                   {openIncidents.length} OPEN
                 </span>
               )}

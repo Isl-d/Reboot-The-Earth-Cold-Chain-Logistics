@@ -138,7 +138,7 @@ export function LiveMap({ trucks, onTruckClick }: Props) {
 
       {/* ── Warehouses ──────────────────────────────────────── */}
       {WAREHOUSES.map((wh) => (
-        <Marker key={wh.id} position={[wh.lat, wh.lon]} icon={createWarehouseIcon()}>
+        <Marker key={wh.id} position={[wh.lat, wh.lon]} icon={createWarehouseIcon()} title={`${wh.name} (cold storage)`}>
           <Tooltip direction="top" offset={[0, -34]} opacity={0.95}>
             <LocationPopup name={wh.name} type="COLD STORAGE" color={PLACE_COLORS.warehouse} />
           </Tooltip>
@@ -146,12 +146,12 @@ export function LiveMap({ trucks, onTruckClick }: Props) {
         </Marker>
       ))}
       {WAREHOUSES.map((wh) => (
-        <Marker key={`${wh.id}-label`} position={[wh.lat - 0.003, wh.lon]} icon={createLabelIcon(wh.id, PLACE_COLORS.warehouse)} interactive={false} />
+        <Marker key={`${wh.id}-label`} position={[wh.lat - 0.003, wh.lon]} icon={createLabelIcon(wh.id, PLACE_COLORS.warehouse)} interactive={false} keyboard={false} />
       ))}
 
       {/* ── Hypermarkets ────────────────────────────────────── */}
       {HYPERMARKETS.map((h) => (
-        <Marker key={h.id} position={[h.lat, h.lon]} icon={createHypermarketIcon()}>
+        <Marker key={h.id} position={[h.lat, h.lon]} icon={createHypermarketIcon()} title={`${h.name} (hypermarket)`}>
           <Tooltip direction="top" offset={[0, -30]} opacity={0.95}>
             <LocationPopup name={h.name} type="HYPERMARKET" color={PLACE_COLORS.store} />
           </Tooltip>
@@ -159,12 +159,12 @@ export function LiveMap({ trucks, onTruckClick }: Props) {
         </Marker>
       ))}
       {HYPERMARKETS.map((h) => (
-        <Marker key={`${h.id}-label`} position={[h.lat - 0.0025, h.lon]} icon={createLabelIcon(h.name.split(' ')[0], PLACE_COLORS.store)} interactive={false} />
+        <Marker key={`${h.id}-label`} position={[h.lat - 0.0025, h.lon]} icon={createLabelIcon(h.name.split(' ')[0], PLACE_COLORS.store)} interactive={false} keyboard={false} />
       ))}
 
       {/* ── Supermarkets ────────────────────────────────────── */}
       {SUPERMARKETS.map((s) => (
-        <Marker key={s.id} position={[s.lat, s.lon]} icon={createSupermarketIcon()}>
+        <Marker key={s.id} position={[s.lat, s.lon]} icon={createSupermarketIcon()} title={`${s.name} (supermarket)`}>
           <Tooltip direction="top" offset={[0, -26]} opacity={0.95}>
             <LocationPopup name={s.name} type="SUPERMARKET" color={PLACE_COLORS.store} />
           </Tooltip>
@@ -172,7 +172,7 @@ export function LiveMap({ trucks, onTruckClick }: Props) {
         </Marker>
       ))}
       {SUPERMARKETS.map((s) => (
-        <Marker key={`${s.id}-label`} position={[s.lat - 0.002, s.lon]} icon={createLabelIcon(s.name.split(' ')[0], PLACE_COLORS.store)} interactive={false} />
+        <Marker key={`${s.id}-label`} position={[s.lat - 0.002, s.lon]} icon={createLabelIcon(s.name.split(' ')[0], PLACE_COLORS.store)} interactive={false} keyboard={false} />
       ))}
 
       {/* ── Trucks ──────────────────────────────────────────── */}
@@ -181,6 +181,7 @@ export function LiveMap({ trucks, onTruckClick }: Props) {
           key={truck.id}
           position={[truck.latitude, truck.longitude]}
           icon={createTruckIcon(truck.riskLevel, truck.activeIncident)}
+          title={`Truck ${truck.id}, ${truck.riskLevel.toLowerCase()} risk`}
           eventHandlers={{ click: () => onTruckClick(truck.id) }}
         >
           <Popup>
