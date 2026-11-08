@@ -70,6 +70,7 @@ export function SimulationControls({ trucks }: Props) {
       <div className="p-3 space-y-2">
         <div className="flex gap-2 flex-wrap">
           <select
+            aria-label="Truck"
             value={selectedTruck}
             onChange={(e) => setSelectedTruck(e.target.value)}
             className="bg-elevated border border-border rounded-sm text-[12px] font-mono text-text-primary px-2 py-1.5 focus:outline-none focus:border-primary"
@@ -80,6 +81,7 @@ export function SimulationControls({ trucks }: Props) {
           </select>
 
           <select
+            aria-label="Scenario"
             value={selectedScenario}
             onChange={(e) => setSelectedScenario(e.target.value as SimulationScenario)}
             className="bg-elevated border border-border rounded-sm text-[12px] text-text-primary px-2 py-1.5 focus:outline-none focus:border-primary flex-1 min-w-[180px]"
