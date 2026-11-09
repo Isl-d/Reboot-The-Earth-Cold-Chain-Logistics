@@ -406,7 +406,7 @@ export const team = {
   eyebrow: 'Team',
   title: 'Built in Qatar by Generative Gains.',
   body:
-    'Thermal Trace started as our entry to the UN Reboot the Earth hackathon. It won, and we turned it into a company.',
+    'Thermal Trace is a Generative Gains product, and the winner of the UN Reboot the Earth 2026 hackathon.',
   people: [
     { name: 'Najeeb Abdi', role: 'Math and frontend' },
     { name: 'Islambek', role: 'Hardware engineer' },
