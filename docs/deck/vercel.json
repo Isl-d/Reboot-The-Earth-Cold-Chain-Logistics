@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/mwc", "destination": "/thermal-trace-mwc-v3.html" }
+  ]
+}

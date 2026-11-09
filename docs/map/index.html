@@ -1,0 +1,453 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Thermal Trace Map</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: one control-room board. Thesis, then the system map (click a node, read the side panel), then the business strip, then hard questions. */
+:root{
+  --bg:#0c1825; --panel:#162338; --raise:#1e3048; --line:#2a3f5c;
+  --fg:#e6eef8; --muted:#8fa8c8; --soft:#c9d6e8;
+  --cyan:#00c8e0; --cyan-ink:#00c8e0;
+  --ok:#22d4b0; --warn:#fbbf24; --high:#fb923c; --crit:#f87171;
+  --live-bg:rgba(34,212,176,.12); --sim-bg:rgba(251,191,36,.12); --des-bg:rgba(143,168,200,.12);
+  --sans:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,"SFMono-Regular",Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){
+  --bg:#f3f6fa; --panel:#ffffff; --raise:#e8eef6; --line:#cfdae8;
+  --fg:#0c1825; --muted:#4d6585; --soft:#22344d;
+  --cyan:#00a3b8; --cyan-ink:#007d8f;
+  --ok:#0e9e82; --warn:#b7791f; --high:#c2570c; --crit:#c53030;
+  --live-bg:rgba(14,158,130,.12); --sim-bg:rgba(183,121,31,.13); --des-bg:rgba(77,101,133,.12);
+  color-scheme:light; } }
+:root[data-theme="light"]{
+  --bg:#f3f6fa; --panel:#ffffff; --raise:#e8eef6; --line:#cfdae8;
+  --fg:#0c1825; --muted:#4d6585; --soft:#22344d;
+  --cyan:#00a3b8; --cyan-ink:#007d8f;
+  --ok:#0e9e82; --warn:#b7791f; --high:#c2570c; --crit:#c53030;
+  --live-bg:rgba(14,158,130,.12); --sim-bg:rgba(183,121,31,.13); --des-bg:rgba(77,101,133,.12);
+  color-scheme:light; }
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:15px/1.55 var(--sans);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+.wrap{max-width:1180px;margin:0 auto}
+a{color:var(--cyan-ink)}
+.mono{font-family:var(--mono);font-variant-numeric:tabular-nums}
+h1,h2,h3{text-wrap:balance;margin:0}
+.eyebrow{font:500 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+
+/* top bar */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:9;background:var(--bg);border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:16px;flex-wrap:wrap;padding-block:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:600;letter-spacing:.02em}
+.brand svg{width:26px;height:26px;flex:none}
+.top nav{display:flex;gap:4px;margin-left:auto;flex-wrap:wrap}
+.top nav a{font:500 12px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;color:var(--muted);text-decoration:none;padding:8px 10px;border-radius:6px}
+.top nav a:hover,.top nav a:focus-visible{color:var(--fg);background:var(--raise);outline:none}
+
+/* hero */
+.hero{display:grid;grid-template-columns:1.4fr 1fr;gap:32px;padding-block:36px 28px;align-items:end}
+.hero h1{font-size:clamp(28px,4.4vw,46px);line-height:1.08;letter-spacing:-.02em;font-weight:600}
+.hero h1 em{font-style:normal;color:var(--high)}
+.hero p{color:var(--soft);max-width:60ch;margin:14px 0 0;font-size:16px}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.facts div{background:var(--panel);padding:12px 14px;min-width:0}
+.facts b{display:block;font:600 17px/1.2 var(--mono);color:var(--fg)}
+.facts span{font-size:12px;color:var(--muted)}
+
+/* section heads */
+section{padding-block:28px}
+.shead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+.shead h2{font-size:24px;font-weight:600;letter-spacing:-.01em}
+.shead p{margin:0;color:var(--muted);font-size:14px}
+
+/* status chips */
+.chip{display:inline-flex;align-items:center;gap:6px;font:600 10.5px/1 var(--mono);letter-spacing:.1em;text-transform:uppercase;padding:5px 7px;border-radius:4px;white-space:nowrap}
+.chip::before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor}
+.live{color:var(--ok);background:var(--live-bg)}
+.sim{color:var(--warn);background:var(--sim-bg)}
+.des{color:var(--muted);background:var(--des-bg);border:1px dashed currentColor;padding:4px 6px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--muted)}
+.legend span.item{display:flex;gap:8px;align-items:center}
+
+/* the map */
+.board{display:grid;grid-template-columns:minmax(0,1fr) 380px;gap:20px;align-items:start}
+.map{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.lanes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}
+.lane{display:flex;flex-direction:column;gap:10px;min-width:0;position:relative}
+.lane h3{font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--cyan-ink);display:flex;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--line)}
+.lane h3 i{font-style:normal;color:var(--muted)}
+.lane:not(:last-child)::after{content:"";position:absolute;right:-12px;top:44px;width:10px;height:10px;border-top:2px solid var(--cyan);border-right:2px solid var(--cyan);transform:rotate(45deg);opacity:.7}
+.node{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;gap:6px;padding:11px 12px;border-radius:8px;
+  background:var(--raise);border:1px solid transparent;transition:border-color .15s,transform .15s;min-width:0}
+.node:hover{border-color:var(--line)}
+.node:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.node[aria-pressed="true"]{border-color:var(--cyan);box-shadow:0 0 0 1px var(--cyan) inset}
+.node b{font-weight:600;font-size:14px;line-height:1.25}
+.node small{color:var(--muted);font-size:12.5px;line-height:1.35}
+.node .chip{align-self:flex-start}
+.node.design{background:transparent;border:1px dashed var(--line)}
+.guard{margin-top:14px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.guard .node{background:transparent;border:1px solid var(--line)}
+.guard-title{margin-top:18px;font:600 11px/1 var(--mono);letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+
+.detail{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:20px;position:sticky;top:calc(env(safe-area-inset-top,0px) + 72px);min-width:0}
+.detail h3{font-size:20px;font-weight:600;margin:10px 0 4px}
+.detail .plain{font-size:16px;color:var(--fg);margin:8px 0 14px}
+.detail dl{margin:0;display:grid;gap:12px}
+.detail dt{font:600 10.5px/1 var(--mono);letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.detail dd{margin:0;color:var(--soft);font-size:14px}
+.detail .ask{background:var(--raise);border-radius:8px;padding:12px}
+.detail .ask dd{color:var(--fg)}
+.detail code,.formula{font-family:var(--mono);font-size:13px;color:var(--cyan-ink)}
+
+/* demo story */
+.story{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:0;border:1px solid var(--line);border-radius:12px;overflow:hidden;background:var(--panel)}
+.step{padding:16px;border-right:1px solid var(--line);min-width:0}
+.step:last-child{border-right:0}
+.step .t{font:600 12px/1 var(--mono);color:var(--muted)}
+.step b{display:block;margin:8px 0 4px;font-size:15px}
+.step p{margin:0;color:var(--soft);font-size:13.5px}
+.step .big{font:600 22px/1.1 var(--mono);margin-top:6px}
+.c-ok{color:var(--ok)} .c-warn{color:var(--warn)} .c-high{color:var(--high)} .c-crit{color:var(--crit)} .c-cyan{color:var(--cyan-ink)}
+.note{font-size:12.5px;color:var(--muted);margin-top:10px}
+
+/* business */
+.biz{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:18px;min-width:0}
+.card h3{font-size:16px;font-weight:600;margin-bottom:10px}
+.card ul{margin:0;padding-left:18px;color:var(--soft);font-size:14px;display:grid;gap:6px}
+.rows{display:grid;gap:0}
+.rows div{display:flex;justify-content:space-between;gap:12px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}
+.rows div:last-child{border-bottom:0}
+.rows span{color:var(--soft)}
+.rows b{font:600 14px/1.3 var(--mono);text-align:right;white-space:nowrap}
+.bar{display:flex;height:12px;border-radius:3px;overflow:hidden;margin:6px 0 12px}
+.bar i{display:block;height:100%}
+.span2{grid-column:span 2}
+.timeline{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.timeline div{border-left:2px solid var(--cyan);padding:2px 0 2px 12px;min-width:0}
+.timeline b{font:600 12px/1 var(--mono);color:var(--cyan-ink);display:block;margin-bottom:6px}
+.timeline p{margin:0;font-size:13.5px;color:var(--soft)}
+
+/* questions */
+.qtools{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.qtools button{all:unset;cursor:pointer;font:500 12px/1 var(--mono);letter-spacing:.06em;padding:8px 11px;border-radius:999px;border:1px solid var(--line);color:var(--muted)}
+.qtools button[aria-pressed="true"]{color:var(--bg);background:var(--cyan);border-color:var(--cyan)}
+.qtools button:focus-visible{outline:2px solid var(--cyan);outline-offset:2px}
+.qs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+details{background:var(--panel);border:1px solid var(--line);border-radius:10px;min-width:0}
+details[open]{border-color:var(--cyan)}
+summary{cursor:pointer;list-style:none;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;font-weight:600;font-size:15px}
+summary::-webkit-details-marker{display:none}
+summary .tag{font:500 10px/1 var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted);padding-top:5px;flex:none;width:68px}
+summary:focus-visible{outline:2px solid var(--cyan);outline-offset:-2px;border-radius:10px}
+details .a{padding:0 16px 16px 96px;color:var(--soft);font-size:14.5px}
+details .a p{margin:0 0 8px}
+details .a .say{color:var(--fg)}
+details .a .pin{display:block;font:500 11px/1.4 var(--mono);color:var(--muted);margin-top:6px}
+
+footer{margin-top:24px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:12.5px}
+
+@media (max-width:1020px){
+  .board{grid-template-columns:1fr}
+  .detail{position:static}
+  .hero{grid-template-columns:1fr}
+}
+@media (max-width:760px){
+  .lanes{grid-template-columns:1fr 1fr}
+  .lane::after{display:none}
+  .guard{grid-template-columns:1fr}
+  .story{grid-template-columns:1fr}
+  .step{border-right:0;border-bottom:1px solid var(--line)}
+  .biz,.timeline,.qs{grid-template-columns:1fr}
+  .span2{grid-column:auto}
+  details .a{padding-left:16px}
+  .top nav{margin-left:0}
+}
+@media (max-width:420px){ .lanes{grid-template-columns:1fr} .facts{grid-template-columns:1fr} }
+@media (prefers-reduced-motion:reduce){ *{transition:none!important} }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="7" fill="#0c1825"/><g stroke="#00c8e0" stroke-width="2" stroke-linecap="round" fill="none"><path d="M16 6v20M7.3 11l17.4 10M7.3 21l17.4-10"/><path d="M13.5 7.8 16 10l2.5-2.2M13.5 24.2 16 22l2.5 2.2"/></g></svg>
+      Thermal Trace <span class="eyebrow" style="margin-left:4px">Generative Gains</span>
+    </div>
+    <nav aria-label="Sections">
+      <a href="#map">Map</a><a href="#demo">Demo</a><a href="#business">Business</a><a href="#questions">Hard questions</a>
+    </nav>
+  </header>
+
+  <div class="hero">
+    <div>
+      <div class="eyebrow">Cold-chain decision system · Qatar first, GCC next</div>
+      <h1 style="margin-top:12px">Know what a failing fridge is costing <em>before the gate does.</em></h1>
+      <p>Trackers tell you a truck got warm. Thermal Trace works out how much safe life the food has left, picks the action that loses the least, and shows the kg and QAR it saved.</p>
+    </div>
+    <div class="facts">
+      <div><b>Registered</b><span>Generative Gains, startup</span></div>
+      <div><b>QAR 1.85M</b><span>Pre-seed ask, 12 months</span></div>
+      <div><b>Working demo</b><span>Full pipeline, end to end</span></div>
+      <div><b>Real sensor</b><span>NodeMCU node tested live</span></div>
+      <div><b>Hackathon</b><span>Reboot the Earth result</span></div>
+      <div><b>Customer talks</b><span>Early conversations</span></div>
+    </div>
+  </div>
+
+  <section id="map" aria-labelledby="map-h">
+    <div class="shead">
+      <h2 id="map-h">How it works</h2>
+      <p>Click any box.</p>
+      <div class="legend" style="margin-left:auto">
+        <span class="item"><span class="chip live">Built</span> working today</span>
+        <span class="item"><span class="chip sim">Simulated</span> demo data</span>
+        <span class="item"><span class="chip des">Designed</span> not built yet</span>
+      </div>
+    </div>
+    <div class="board">
+      <div class="map">
+        <div class="lanes" id="lanes"></div>
+        <div class="guard-title">Around the core: AI on a leash, and the record</div>
+        <div class="guard" id="guard"></div>
+      </div>
+      <aside class="detail" id="detail" aria-live="polite"></aside>
+    </div>
+  </section>
+
+  <section id="demo" aria-labelledby="demo-h">
+    <div class="shead"><h2 id="demo-h">The demo in 60 seconds</h2><p>Truck T102 · 500 kg fresh chicken · safe at 0 to 4 °C</p></div>
+    <div class="story">
+      <div class="step"><div class="t">01 · SENSE</div><b>Cooling stops</b><p>The cargo starts warming. Readings stream in every few seconds.</p><div class="big c-warn">4 → 7 °C</div></div>
+      <div class="step"><div class="t">02 · MEASURE</div><b>Thermal debt builds</b><p>Degree-minutes above the safe limit add up. Shelf life drains faster than the label says.</p><div class="big c-high">7.0 → 4.5 days</div></div>
+      <div class="step"><div class="t">03 · PREDICT</div><b>Risk climbs</b><p>Spoilage risk crosses HIGH, an incident opens and the control room is alerted.</p><div class="big c-crit">HIGH</div></div>
+      <div class="step"><div class="t">04 · DECIDE</div><b>Divert</b><p>The planned store is 90 min away, the safe time left is 45 min. A cold store 20 min away fits.</p><div class="big c-cyan">DIVERT</div></div>
+      <div class="step"><div class="t">05 · PROVE</div><b>Food saved</b><p>The system logs kg and QAR saved and CO₂ avoided, against doing nothing.</p><div class="big c-ok">kg · QAR · CO₂</div></div>
+    </div>
+    <p class="note">The times and days are the example scenario from our deck. In the live demo every number is computed by the system, from simulated readings.</p>
+  </section>
+
+  <section id="business" aria-labelledby="biz-h">
+    <div class="shead"><h2 id="biz-h">Business</h2><p>Charge once to connect, charge every year to run.</p></div>
+    <div class="biz">
+      <div class="card">
+        <h3>Who pays</h3>
+        <ul>
+          <li><b>Thermal Reserve</b> (the physical clock): 3PLs, reefer fleets, cold stores. Entry product.</li>
+          <li><b>Commercial Reserve</b> (the commercial clock): hypermarkets, hotels, caterers. Uses POS and ERP data to route and price stock. Comes second.</li>
+          <li>Buyer: head of supply chain. Must convince: food-safety / QA manager.</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Pricing (hypotheses for pilots)</h3>
+        <div class="rows">
+          <div><span>Implementation, one time</span><b>QAR 90k</b></div>
+          <div><span>Hardware</span><b>at cost</b></div>
+          <div><span>Standard, per year</span><b>QAR 120k</b></div>
+          <div><span>Enterprise, per year</span><b>QAR 216k</b></div>
+          <div><span>Our rule: pay 1×, save at least</span><b class="c-ok">3×</b></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>The ask: QAR 1.85M, 12 months</h3>
+        <div class="bar" role="img" aria-label="Use of funds: 55% team, 23.5% hardware and platform, 10.8% validation and go-to-market, 10.5% contingency">
+          <i style="width:55%;background:var(--cyan)"></i><i style="width:23.5%;background:var(--ok)"></i><i style="width:10.8%;background:var(--warn)"></i><i style="width:10.7%;background:var(--muted)"></i>
+        </div>
+        <div class="rows">
+          <div><span>Engineering team (5)</span><b>55%</b></div>
+          <div><span>Sensors, deployment, cloud</span><b>23.5%</b></div>
+          <div><span>Food-safety validation, sales, legal</span><b>10.8%</b></div>
+          <div><span>Contingency, approval only</span><b>10.5%</b></div>
+        </div>
+      </div>
+      <div class="card span2">
+        <h3>What the money proves</h3>
+        <div class="timeline">
+          <div><b>MONTHS 1–4</b><p>Sign an anchor customer. Agree how value is measured. Baseline. Install devices at 3 to 5 sites.</p></div>
+          <div><b>MONTHS 5–9</b><p>Run interventions against the baseline. Measure avoided loss. Start Commercial Reserve trials.</p></div>
+          <div><b>MONTHS 10–12</b><p>Convert to an annual contract. Second customer. Target QAR 300k to 500k contracted ARR.</p></div>
+        </div>
+      </div>
+      <div class="card">
+        <h3>Why Qatar</h3>
+        <ul>
+          <li>Imports most of its food. Long sea and land legs, customs holds.</li>
+          <li>Summers past 45 °C: a fridge that fails at noon spoils a load in hours.</li>
+          <li>National Food Security Strategy 2030: food waste −50%, food loss −30%.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="questions" aria-labelledby="q-h">
+    <div class="shead"><h2 id="q-h">Hard questions</h2><p>Short, true answers. Bold line first, detail if he pushes.</p></div>
+    <div class="qtools" id="qtools" role="group" aria-label="Filter questions"></div>
+    <div class="qs" id="qs"></div>
+  </section>
+
+  <footer>
+    Sources: the Thermal Trace repository (architecture, code, tests), the pre-seed deck and the SaaS plan. Food-loss figures: FAO / UNEP 2024. Prices and targets are planning hypotheses, not quotes or forecasts. Product constants are literature values to be calibrated per customer.
+  </footer>
+</div>
+
+<script>
+const S = {live:'<span class="chip live">Built</span>', sim:'<span class="chip sim">Simulated</span>', des:'<span class="chip des">Designed</span>'};
+
+const lanes = [
+  {name:'Sense', n:'1', nodes:['sensors','extra']},
+  {name:'Understand', n:'2', nodes:['pipeline','reserve','risk']},
+  {name:'Decide', n:'3', nodes:['optimize','decide']},
+  {name:'Prove', n:'4', nodes:['foodloss','screen','commercial']}
+];
+const guard = ['laya','explainer','provenance'];
+
+const N = {
+  sensors:{t:'Truck sensors', s:'Temperature, humidity, GPS, door, cooling', st:['live','sim'],
+    plain:'Every truck sends one small message every few seconds: how cold it is, where it is, whether the door is open and the cooling is on.',
+    how:'A real NodeMCU + DHT11 node publishes as truck T101 over MQTT. A simulator drives the other trucks around Doha with 7 failure scenarios (fridge failure, door left open, traffic delay and more).',
+    status:'The real node has been tested live. The fleet is simulated and labelled SYNTHETIC on screen. The DHT11 is a hobby sensor (about ±2 °C); a pilot uses calibrated food-grade probes.',
+    q:'"Is this real hardware?" Yes, one real node, and it speaks the exact same message as the simulated trucks, so swapping in real trucks changes nothing downstream.'},
+  extra:{t:'More senses', s:'Shock, ethylene gas, NIR, camera', st:['des'], design:true,
+    plain:'Temperature is not the whole story. A dropped pallet bruises fruit, and ripening fruit gives off gas.',
+    how:'Shock and tilt are simulated today. Gas (ethylene), near-infrared and camera sensing are designed, not built. They will publish the same message.',
+    status:'Designed only. Say so plainly.',
+    q:'"What sensors do you use?" Today temperature and humidity are real, shock is simulated. Gas, NIR and vision are our roadmap, not our product.'},
+  pipeline:{t:'Data pipeline', s:'Check, store, never lose a reading', st:['live'],
+    plain:'Every reading is checked (is it sane, is it from a known device, is the clock right) and stored. Bad readings are kept with a reason, not thrown away.',
+    how:'MQTT broker (Mosquitto) to a FastAPI backend, then PostgreSQL / TimescaleDB and Redis. Live updates go to the screen over one WebSocket.',
+    status:'Built and tested. Runs on one laptop with one command. Keeps working if Redis or the AI is down.',
+    q:'"Will it scale?" The shape is standard and boring on purpose: one backend, Postgres, Redis, MQTT. Multi-customer support (tenants, login, device keys) is the next build and is planned in detail.'},
+  reserve:{t:'Thermal Reserve', s:'How much safe life is left', st:['live'],
+    plain:'We add up how long and how far the food sat above its safe temperature, then convert that into shelf life used up. A 7-day label can arrive with 4.5 days left.',
+    how:'Exposure <span class="formula">E = Σ max(0, T − T_safe)·Δt</span>. Deterioration uses the Arrhenius rate (food spoils faster the warmer it is). Remaining life = shelf life × (1 − damage).',
+    status:'Built, pure deterministic code, no AI. Product constants come from published literature and are marked unverified until a pilot calibrates them.',
+    q:'"Is this food science or a guess?" It is standard food-science maths (Arrhenius kinetics). The constants still need calibration with each customer\'s QA data, which is part of every pilot.'},
+  risk:{t:'Risk & prediction', s:'Spoilage risk, anomalies, one score', st:['live'],
+    plain:'We combine thermal damage, time left, odd behaviour (door open, cooling off) and delays into one risk level: LOW, MEDIUM, HIGH, CRITICAL.',
+    how:'Weighted blend: spoilage 30%, exposure 20%, shelf life 20%, anomaly 15%, delay 10%, humidity 5%. Hard floors: 4 °C above safe forces CRITICAL. Anomalies: rolling z-score plus rules.',
+    status:'Built. The spoilage model is a transparent formula, not a trained ML model yet, because there is no real labelled data yet. The pilot produces it.',
+    q:'"Where is the machine learning?" Honest answer: today it is physics and explainable rules, on purpose. Food safety needs auditable numbers. ML gets trained on pilot data once we have real outcomes.'},
+  optimize:{t:'Optimizer', s:'Which cold store, at what cost', st:['live'],
+    plain:'If the food will not survive the trip, we check every nearby cold store: can it get there in time, does it have room, is it cold enough. Then we pick the cheapest overall.',
+    how:'Minimise transport cost + food-loss cost + delay cost, subject to arrival before safe time runs out, capacity and storage temperature.',
+    status:'Built. Demo has 3 warehouses around Doha. Costs are configurable per customer.',
+    q:'"Who decides?" The maths does. The AI may only re-rank options that already pass every hard rule. An impossible pick is rejected by code.'},
+  decide:{t:'Decision', s:'Continue · Monitor · Prepare · Divert', st:['live'],
+    plain:'All of that becomes one instruction for the control room, with the reason and the cost behind it. A person approves it, or a bounded auto-pilot runs it when risk is HIGH.',
+    how:'Deterministic action map from risk level and feasibility. Every executed action is stored with who and when (audit trail).',
+    status:'Built, including execute, acknowledge and auto-pilot controls.',
+    q:'"What if it is wrong?" It is decision support. A human approves diversions, and it does not replace the customer\'s HACCP food-safety controls.'},
+  foodloss:{t:'Food saved', s:'kg, QAR and CO₂, per intervention', st:['live','sim'],
+    plain:'For every action we compare: what would have been lost if we did nothing, and what was lost with the action. The difference is the food and money saved.',
+    how:'Food saved = (loss without − loss with) × quantity, in kg and QAR, with CO₂ avoided on top.',
+    status:'The calculation is built. The numbers are from simulated trips until a pilot. This is what becomes the customer\'s monthly value report.',
+    q:'"How much do you save a customer?" We will not quote a number before a pilot measures it. The bar we set ourselves: at least 3× our fee in measured avoided loss.'},
+  screen:{t:'Control room', s:'Live map, incidents, one action', st:['live'],
+    plain:'One screen for the whole cold chain: every truck on a map coloured by risk, open incidents, the recommended action and the food saved.',
+    how:'One React app with the command center (fleet, map, truck detail, incidents) and intelligence screens (model, optimization, food loss, inventory, comparison). It only shows backend results; it computes nothing.',
+    status:'Built. Every value carries a tag: MEASURED, CALCULATED, PREDICTED, OPTIMIZED, AI-EXPLAINED or SYNTHETIC.',
+    q:'"Can I see it?" Yes, live. We can fail a truck\'s fridge in front of you and watch the whole chain react in seconds.'},
+  commercial:{t:'Commercial Reserve', s:'Can it still be sold in time?', st:['des'], design:true,
+    plain:'Safe is not the same as sellable. This layer joins the food\'s condition with sales data to send stock where it sells and mark it down early.',
+    how:'<span class="formula">CR = quantity sellable × probability of sale × value per unit</span>, using the retailer\'s POS, inventory and ERP data. An inventory forecast and action screen exists as a first step.',
+    status:'Designed. Staged into the pilot after the physical layer is trusted.',
+    q:'"Is this built?" The physical layer is built. The commercial layer is designed, with an early inventory module; we prove it in controlled pilot trials.'},
+  laya:{t:'Laya, local AI', s:'Fast typed check, offline', st:['live'],
+    plain:'A small AI model that runs on our own machine. It answers fixed questions (condition, action, urgency, needs a human?) and cannot write text, so it cannot make up a number.',
+    how:'Open-source (Apache-2.0) non-generative model. It corroborates the maths and never overrides it. It also screens prompts and routes requests.',
+    status:'Built and optional. Out-of-the-box confidence is over-confident, so the screen labels it uncalibrated.',
+    q:'"Why two AIs?" One makes a fast typed check locally, one explains in words. Neither is allowed to produce the numbers.'},
+  explainer:{t:'Explainer AI', s:'Plain-language reasons', st:['live'],
+    plain:'A language model turns the computed facts into a short explanation an operator can read, with cited food-science sources.',
+    how:'DeepSeek V4.1 Flash via OpenRouter. It can only nudge the spoilage estimate inside a fixed band and only rank feasible options. Without a key the system runs the same, with template text.',
+    status:'Built and optional. Off by default for customers; on only with consent. Laya-only mode keeps all data in country.',
+    q:'"Can the AI hallucinate?" Not a number. Code computes every value, and the AI only explains them inside hard limits.'},
+  provenance:{t:'Provenance & audit', s:'Every value says where it came from', st:['live'],
+    plain:'Each number on screen is tagged: measured, calculated, predicted, optimised, AI-explained or synthetic. Rejected readings and every action are kept.',
+    how:'Tags travel with the data from backend to screen. 130 automated tests, including a full end-to-end run of the fridge-failure story.',
+    status:'Built. This is what a food-safety inspector asks for.',
+    q:'"Why would QA trust it?" Because nothing is hidden: every number is traceable to a reading or a formula, and the record is complete.'}
+};
+
+const lanesEl = document.getElementById('lanes'), guardEl = document.getElementById('guard'), detail = document.getElementById('detail');
+function nodeBtn(id){
+  const d = N[id];
+  const b = document.createElement('button');
+  b.className = 'node' + (d.design ? ' design' : '');
+  b.id = 'node-' + id;
+  b.setAttribute('aria-pressed','false');
+  b.innerHTML = `<b>${d.t}</b><small>${d.s}</small><span style="display:flex;gap:6px;flex-wrap:wrap">${d.st.map(k=>S[k]).join('')}</span>`;
+  b.addEventListener('click',()=>show(id,true));
+  return b;
+}
+lanes.forEach(l=>{
+  const lane = document.createElement('div'); lane.className='lane';
+  lane.innerHTML = `<h3>${l.name}<i>${l.n}</i></h3>`;
+  l.nodes.forEach(id=>lane.appendChild(nodeBtn(id)));
+  lanesEl.appendChild(lane);
+});
+guard.forEach(id=>guardEl.appendChild(nodeBtn(id)));
+
+function show(id, scroll){
+  const d = N[id];
+  document.querySelectorAll('.node').forEach(n=>n.setAttribute('aria-pressed', n.id==='node-'+id ? 'true':'false'));
+  detail.innerHTML = `<div style="display:flex;gap:6px;flex-wrap:wrap">${d.st.map(k=>S[k]).join('')}</div>
+    <h3>${d.t}</h3><p class="plain">${d.plain}</p>
+    <dl><div><dt>How</dt><dd>${d.how}</dd></div>
+    <div><dt>Honest status</dt><dd>${d.status}</dd></div>
+    <div class="ask"><dt>If he asks</dt><dd>${d.q}</dd></div></dl>`;
+  if (scroll && window.matchMedia('(max-width:1020px)').matches) detail.scrollIntoView({behavior:'smooth',block:'start'});
+}
+show('reserve', false);
+
+const Q = [
+  ['Product','What is it, in one sentence?','A cold-chain decision system: it watches food in transit, measures how much safe life a failure has cost, and picks the action that loses the least of it.','Trackers raise an alarm. We say how long the food has left, what to do, and what it saved.'],
+  ['Honesty','How much of this is real?','The full software pipeline is real and runs end to end. One real sensor node has been tested live. The fleet is simulated, and we label it that way on screen.','The commercial layer and the extra sensors (gas, NIR, camera) are designed, not built. Product constants are literature values until a pilot calibrates them.'],
+  ['Traction','What traction do you have?','A registered company, a working product, a result at the Reboot the Earth hackathon, a real sensor tested, and early conversations with potential customers.','Next milestone: a signed anchor pilot. That is what this round pays for.'],
+  ['Customer','Who is the customer and who pays?','First: 3PLs, reefer fleets and cold stores, for the Thermal Reserve. Then hypermarkets and HoReCa, for the Commercial Reserve. The buyer is the head of supply chain; the QA manager must sign off.',''],
+  ['Market','Doesn\'t this already exist?','Trackers like Carrier Lynx, Thermo King and ORBCOMM log temperature and raise alarms. None of them tells you remaining safe time per load and the costed action to take.','We integrate with those trackers rather than replace them, which removes the hardware sale from the deal.'],
+  ['Tech','Where is the AI, really?','The numbers are physics and optimisation, on purpose, because food safety needs auditable values. AI makes a fast local check and explains decisions in plain language.','ML models get trained once a pilot gives us real outcomes. We will not claim ML accuracy we have not measured.'],
+  ['Tech','Can the AI make up a number?','No. Code computes every value. The local model cannot write text. The language model can only move the spoilage estimate inside a fixed band and only rank options that already pass the hard rules.',''],
+  ['Tech','How accurate are your predictions?','Not validated in the field yet, and we say so. The method is standard food-science kinetics; calibrating it to each customer\'s products is a paid step of every pilot.','Pilot metrics: detection lead time, response time, excursions, kg and QAR saved.'],
+  ['Risk','What if it\'s wrong and food makes someone sick?','It is decision support. A person approves every diversion, and it does not replace the customer\'s HACCP controls. Food-safety release always stays with authorised people.','Food-safety experts review thresholds, paid from the validation budget.'],
+  ['Money','How do you make money?','QAR 90k one-time implementation plus hardware at cost, then a yearly subscription: Standard QAR 120k, Enterprise QAR 216k.','Our rule: the customer pays 1× and must save at least 3×. These prices are hypotheses we test in pilots.'],
+  ['Money','How much are you raising, and for what?','QAR 1.85M pre-seed (about USD 508k) for 12 months. 55% engineering team, 23.5% sensors and platform, 10.8% validation and sales, 10.5% contingency.','Goal at month 12: one anchor customer live at 3 to 5 sites, measured savings of 3× the fee, QAR 300k to 500k contracted ARR (a target, not a forecast).'],
+  ['Market','How big is the market?','Food loss between harvest and retail is 13% of all food, and food loss and waste is 8 to 10% of global emissions (FAO / UNEP 2024). We start with Qatar\'s cold chain, then the GCC.','We have not finalised a bottom-up market size. Better to say that than to quote a made-up TAM.'],
+  ['Market','Why Qatar, why now?','Qatar imports most of its food across long legs and 45 °C summers, and its National Food Security Strategy 2030 targets 50% less food waste and 30% less food loss.','National systems work at country level. We are the operator-level layer: one truck, one cold room at a time.'],
+  ['Moat','It\'s open source. What stops someone copying it?','The code is not the moat. The moat is per-customer calibration data, integrations with their trucks and ERP, and the trusted temperature record over time.','Customers pay for the hosted service, onboarding, calibration and support. Which features stay private is still an open decision for the team.'],
+  ['Data','Where does customer data go?','Hosted in Qatar (Azure Qatar Central or Google Cloud Doha). The local AI keeps data in country; the cloud explainer is off unless the customer opts in.','No personal data is used. Truck GPS can link to a driver, so we treat it as potentially personal data.'],
+  ['Team','Can your team build this?','We built the whole working pipeline already. The round hires five engineers, one owner per part: architecture, thermal intelligence, data platform, IoT and edge, and operator workflows.','The CEO leads investors and customers. Food-safety experts join part time.'],
+  ['Risk','What is your biggest risk?','Getting real customer data access and a long enterprise sales cycle. We sign data access and a named sponsor before installing anything, and put conversion terms in the pilot contract.','We also avoid building both products at once: Thermal Reserve first.'],
+  ['Booth','What would you show at the booth?','A live demo: we fail a truck\'s fridge on screen and the whole chain reacts in seconds, from alarm to diversion to food saved. Plus the real sensor node, which visitors can warm with their hand.','It runs offline on one laptop, so it does not depend on venue Wi-Fi.']
+];
+const qs = document.getElementById('qs'), qtools = document.getElementById('qtools');
+const cats = ['All', ...new Set(Q.map(q=>q[0]))];
+Q.forEach(([c,q,a,b])=>{
+  const d = document.createElement('details'); d.dataset.cat = c;
+  d.innerHTML = `<summary><span class="tag">${c}</span><span>${q}</span></summary><div class="a"><p class="say"><b>${a}</b></p>${b?`<p>${b}</p>`:''}</div>`;
+  qs.appendChild(d);
+});
+cats.forEach((c,i)=>{
+  const b = document.createElement('button'); b.textContent = c; b.setAttribute('aria-pressed', i===0?'true':'false');
+  b.addEventListener('click',()=>{
+    qtools.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed', x===b?'true':'false'));
+    qs.querySelectorAll('details').forEach(d=>d.hidden = !(c==='All' || d.dataset.cat===c));
+  });
+  qtools.appendChild(b);
+});
+</script>
+</body>
+</html>
